@@ -1,7 +1,13 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from '@scenes/BootScene';
 import { COLORS } from '@ui/theme';
+import { GAME_HEIGHT, GAME_WIDTH } from './config';
+
+const scenes: Phaser.Types.Scenes.SceneType[] = [BootScene];
+if (import.meta.env.DEV) {
+  const { PlaygroundScene } = await import('@dev/PlaygroundScene');
+  scenes.push(PlaygroundScene);
+}
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -13,5 +19,5 @@ new Phaser.Game({
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
   },
-  scene: [BootScene],
+  scene: scenes,
 });

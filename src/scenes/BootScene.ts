@@ -1,17 +1,21 @@
-import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { STRINGS } from '@data/strings';
-import { COLORS, toCssColor } from '@ui/theme';
+import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { BaseScene } from './BaseScene';
 
-export class BootScene extends Phaser.Scene {
+export class BootScene extends BaseScene {
   constructor() {
     super('Boot');
   }
 
-  create() {
+  protected onCreate(): void {
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('playground')) {
+      this.scene.start('Playground');
+      return;
+    }
     this.add
       .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, STRINGS.gameTitle, {
-        fontFamily: 'sans-serif',
+        fontFamily: FONT_FAMILY,
         fontSize: '64px',
         color: toCssColor(COLORS.text),
       })

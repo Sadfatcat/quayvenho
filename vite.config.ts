@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => ({
       '@scenes': srcDir('scenes'),
       '@save': srcDir('save'),
       '@platform': srcDir('platform'),
+      '@dev': srcDir('dev'),
     },
   },
   plugins: mode === 'https' ? [basicSsl()] : [],

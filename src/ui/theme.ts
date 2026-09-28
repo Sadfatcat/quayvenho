@@ -5,3 +5,9 @@ export const COLORS = {
 } as const;
 
 export const toCssColor = (color: number) => `#${color.toString(16).padStart(6, '0')}`;
+
+/** Placeholder until Nunito/Baloo 2 are hosted locally (PLAN §10.1, §15 D2). */
+export const FONT_FAMILY = 'Nunito, "Segoe UI", sans-serif';
+
+export const RADIUS = { sm: 8, md: 16, lg: 24 } as const;
+export const SPACING = { xs: 8, sm: 12, md: 16, lg: 24, xl: 32 } as const;

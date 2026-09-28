@@ -22,7 +22,8 @@
       "@ui/*": ["./src/ui/*"],
       "@scenes/*": ["./src/scenes/*"],
       "@save/*": ["./src/save/*"],
-      "@platform/*": ["./src/platform/*"]
+      "@platform/*": ["./src/platform/*"],
+      "@dev/*": ["./src/dev/*"]
     }
   },
   "include": ["src", "scripts"]
