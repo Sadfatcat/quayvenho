@@ -33,6 +33,7 @@ export class ScrollList<T> extends Phaser.GameObjects.Container {
   private scrollY = 0;
   private dragStartY = 0;
   private dragStartScrollY = 0;
+  private readonly deferredMaskUpdate: () => void;
 
   constructor(scene: Phaser.Scene, options: ScrollListOptions<T>) {
     super(scene, options.x, options.y);
@@ -46,8 +47,13 @@ export class ScrollList<T> extends Phaser.GameObjects.Container {
     scene.add.existing(this);
 
     this.maskGraphics = scene.make.graphics({}, false);
-    this.updateMask();
     this.content.setMask(new Phaser.Display.Masks.GeometryMask(scene, this.maskGraphics));
+    // Deferred: a caller typically does `parent.add(scrollList)` right after `new ScrollList(...)`,
+    // which changes this container's world position. POST_UPDATE fires after that synchronous
+    // reparenting but still before this frame renders, so the mask ends up in the right place
+    // with no visible flicker — computing it eagerly here would bake in the stale pre-reparent position.
+    this.deferredMaskUpdate = () => this.updateMask();
+    scene.events.once(Phaser.Scenes.Events.POST_UPDATE, this.deferredMaskUpdate);
 
     this.dragController = new DragController(this.viewport, {
       onDragStart: (point) => {
@@ -71,6 +77,7 @@ export class ScrollList<T> extends Phaser.GameObjects.Container {
   }
 
   override destroy(fromScene?: boolean): void {
+    this.scene?.events.off(Phaser.Scenes.Events.POST_UPDATE, this.deferredMaskUpdate);
     this.dragController.destroy();
     this.maskGraphics.destroy();
     super.destroy(fromScene);
