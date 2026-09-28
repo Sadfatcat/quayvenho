@@ -3,6 +3,7 @@ import { invariant } from '@domain/common/invariant';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button, type ButtonVariant } from '@ui/Button';
 import { Panel } from '@ui/Panel';
+import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, SPACING, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 
@@ -32,14 +33,7 @@ export class DialogOverlay extends BaseOverlay {
     const panelHeight = HEADER_HEIGHT + buttonsHeight;
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: panelHeight });
 
-    const title = scene.add
-      .text(0, -panelHeight / 2 + 60, options.title, {
-        fontFamily: FONT_FAMILY,
-        fontSize: '36px',
-        fontStyle: 'bold',
-        color: toCssColor(COLORS.text),
-      })
-      .setOrigin(0.5);
+    const title = scene.add.text(0, -panelHeight / 2 + 60, options.title, TEXT_STYLES.heading).setOrigin(0.5);
     const message = scene.add
       .text(0, -panelHeight / 2 + 130, options.message, {
         fontFamily: FONT_FAMILY,

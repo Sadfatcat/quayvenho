@@ -72,6 +72,7 @@ export class ScrollList<T> extends Phaser.GameObjects.Container {
 
   override destroy(fromScene?: boolean): void {
     this.dragController.destroy();
+    this.maskGraphics.destroy();
     super.destroy(fromScene);
   }
 

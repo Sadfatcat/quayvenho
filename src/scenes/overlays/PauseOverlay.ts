@@ -3,7 +3,8 @@ import { STRINGS } from '@data/strings';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
-import { COLORS, FONT_FAMILY, SPACING, toCssColor } from '@ui/theme';
+import { TEXT_STYLES } from '@ui/textStyles';
+import { SPACING } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { DialogOverlay } from './DialogOverlay';
 
@@ -24,14 +25,7 @@ export class PauseOverlay extends BaseOverlay {
     super(scene, { closeOnBackdropTap: false });
 
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });
-    const title = scene.add
-      .text(0, -PANEL_HEIGHT / 2 + 60, STRINGS.pause.title, {
-        fontFamily: FONT_FAMILY,
-        fontSize: '36px',
-        fontStyle: 'bold',
-        color: toCssColor(COLORS.text),
-      })
-      .setOrigin(0.5);
+    const title = scene.add.text(0, -PANEL_HEIGHT / 2 + 60, STRINGS.pause.title, TEXT_STYLES.heading).setOrigin(0.5);
 
     const resumeButton = new Button(scene, 0, -60, {
       width: BUTTON_WIDTH,

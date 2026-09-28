@@ -63,3 +63,21 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Điều kiện Shop (ngày mở, TravelViet) tính theo ngày kế tiếp (`day + 1`), vì mua ở Shop có hiệu lực từ ngày sau.
 - Tiền dùng `0 - x` khi đổi dấu tổng chi, tránh `-0`.
 - Bot test (`__integration__/bots.ts`) là nền cho `scripts/sim.ts` ở bước 5.7.
+
+## 2026-09-28 — UI: PlaygroundScene chỉ tồn tại ở bản dev
+
+- Quyết định: `main.ts` dùng `if (import.meta.env.DEV) { const { PlaygroundScene } = await import('@dev/PlaygroundScene'); ... }` (top-level await, dynamic import). Bản production không có PlaygroundScene trong bundle (đã kiểm bằng `npm run build`: đúng 12 module, không tăng khi thêm Playground).
+- Thêm alias `@dev/*` → `src/dev/*` trong `tsconfig.json` và `vite.config.ts`, khớp cây thư mục PLAN §6.1 (`dev/debug.ts`).
+- `BootScene` chuyển sang `Playground` khi URL có `?playground` và đang ở DEV; không có nhánh này trong build production (dead-code-eliminated).
+
+## 2026-09-28 — UI: DragController dựa vào Phaser `input.windowEvents`
+
+- Quyết định: không tự đăng ký listener `window.addEventListener('pointerup', ...)` thủ công. Phaser InputManager mặc định lắng nghe `pointerup`/`blur` trên `window` (`game.config.input.windowEvents`, mặc định `true`, không bị tắt ở `main.ts`), nên `pointerup`/`pointerupoutside` của Phaser đã tự kết thúc kéo khi thả ngoài canvas, đúng PLAN §11.1.
+- `DragController` chỉ theo dõi đúng `pointer.id` bắt đầu kéo; `target` phải tự `setInteractive()` trước khi tạo controller (kiểm bằng `invariant`).
+- Tự dọn qua sự kiện `Phaser.GameObjects.Events.DESTROY` của target, tránh rò rỉ listener toàn cục trên `scene.input` khi target bị huỷ mà quên gọi `destroy()`.
+
+## 2026-09-28 — UI: ScrollList — kéo/chạm phân biệt ở Button, không phải ở list
+
+- Quyết định: `ScrollList` chỉ bắt kéo qua một `viewport` Rectangle trong suốt nằm dưới các item; việc "chạm không nhầm thành kéo" (PLAN §10.4) do chính `Button` tự đảm bảo — `Button` so khoảng cách giữa điểm nhấn và điểm thả (ngưỡng `DRAG_TAP_THRESHOLD_PX`), không cần `ScrollList` biết về các Button con.
+- Đã loại: cơ chế `ScrollList` phát cờ `isDragging` để các con tự kiểm tra (yêu cầu con phải biết về cha, tăng khớp nối) — đơn giản hơn vì Button vốn đã cần logic phân biệt kéo/chạm cho chính nó (BaggageSlider, kéo vé sau này).
+- Đã kiểm bằng Playwright: kéo danh sách 20 mục ảo hoá đúng, bấm "Chọn" trên item sau khi cuộn vẫn ra đúng toast, không có false-tap trong quá trình kéo.

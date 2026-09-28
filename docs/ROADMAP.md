@@ -95,21 +95,21 @@ Mục tiêu: có sẵn các component Phaser mà ≥ 2 màn sẽ dùng, xem đư
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 2.1 | Nền tảng giao diện | `ui/theme.ts` (màu, cỡ chữ, bo góc, khoảng cách), `ui/textStyles.ts`, `ui/layout.ts` (safe area, vùng chạm 88) , `scenes/BaseScene.ts` | Scene mới kế thừa BaseScene có nền, safe area, font đúng |
-| [ ] 2.2 | Khối cơ bản | `ui/Button.ts` (nhấn, disabled, khoá sau khi bấm), `ui/Panel.ts` (nền bo góc, dùng cho Card/Dialog/Bubble), `ui/IconLabel.ts` | Hiện trong Playground ở 360×640 và 430×932 |
-| [ ] 2.3 | Lớp phủ | `ui/BaseOverlay.ts` (làm mờ, chặn input phía dưới, đóng khi chạm ngoài tuỳ chọn), `scenes/overlays/DialogOverlay.ts`, `ui/Toast.ts` | Dialog 1–3 nút; toast xếp hàng không chồng nhau |
-| [ ] 2.4 | Tương tác | `ui/DragController.ts` (chỉ pointer đầu, `pointerup` trên window), `ui/ScrollList.ts` (kéo/chạm ngưỡng 10 px, ảo hoá > 15 item), `ui/ProgressBar.ts` | Kéo ra ngoài canvas vẫn kết thúc; cuộn không kích hoạt nút |
-| [ ] 2.5 | Hiệu ứng số | `ui/FloatingText.ts` (tiền bay lên), `ui/CountUpText.ts` (đếm số) | Hiện trong Playground |
-| [ ] 2.6 | Cầu nối domain | `scenes/sessionBridge.ts` (giữ `GameSession`, `dispatch`, phát `DomainEvent` cho scene đăng ký, gọi `tick`), `platform/visibility.ts`, `scenes/overlays/PauseOverlay.ts` | Ẩn tab → pause; quay lại thấy PauseOverlay |
-| [ ] 2.7 | UI Playground (chỉ DEV) | `dev/PlaygroundScene.ts` | Mở bằng `?playground`, liệt kê mọi common UI |
-| [ ] 2.R | Review giai đoạn 2 | — | Theo mẫu Review |
+| [x] 2.1 | Nền tảng giao diện | `ui/theme.ts` (màu, cỡ chữ, bo góc, khoảng cách), `ui/textStyles.ts`, `ui/layout.ts` (safe area, vùng chạm 88) , `scenes/BaseScene.ts` | Scene mới kế thừa BaseScene có nền, safe area, font đúng |
+| [x] 2.2 | Khối cơ bản | `ui/Button.ts` (nhấn, disabled, khoá sau khi bấm), `ui/Panel.ts` (nền bo góc, dùng cho Card/Dialog/Bubble), `ui/IconLabel.ts` | Hiện trong Playground ở 360×640 và 430×932 |
+| [x] 2.3 | Lớp phủ | `ui/BaseOverlay.ts` (làm mờ, chặn input phía dưới, đóng khi chạm ngoài tuỳ chọn), `scenes/overlays/DialogOverlay.ts`, `ui/Toast.ts` | Dialog 1–3 nút; toast xếp hàng không chồng nhau |
+| [x] 2.4 | Tương tác | `ui/DragController.ts` (chỉ pointer đầu, `pointerup` trên window), `ui/ScrollList.ts` (kéo/chạm ngưỡng 10 px, ảo hoá > 15 item), `ui/ProgressBar.ts` | Kéo ra ngoài canvas vẫn kết thúc; cuộn không kích hoạt nút |
+| [x] 2.5 | Hiệu ứng số | `ui/FloatingText.ts` (tiền bay lên), `ui/CountUpText.ts` (đếm số) | Hiện trong Playground |
+| [x] 2.6 | Cầu nối domain | `scenes/sessionBridge.ts` (giữ `GameSession`, `dispatch`, phát `DomainEvent` cho scene đăng ký, gọi `tick`), `platform/visibility.ts`, `scenes/overlays/PauseOverlay.ts` | Ẩn tab → pause; quay lại thấy PauseOverlay |
+| [x] 2.7 | UI Playground (chỉ DEV) | `dev/PlaygroundScene.ts` | Mở bằng `?playground`, liệt kê mọi common UI |
+| [x] 2.R | Review giai đoạn 2 | — | Theo mẫu Review |
 
-Ghi chú review (từ 1.R):
-- `GameSession` sửa state tại chỗ (DECISIONS 2026-09-28): scene không so sánh tham chiếu để phát hiện thay đổi; render lại theo `DomainEvent` hoặc mỗi frame từ `session.state` (chỉ đọc).
-- Trong một frame: xử lý input (dispatch) trước, rồi mới `tick` — giữ luật "giao vé thắng hết kiên nhẫn".
-- `sessionBridge` (2.6) cần: giữ `GameSession`, `dispatch` trả events, phát events cho scene đăng ký, `tick` chỉ khi không pause.
-- Cần thêm vào `data/strings.ts` ở giai đoạn 3: nhãn `MistakeCode`, lý do `COMMAND_REJECTED` hiện toast, thoại khách theo kết quả (§4.6, tạm 1 câu).
-- `BUILD_SET_BAGGAGE` đã snap trong domain; slider chỉ hiện giá trị từ state.
+Ghi chú review (từ 2.R):
+- Common UI đã đủ cho giai đoạn 3: `TopBar` (3.1) dựng từ `IconLabel` + `Panel`; `SpeechBubble`/`PatienceBar` (3.2) dựng từ `Panel`/`ProgressBar`; `FlightList` (3.3) là một `ScrollList<Flight>` với `renderItem` trả `Container` chứa 2 `Button` (ECO/BIZ); `SeatMapView` (3.4) là lưới `Button`-như (nhấn/chọn) không cần ScrollList; `BaggageSlider` (3.5) dùng `DragController` trên một handle riêng, snap gọi thẳng domain `snapBaggage` (đã export ở `dayCycle.ts`); máy in và kéo vé (3.6) dùng `ProgressBar` + `DragController`; kết quả dùng `showFloatingText`.
+- `DialogOverlay`/`PauseOverlay` dùng `TEXT_STYLES.heading` cho tiêu đề — CounterScene/PrepScene cũng nên dùng `TEXT_STYLES` thay vì hardcode style, trừ khi cần cỡ chữ riêng.
+- `Button.lock()/unlock()`: gọi `lock()` ngay trước `sessionBridge.dispatch(...)`, `unlock()` khi nhận `DomainEvent` tương ứng (hoặc `COMMAND_REJECTED`) — áp dụng cho nút "In vé", "Giao vé", "Xác nhận nhập ghế" ở giai đoạn 3–4 để chặn double-tap (PLAN §14.2, §14.6).
+- Cần thêm vào `data/strings.ts` ở giai đoạn 3: nhãn `MistakeCode`, lý do `COMMAND_REJECTED` hiện toast, thoại khách theo kết quả (§4.6, tạm 1 câu), nhãn 4 bước A-B-C-D cho `StepIndicator`.
+- `ScrollList.destroy()` đã tự dọn `DragController` và mask graphics — scene chỉ cần gọi `.destroy()` khi rời màn, không cần dọn thủ công thêm.
 - Toạ độ/khoảng cách UI để trong `ui/layout.ts`, không rải số trong scene.
 
 ---
@@ -237,19 +237,22 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 
 | Component | File | Dùng ở | Giai đoạn tạo | Trạng thái |
 |---|---|---|---|---|
-| theme, textStyles, layout | `ui/theme.ts`, `textStyles.ts`, `layout.ts` | mọi scene | 2.1 | `theme.ts` có bản đầu |
-| BaseScene | `scenes/BaseScene.ts` | mọi scene | 2.1 | chưa làm |
-| Button | `ui/Button.ts` | mọi scene | 2.2 | chưa làm |
-| Panel | `ui/Panel.ts` | Card, Dialog, SpeechBubble, PassportCard, TicketView | 2.2 | chưa làm |
-| IconLabel | `ui/IconLabel.ts` | TopBar, SpeechBubble, FlightList, Card | 2.2 | chưa làm |
-| BaseOverlay | `ui/BaseOverlay.ts` | Dialog, Pause, Settings, Tutorial, Rotate, PassportCard | 2.3 | chưa làm |
-| DialogOverlay | `scenes/overlays/DialogOverlay.ts` | Title, Kho, Pause, Shop, lưới an toàn | 2.3 | chưa làm |
-| Toast | `ui/Toast.ts` | Quầy, Title, Summary, PWA | 2.3 | chưa làm |
-| DragController | `ui/DragController.ts` | BaggageSlider, kéo vé, Slider, ScrollList | 2.4 | chưa làm |
-| ScrollList | `ui/ScrollList.ts` | Kho, FlightList, Shop | 2.4 | chưa làm |
-| ProgressBar | `ui/ProgressBar.ts` | PatienceBar, máy in, Preload | 2.4 | chưa làm |
-| FloatingText | `ui/FloatingText.ts` | kết quả giao vé, mua ghế, Shop | 2.5 | chưa làm |
-| CountUpText | `ui/CountUpText.ts` | Summary, tiền trên TopBar | 2.5 | chưa làm |
+| theme, textStyles, layout | `ui/theme.ts`, `textStyles.ts`, `layout.ts` | mọi scene/UI | 2.1 | xong |
+| BaseScene | `scenes/BaseScene.ts` | BootScene, PlaygroundScene, mọi scene sau này | 2.1 | xong |
+| Button | `ui/Button.ts` | mọi scene có nút; `lock()/unlock()` quanh `sessionBridge.dispatch` | 2.2 | xong |
+| Panel | `ui/Panel.ts` | Card, Dialog, Pause, Toast, SpeechBubble, PassportCard, TicketView | 2.2 | xong |
+| IconLabel | `ui/IconLabel.ts` | TopBar, SpeechBubble, FlightList, Card, Playground | 2.2 | xong |
+| BaseOverlay | `ui/BaseOverlay.ts` | Dialog, Pause, Settings, Tutorial, Rotate, PassportCard | 2.3 | xong |
+| DialogOverlay | `scenes/overlays/DialogOverlay.ts` | Title, Kho, Pause, Shop, lưới an toàn | 2.3 | xong |
+| Toast | `ui/Toast.ts` (`ToastQueue`) | Quầy (lỗi COMMAND_REJECTED), Title, Summary, PWA | 2.3 | xong |
+| DragController | `ui/DragController.ts` | ScrollList, BaggageSlider, kéo vé, Slider | 2.4 | xong |
+| ScrollList | `ui/ScrollList.ts` | Kho, FlightList, Shop | 2.4 | xong |
+| ProgressBar | `ui/ProgressBar.ts` | PatienceBar, máy in, Preload | 2.4 | xong |
+| FloatingText | `ui/FloatingText.ts` (`showFloatingText`) | kết quả giao vé, mua ghế, Shop | 2.5 | xong |
+| CountUpText | `ui/CountUpText.ts` | Summary, tiền trên TopBar | 2.5 | xong |
+| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay (Prep/Counter/Summary/Shop) | 2.6 | xong |
+| registerVisibilityHandler | `platform/visibility.ts` | CounterScene (và mọi scene gameplay khác cần pause) | 2.6 | xong |
+| PauseOverlay | `scenes/overlays/PauseOverlay.ts` | mọi scene gameplay | 2.6 | xong |
 | TopBar | `ui/TopBar.ts` | Quầy, Kho | 3.1 | chưa làm |
 | SpeechBubble | `ui/SpeechBubble.ts` | khách, Béo (Onboarding, Tutorial) | 3.2 | chưa làm |
 | SegmentedControl | `ui/SegmentedControl.ts` | Shop (tab), Kho (seat bias) | 5.1 | chưa làm |
