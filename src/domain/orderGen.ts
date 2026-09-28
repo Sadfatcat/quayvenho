@@ -74,7 +74,14 @@ const chooseRoute = (ctx: OrderContext): RouteId => {
   const routesWithSeats = ctx.unlockedRoutes.filter(hasSeat);
   if (!routesWithSeats.length || hasSeat(drawn)) return drawn;
 
-  if (ctx.day <= ALWAYS_FEASIBLE_UNTIL_DAY) return ctx.rng.pick(routesWithSeats);
+  if (ctx.day <= ALWAYS_FEASIBLE_UNTIL_DAY) {
+    // Two bag lengths always cover one full bag, so a route with seats is reached.
+    for (let i = 0; i < ctx.routeBag.capacity * 2; i++) {
+      const redrawn = ctx.routeBag.draw();
+      if (hasSeat(redrawn)) return redrawn;
+    }
+    invariant(false, 'route bag has no route with seats');
+  }
   if (!ctx.rng.chance(FEASIBLE_ROUTE_CHANCE)) return drawn;
   for (let i = 0; i < FEASIBILITY_REDRAWS; i++) {
     const redrawn = ctx.routeBag.draw();
@@ -140,7 +147,7 @@ export const generateOrder = (ctx: OrderContext): Order => {
     isMechanicOpen(mechanic, day) && complexity < cfg.maxComplexity && rng.chance(probability);
 
   const windows = openWindows(routeId, ctx.flights);
-  const cabin = windows.length && canAdd('business', cfg.pBusiness) ? (complexity++, 'BUSINESS' as const) : 'ECONOMY';
+  const cabin = canAdd('business', cfg.pBusiness) ? (complexity++, 'BUSINESS' as const) : 'ECONOMY';
   const baggageKg: BaggageKg = canAdd('baggage', cfg.pBaggage) ? (complexity++, rng.weighted(BAGGAGE_CHOICES)) : 0;
   const seatPref: SeatPref = canAdd('seatPref', cfg.pSeatPref)
     ? (complexity++, rng.pick(['WINDOW', 'AISLE'] as const))

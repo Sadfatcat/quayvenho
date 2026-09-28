@@ -49,3 +49,17 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Thêm Onboarding (tên người chơi, tên thương hiệu), cốt truyện genz, nhân vật dẫn truyện Béo.
 - Máy bay/cơ trưởng/nhân viên, nợ/phá sản, DELAY: đưa vào backlog §17.
 - Chọn "3.0–3.5 → 45%" cho khoảng 3.5–3.6 chủ dự án chưa nói rõ.
+
+## 2026-09-28 — Domain: GameSession sửa state tại chỗ
+
+- Quyết định: `applyCommand` / `advanceTime` (`dayCycle.ts`) sửa `GameState` tại chỗ qua holder `Session`; lệnh bị từ chối kiểm tra hết trước khi sửa nên không để state dở dang. Không có hàm reducer thuần clone state.
+- Lý do: `tick` chạy mỗi frame và sim chạy hàng triệu tick; clone toàn bộ state mỗi tick quá tốn. Tính xác định (replay test) vẫn giữ.
+- Đã loại: `structuredClone` mỗi command/tick; immutable update thủ công toàn bộ cây state.
+
+## 2026-09-28 — Domain: sub-stream RNG và các chi tiết nhỏ
+
+- Sub-stream: `schedule:{flightId}`, `purchase:{n}`, `weather` (kết quả) + `weather:loss` (chọn ghế mất), `demand` (base) + `demand:bonus`, `support` (lưới an toàn), `routes`, `orders`, `names`, `spawn`. Tách nhỏ để một hệ thống thêm/bớt lời gọi random không làm lệch hệ thống khác.
+- `DayRuntime` (routeBag + rng đơn/tên) tạo lại khi `OPEN_COUNTER`, không lưu vào save.
+- Điều kiện Shop (ngày mở, TravelViet) tính theo ngày kế tiếp (`day + 1`), vì mua ở Shop có hiệu lực từ ngày sau.
+- Tiền dùng `0 - x` khi đổi dấu tổng chi, tránh `-0`.
+- Bot test (`__integration__/bots.ts`) là nền cho `scripts/sim.ts` ở bước 5.7.

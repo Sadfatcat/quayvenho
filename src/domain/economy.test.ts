@@ -11,23 +11,9 @@ import {
   summarizeDay,
   ticketRevenue,
 } from './economy';
-import type { Order, OwnedSeat, ScoreResult } from './models';
+import { makeOrder as order } from './__integration__/fixtures';
+import type { OwnedSeat, ScoreResult } from './models';
 import { getRoute } from './routes';
-
-const order = (patch: Partial<Order> = {}): Order => ({
-  customerId: 'c',
-  spriteId: 'c01',
-  routeId: 'HAN-DAD',
-  cabin: 'ECONOMY',
-  baggageKg: 0,
-  seatPref: 'ANY',
-  timePref: 'ANY',
-  extras: [],
-  passport: { name: 'A', bookedName: 'A', expiresDay: 10 },
-  complexity: 0,
-  patienceMaxMs: 1000,
-  ...patch,
-});
 
 const seat = (state: OwnedSeat['state'], unitCost: number): OwnedSeat => ({
   flightId: 'QV201',

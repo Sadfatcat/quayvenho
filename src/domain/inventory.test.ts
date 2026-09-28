@@ -14,18 +14,12 @@ import {
   releaseHeld,
   sellHeld,
 } from './inventory';
+import { makeFlight } from './__integration__/fixtures';
 import type { Flight, OwnedSeat } from './models';
 import { createRng } from './rng';
 import { isWindow, seatsOfCabin } from './seatMap';
 
-const flight = (patch: Partial<Flight> = {}): Flight => ({
-  id: 'QV201',
-  routeId: 'HAN-DAD',
-  departAt: 1290,
-  status: 'SCHEDULED',
-  takenByOthers: ['3A', '3B', '1A'],
-  ...patch,
-});
+const flight = (patch: Partial<Flight> = {}): Flight => makeFlight({ takenByOthers: ['3A', '3B', '1A'], ...patch });
 
 const owned = (seat: OwnedSeat['seat'], state: OwnedSeat['state'] = 'AVAILABLE', patch: Partial<OwnedSeat> = {}): OwnedSeat => ({
   flightId: 'QV201',

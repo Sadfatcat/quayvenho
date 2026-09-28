@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { rollDayEvent } from '../events';
+import { seedWithDay1Event } from './fixtures';
 import { GameSession } from '../game';
 import type { Decision, Decide } from './bots';
 import { playDay, playShift, randomBotRng, randomDecide } from './bots';
-
-const seedWithDay1Event = (type: 'NONE' | 'RUSH') => {
-  for (let seed = 1; ; seed++) if (rollDayEvent(seed, 1, ['HAN-SGN', 'HAN-DAD']).type === type) return seed;
-};
 
 describe('full day (Phase 1 acceptance)', () => {
   it('3 correct, 1 wrong, 1 correct refusal, 2 left → expected DaySummary', () => {

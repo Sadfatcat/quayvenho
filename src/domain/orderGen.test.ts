@@ -126,6 +126,29 @@ describe('orderGen invariants (§8.4)', () => {
     expect(count(5, 8, 5)).toBe(2);
   });
 
+  it('day 1–2 redraws from the bag, keeping route weights among routes with seats', () => {
+    const routes = ['HAN-SGN', 'HAN-DAD', 'HAN-CXR'];
+    const counts: Record<string, number> = { 'HAN-SGN': 0, 'HAN-DAD': 0, 'HAN-CXR': 0 };
+    for (let seed = 1; seed <= 300; seed++) {
+      const flights = generateFlights(seed, 2, routes);
+      const seats = flights
+        .filter((f) => f.routeId !== 'HAN-SGN')
+        .map((f) => ({ flightId: f.id, seat: '12D', cabin: 'ECONOMY', unitCost: 1, state: 'AVAILABLE' }) as OwnedSeat);
+      const ctx = {
+        rng: rngFor(seed, 2, 'orders'), namesRng: rngFor(seed, 2, 'names'), day: 2, cfg: getDayConfig(2),
+        flights, seats, unlockedRoutes: routes, routeBag: buildRouteBag(rngFor(seed, 2, 'routes'), routes, {}, 2),
+        modifiers: BASE_MODIFIERS,
+      };
+      for (let i = 0; i < 16; i++) {
+        const routeId = generateOrder({ ...ctx, customerIndex: i }).routeId;
+        counts[routeId] = (counts[routeId] ?? 0) + 1;
+      }
+    }
+    expect(counts['HAN-SGN']).toBe(0);
+    // DAD weight 3 vs CXR weight 2
+    expect((counts['HAN-DAD'] ?? 0) / (counts['HAN-CXR'] ?? 1)).toBeCloseTo(1.5, 0);
+  });
+
   it('customers whose route has no seats can be refused as no-stock', () => {
     const { flights, seats, orders } = generateDay(3, 5, ROUTE_SETS[0] as RouteId[]);
     const refusable = orders.filter((o) => !canServe(o, flights, seats));

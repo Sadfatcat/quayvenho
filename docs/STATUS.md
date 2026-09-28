@@ -1,15 +1,10 @@
 # STATUS
 
-- Giai đoạn hiện tại: 0 — Nền móng (Review xong, chờ chủ dự án)
-- Đã xong:
-  - Node 24.19, Git 2.55 cài qua winget; dependency cài và pin (DECISIONS 2026-09-28)
-  - typecheck, lint, test (chưa có test), build xanh
-  - Rule ESLint domain chặn đúng 5/5 vi phạm thử (phaser, @ui, Math.random, Date, window)
-  - git init + commit đầu; CI workflow; `.nvmrc`; hướng dẫn deploy trong README
-  - code-reviewer: OK
-- Acceptance Phase 0 chưa kiểm được (cần chủ dự án):
-  - `npm run dev` không lỗi console: chưa kiểm bằng Playwright (MCP kết nối lỗi vì Node được cài giữa phiên; cần reload VS Code)
-  - `npm run dev:host` trên điện thoại
-  - CI xanh: cần tạo repo GitHub và push
-  - Deploy Cloudflare Pages: cần tài khoản
-- Bước tiếp theo: Giai đoạn 1, bước 1.1
+- Giai đoạn hiện tại: 1 — Domain core (Review xong, chờ chủ dự án)
+- Đã xong giai đoạn 1:
+  - 13 bước ROADMAP, 111 test xanh (3,5 s), coverage domain 99,2% lines / 94,4% branches
+  - Acceptance Phase 1: ngày tích hợp khớp DaySummary; invariant tiền trên 1.000 ngày ngẫu nhiên; invariant §8.4 trên 2.000 seed × 30 ngày; bot hoàn hảo chơi 30 ngày (mở ≥ 2 tuyến, có TravelViet); replay giống hệt; không vi phạm rule ESLint domain
+  - code-reviewer: 1 P1 + 2 P2, đã kiểm chứng và sửa cả 3 (redraw ngày 1–2 theo túi, bỏ điều kiện thừa khi chọn BUSINESS, thêm test trọng số)
+  - Tách test fixture dùng chung (`__integration__/fixtures.ts`)
+- Từ giai đoạn 0 còn chờ: thử `dev:host` trên điện thoại, Cloudflare Pages, reload VS Code để Playwright MCP chạy
+- Bước tiếp theo: Giai đoạn 2, bước 2.1 (bộ UI dùng chung)

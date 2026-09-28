@@ -1,25 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { Flight, Order } from './models';
+import { makeFlight as flight, makeOrder } from './__integration__/fixtures';
+import type { Order } from './models';
 import { isPassportValid, scoreCustomer, type DeliveredTicket, type ScoreInput } from './scoring';
 
-const flight = (patch: Partial<Flight> = {}): Flight => ({
-  id: 'QV201', routeId: 'HAN-DAD', departAt: 1290, status: 'SCHEDULED', takenByOthers: [], ...patch,
-});
-
-const order = (patch: Partial<Order> = {}): Order => ({
-  customerId: 'c1',
-  spriteId: 'c01',
-  routeId: 'HAN-DAD',
-  cabin: 'ECONOMY',
-  baggageKg: 20,
-  seatPref: 'WINDOW',
-  timePref: 'NIGHT',
-  extras: ['VEG_MEAL'],
-  passport: { name: 'Lê Văn An', bookedName: 'Lê Văn An', expiresDay: 10 },
-  complexity: 3,
-  patienceMaxMs: 60000,
-  ...patch,
-});
+const order = (patch: Partial<Order> = {}): Order =>
+  makeOrder({ baggageKg: 20, seatPref: 'WINDOW', timePref: 'NIGHT', extras: ['VEG_MEAL'], complexity: 3, ...patch });
 
 const ticket = (patch: Partial<DeliveredTicket> = {}): DeliveredTicket => ({
   flight: flight(), cabin: 'ECONOMY', seat: '5A', baggageKg: 20, extras: ['VEG_MEAL'], ...patch,

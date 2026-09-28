@@ -65,20 +65,20 @@ Mục tiêu: toàn bộ luật game chạy được chỉ bằng `dispatch` / `t
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 1.1 | Common domain | `domain/common/result.ts` (`ok`/`err`), `invariant.ts`, `math.ts` (`clamp`, `sum`) | Test đủ happy + biên |
-| [ ] 1.2 | RNG và ShuffleBag | `domain/rng.ts`, `domain/shuffleBag.ts` | Test theo PLAN §13.1 (tái lập, biên `int`, `weighted` ±2%, túi không lặp quá `weight`) |
-| [ ] 1.3 | Model và dữ liệu | `domain/models.ts`, `data/routes.ts`, `schedule.ts`, `upgrades.ts`, `events.ts`, `days.ts`, `customers.ts` (thoại tạm 1 câu), `strings.ts` | Typecheck xanh; test `getDayConfig(day)` lấy đúng dòng gần nhất và giảm patience từ ngày 11 |
-| [ ] 1.4 | Đồng hồ, sơ đồ ghế, lịch bay | `domain/clock.ts`, `seatMap.ts`, `schedule.ts` | Test: 08:00 = 480, format 00:30, khung NIGHT/LATE; window/aisle; số chuyến theo ngày, mã ổn định, ghế đại lý khác 40–70% |
-| [ ] 1.5 | Kinh tế | `domain/economy.ts` (`roundMoney`, giá vốn, doanh thu, tip, transaction log, `summarizeDay`) | Test §5.2, §5.3, invariant tiền, chi Shop ghi ngày sau |
-| [ ] 1.6 | Kho ghế | `domain/inventory.ts`, `canServe.ts` | Test mua (chiết khấu, giới hạn, thiếu tiền, bias), hold/release/sell, hết hạn cuối ngày, mất do thời tiết |
-| [ ] 1.7 | Lượng khách và TravelViet | `domain/demand.ts` | Test §3.9: base, bảng factor ở mọi biên, bonus theo tầng, RUSH, trần 300 |
-| [ ] 1.8 | Chấm điểm | `domain/scoring.ts` | Mỗi `ScoreOutcome` ≥ 1 test; BUSINESS trừ đôi; tip chỉ BUSINESS PERFECT; POOR không thu tiền |
-| [ ] 1.9 | Sinh đơn và lịch khách đến | `domain/orderGen.ts`, `spawner.ts` | Invariant §8.4 trên 2.000 seed × 30 ngày; mốc đến trong [486, 1110] |
-| [ ] 1.10 | Nâng cấp, sự kiện, lưới an toàn | `domain/upgrades.ts`, `events.ts`, `safetyNet.ts` | Test modifiers cộng dồn; tỉ lệ sự kiện và thời tiết hội tụ; lưới an toàn đúng ngưỡng |
-| [ ] 1.11 | Reducer phần ngoài ca | `domain/dayCycle.ts`: `createNewGame`, `PROFILE_SET`, `PREP_*`, `OPEN_COUNTER`, `GO_TO_SHOP`, `SHOP_*`, `NEXT_DAY`, `SETTINGS_UPDATE`, `FLAG_SET` | Test reject đúng phase, NEXT_DAY hai lần chỉ sang 1 ngày |
-| [ ] 1.12 | Reducer trong ca và `tick` | `domain/dayCycle.ts`: `BUILD_*`, `PRINT_TICKET`, `DELIVER_TICKET`, `REFUSE_CUSTOMER`, tick (đồng hồ, kiên nhẫn, sinh khách, máy in, RESOLVING, CLOSING → SUMMARY) | Test giao vé thắng hết kiên nhẫn cùng tick; delta 5000 bị clamp |
-| [ ] 1.13 | Facade và test tích hợp | `domain/game.ts`, `domain/__integration__/*` | `fullDay`, `thirtyDays`, `replay` xanh; coverage ≥ 90% lines / 85% branches (cần D10) |
-| [ ] 1.R | Review giai đoạn 1 | — | Theo mẫu Review. Chú ý: helper lặp giữa `scoring`/`economy`/`inventory` |
+| [x] 1.1 | Common domain | `domain/common/result.ts` (`ok`/`err`), `invariant.ts`, `math.ts` (`clamp`, `sum`) | Test đủ happy + biên |
+| [x] 1.2 | RNG và ShuffleBag | `domain/rng.ts`, `domain/shuffleBag.ts` | Test theo PLAN §13.1 (tái lập, biên `int`, `weighted` ±2%, túi không lặp quá `weight`) |
+| [x] 1.3 | Model và dữ liệu | `domain/models.ts`, `data/routes.ts`, `schedule.ts`, `upgrades.ts`, `events.ts`, `days.ts`, `customers.ts` (thoại tạm 1 câu), `strings.ts` | Typecheck xanh; test `getDayConfig(day)` lấy đúng dòng gần nhất và giảm patience từ ngày 11 |
+| [x] 1.4 | Đồng hồ, sơ đồ ghế, lịch bay | `domain/clock.ts`, `seatMap.ts`, `schedule.ts` | Test: 08:00 = 480, format 00:30, khung NIGHT/LATE; window/aisle; số chuyến theo ngày, mã ổn định, ghế đại lý khác 40–70% |
+| [x] 1.5 | Kinh tế | `domain/economy.ts` (`roundMoney`, giá vốn, doanh thu, tip, transaction log, `summarizeDay`) | Test §5.2, §5.3, invariant tiền, chi Shop ghi ngày sau |
+| [x] 1.6 | Kho ghế | `domain/inventory.ts`, `canServe.ts` | Test mua (chiết khấu, giới hạn, thiếu tiền, bias), hold/release/sell, hết hạn cuối ngày, mất do thời tiết |
+| [x] 1.7 | Lượng khách và TravelViet | `domain/demand.ts` | Test §3.9: base, bảng factor ở mọi biên, bonus theo tầng, RUSH, trần 300 |
+| [x] 1.8 | Chấm điểm | `domain/scoring.ts` | Mỗi `ScoreOutcome` ≥ 1 test; BUSINESS trừ đôi; tip chỉ BUSINESS PERFECT; POOR không thu tiền |
+| [x] 1.9 | Sinh đơn và lịch khách đến | `domain/orderGen.ts`, `spawner.ts` | Invariant §8.4 trên 2.000 seed × 30 ngày; mốc đến trong [486, 1110] |
+| [x] 1.10 | Nâng cấp, sự kiện, lưới an toàn | `domain/upgrades.ts`, `events.ts`, `safetyNet.ts` | Test modifiers cộng dồn; tỉ lệ sự kiện và thời tiết hội tụ; lưới an toàn đúng ngưỡng |
+| [x] 1.11 | Reducer phần ngoài ca | `domain/dayCycle.ts`: `createNewGame`, `PROFILE_SET`, `PREP_*`, `OPEN_COUNTER`, `GO_TO_SHOP`, `SHOP_*`, `NEXT_DAY`, `SETTINGS_UPDATE`, `FLAG_SET` | Test reject đúng phase, NEXT_DAY hai lần chỉ sang 1 ngày |
+| [x] 1.12 | Reducer trong ca và `tick` | `domain/dayCycle.ts`: `BUILD_*`, `PRINT_TICKET`, `DELIVER_TICKET`, `REFUSE_CUSTOMER`, tick (đồng hồ, kiên nhẫn, sinh khách, máy in, RESOLVING, CLOSING → SUMMARY) | Test giao vé thắng hết kiên nhẫn cùng tick; delta 5000 bị clamp |
+| [x] 1.13 | Facade và test tích hợp | `domain/game.ts`, `domain/__integration__/*` | `fullDay`, `thirtyDays`, `replay` xanh; coverage ≥ 90% lines / 85% branches (cần D10) |
+| [x] 1.R | Review giai đoạn 1 | — | Theo mẫu Review. Chú ý: helper lặp giữa `scoring`/`economy`/`inventory` |
 
 Ghi chú review (từ 0.R):
 - Bước 1.13: thêm khối `coverage` (provider v8, include `src/domain/**`, ngưỡng 90/85) vào `test` trong `vite.config.ts` và script `test:coverage`.
@@ -104,7 +104,13 @@ Mục tiêu: có sẵn các component Phaser mà ≥ 2 màn sẽ dùng, xem đư
 | [ ] 2.7 | UI Playground (chỉ DEV) | `dev/PlaygroundScene.ts` | Mở bằng `?playground`, liệt kê mọi common UI |
 | [ ] 2.R | Review giai đoạn 2 | — | Theo mẫu Review |
 
-Ghi chú review: _(điền ở bước 1.R)_
+Ghi chú review (từ 1.R):
+- `GameSession` sửa state tại chỗ (DECISIONS 2026-09-28): scene không so sánh tham chiếu để phát hiện thay đổi; render lại theo `DomainEvent` hoặc mỗi frame từ `session.state` (chỉ đọc).
+- Trong một frame: xử lý input (dispatch) trước, rồi mới `tick` — giữ luật "giao vé thắng hết kiên nhẫn".
+- `sessionBridge` (2.6) cần: giữ `GameSession`, `dispatch` trả events, phát events cho scene đăng ký, `tick` chỉ khi không pause.
+- Cần thêm vào `data/strings.ts` ở giai đoạn 3: nhãn `MistakeCode`, lý do `COMMAND_REJECTED` hiện toast, thoại khách theo kết quả (§4.6, tạm 1 câu).
+- `BUILD_SET_BAGGAGE` đã snap trong domain; slider chỉ hiện giá trị từ state.
+- Toạ độ/khoảng cách UI để trong `ui/layout.ts`, không rải số trong scene.
 
 ---
 
@@ -213,14 +219,17 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 
 | Component | File | Dùng ở | Giai đoạn tạo | Trạng thái |
 |---|---|---|---|---|
-| Result `ok`/`err` | `domain/common/result.ts` | mọi hàm domain có lỗi nghiệp vụ, save/migrate | 1.1 | chưa làm |
-| `invariant` | `domain/common/invariant.ts` | reducer, inventory, economy | 1.1 | chưa làm |
-| `clamp`, `sum` | `domain/common/math.ts` | economy, demand, scoring, tick | 1.1 | chưa làm |
-| `Rng`, `deriveSeed` | `domain/rng.ts` | schedule, inventory, events, demand, orderGen, spawner, names | 1.2 | chưa làm |
-| `ShuffleBag` | `domain/shuffleBag.ts` | orderGen, (sau này) thoại | 1.2 | chưa làm |
-| `roundMoney` | `domain/economy.ts` | mọi phép tính tiền | 1.5 | chưa làm |
-| `canServe` | `domain/canServe.ts` | orderGen, scoring | 1.6 | chưa làm |
-| `GameClock` / format giờ | `domain/clock.ts` | tick, TopBar, FlightList, TicketView | 1.4 | chưa làm |
+| Result `ok`/`err` | `domain/common/result.ts` | inventory, upgrades, save/migrate (4.1) | 1.1 | xong |
+| `invariant` | `domain/common/invariant.ts` | dayCycle, inventory, rng, orderGen, schedule, routes | 1.1 | xong |
+| `clamp`, `sum`, `roundToTenth` | `domain/common/math.ts` | economy, demand, dayCycle, rng | 1.1 | xong |
+| `Rng`, `rngFor`, `hashString` | `domain/rng.ts` | schedule, inventory, events, demand, orderGen, spawner, safetyNet; `hashString` cho checksum save (7.3) | 1.2 | xong |
+| `ShuffleBag` | `domain/shuffleBag.ts` | orderGen, (sau này) thoại | 1.2 | xong |
+| `roundMoney` | `domain/economy.ts` | mọi phép tính tiền | 1.5 | xong |
+| `canServe`, `routeHasAvailableSeat` | `domain/canServe.ts` | orderGen, dayCycle (từ chối) | 1.6 | xong |
+| `formatClock`, `matchesTimePref` | `domain/clock.ts` | tick, scoring, TopBar, FlightList, TicketView | 1.4 | xong |
+| `getRoute`, `routeNumber` | `domain/routes.ts` | schedule, scoring, safetyNet, UI (tên/màu tuyến) | 1.3 | xong |
+| `getDayConfig`, `isMechanicOpen` | `domain/dayConfig.ts` | orderGen, dayCycle, UI (ẩn nút Hộ chiếu/dịch vụ) | 1.3 | xong |
+| Test fixtures, bots | `domain/__integration__/fixtures.ts`, `bots.ts` | test domain; bots dùng lại cho `scripts/sim.ts` (5.7) | 1.R | xong |
 | Storage an toàn | `save/storage.ts` | save, tabLock, settings | 4.1 | chưa làm |
 | sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay | 2.6 | chưa làm |
 

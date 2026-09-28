@@ -2,14 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { canGoToStep, createNewGame, snapBaggage } from './dayCycle';
 import { GameSession } from './game';
 import type { Command, DomainEvent, GameState } from './models';
-import { rollDayEvent } from './events';
+import { seedWithDay1Event } from './__integration__/fixtures';
 
 const rejected = (events: DomainEvent[]) => events.find((e) => e.type === 'COMMAND_REJECTED');
-
-/** Seed whose day-1 event matches, so tests do not depend on the RUSH roll. */
-const seedWithDay1Event = (type: 'NONE' | 'RUSH' | 'WEATHER') => {
-  for (let seed = 1; ; seed++) if (rollDayEvent(seed, 1, ['HAN-SGN', 'HAN-DAD']).type === type) return seed;
-};
 
 const newGame = (type: 'NONE' | 'RUSH' | 'WEATHER' = 'NONE') => GameSession.newGame(seedWithDay1Event(type));
 const firstDadFlight = (state: Readonly<GameState>) => state.today.flights.find((f) => f.routeId === 'HAN-DAD')?.id ?? '';

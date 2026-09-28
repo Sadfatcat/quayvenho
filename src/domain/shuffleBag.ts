@@ -16,6 +16,11 @@ export class ShuffleBag<T> {
     this.items = items;
   }
 
+  /** Number of entries in one full bag. */
+  get capacity(): number {
+    return this.items.reduce((total, item) => total + item.weight, 0);
+  }
+
   draw(): T {
     if (this.remaining.length === 0) {
       this.remaining = this.rng.shuffle(
