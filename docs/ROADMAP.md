@@ -120,16 +120,24 @@ Mục tiêu: chơi hết một ngày ở Quầy bằng hình khối, với profi
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 3.1 | Khung màn Quầy | `scenes/CounterScene.ts`, `ui/TopBar.ts` (dùng lại ở Kho) | Bố cục đúng bảng PLAN §10.6; đồng hồ chạy |
-| [ ] 3.2 | Khách và hàng đợi | `ui/SpeechBubble.ts` (dùng lại cho thoại Béo), `ui/PatienceBar.ts` (dựa trên ProgressBar), hình khách placeholder | Khách vào hàng, lên quầy, đổi mood, bỏ đi |
-| [ ] 3.3 | Bước A | `ui/StepIndicator.ts`, `ui/FlightList.ts` (trên ScrollList) | Chọn chuyến + hạng; dòng xám đúng luật |
-| [ ] 3.4 | Bước B | `ui/SeatMapView.ts` | Chỉ bấm được ghế của mình còn trống |
-| [ ] 3.5 | Bước C | `ui/BaggageSlider.ts` (trên DragController), `ui/ExtrasToggles.ts` | Snap ≤ 1 kg; kéo ra ngoài canvas kết thúc đúng |
-| [ ] 3.6 | Bước D, in vé, giao vé | `ui/TicketView.ts`, máy in (ProgressBar), kéo vé (DragController), kết quả (FloatingText) | Thả ngoài → vé quay về; thả vào khách → chấm điểm |
-| [ ] 3.7 | Nút phụ và hết ngày | Làm lại, Từ chối; tổng kết text thô | Chơi hết ngày 1 trên điện thoại thật |
-| [ ] 3.R | Review giai đoạn 3 | — | Theo mẫu Review. Chú ý: phần lặp giữa FlightList / SeatMapView / ExtrasToggles (nút chọn có trạng thái) |
+| [x] 3.1 | Khung màn Quầy | `scenes/CounterScene.ts`, `ui/TopBar.ts` (dùng lại ở Kho) | Bố cục đúng bảng PLAN §10.6; đồng hồ chạy |
+| [x] 3.2 | Khách và hàng đợi | `ui/SpeechBubble.ts` (dùng lại cho thoại Béo), `ui/PatienceBar.ts` (dựa trên ProgressBar), hình khách placeholder | Khách vào hàng, lên quầy, đổi mood, bỏ đi |
+| [x] 3.3 | Bước A | `ui/StepIndicator.ts`, `ui/FlightList.ts` (trên ScrollList) | Chọn chuyến + hạng; dòng xám đúng luật |
+| [x] 3.4 | Bước B | `ui/SeatMapView.ts` | Chỉ bấm được ghế của mình còn trống |
+| [x] 3.5 | Bước C | `ui/BaggageSlider.ts` (trên DragController), `ui/ExtrasToggles.ts` | Snap ≤ 1 kg; kéo ra ngoài canvas kết thúc đúng |
+| [x] 3.6 | Bước D, in vé, giao vé | `ui/TicketView.ts`, máy in (ProgressBar), kéo vé (DragController), kết quả (FloatingText) | Thả ngoài → vé quay về; thả vào khách → chấm điểm |
+| [x] 3.7 | Nút phụ và hết ngày | Làm lại, Từ chối; tổng kết text thô | Chơi hết ngày 1 trên điện thoại thật |
+| [x] 3.R | Review giai đoạn 3 | — | Theo mẫu Review. Chú ý: phần lặp giữa FlightList / SeatMapView / ExtrasToggles (nút chọn có trạng thái) |
 
-Ghi chú review: _(điền ở bước 2.R)_
+Ghi chú review (từ 3.R):
+- `sessionBridge.start(session)` (gọi ở BootScene tạm thời) cần thay bằng luồng thật: `save/storage.ts` đọc save có sẵn → `sessionBridge.start(...)`; không có save → `OnboardingScene` → `PROFILE_SET` → `sessionBridge.start(...)`. Xoá `BOOTSTRAP_SEED`/bootstrapFixedSession khỏi BootScene khi có PrepScene thật.
+- `TopBar` giờ có 2 chỗ dùng (CounterScene xong, PrepScene sẽ dùng ở 4.5) — khi làm PrepScene, `leftLabel` đổi từ giờ sang "Ngày {n}", `icon` đổi từ ⏸ sang ⚙ (đã có `STRINGS.common.settingsIcon`), `onIconTap` mở `SettingsOverlay` (chưa có, làm ở 5.6) thay vì `PauseOverlay`.
+- `src/dev/debug.ts` (expose `sessionBridge` lên `window.__sessionBridge`, chỉ DEV) hữu ích để kiểm bằng Playwright: đọc thẳng state thay vì đoán toạ độ pixel. Dùng tiếp ở các giai đoạn sau khi cần test qua `run_code_unsafe` + `page.evaluate`.
+- `FlightList` giờ có `readOnly` — khi làm ShopScene/PrepScene nếu cũng cần danh sách xem-trước, tái dùng cờ này thay vì tạo biến thể mới.
+- `StepIndicator` cần `onStepTap`; nếu sau này có nơi khác dùng StepIndicator không cho quay lại (ví dụ tutorial khoá bước), truyền `() => {}`.
+- Vé kéo-thả dùng ngưỡng `COUNTER_SURFACE_Y = 650` cố định trong CounterScene — nếu bố cục đổi ở giai đoạn sau, cập nhật cùng lúc với y của "Mặt quầy" trong PLAN §10.6.
+- `showDaySummary` hiện là text thô (đúng scope 3.7); SummaryScene thật (4.6) nên tái dùng cấu trúc `lines` này làm khung, thêm `CountUpText` cho hiệu ứng đếm số.
+- Rủi ro hiệu năng chưa kiểm: SeatMapView/FlightList dựng lại toàn bộ GameObject mỗi khi build-signature đổi (không pool). PLAN §11.4 chỉ bắt buộc pooling cho particle đồng xu; theo dõi ở Phase 5/6 nếu máy tầm trung giật khi đổi bước liên tục.
 
 ---
 
@@ -231,7 +239,7 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 | `getDayConfig`, `isMechanicOpen` | `domain/dayConfig.ts` | orderGen, dayCycle, UI (ẩn nút Hộ chiếu/dịch vụ) | 1.3 | xong |
 | Test fixtures, bots | `domain/__integration__/fixtures.ts`, `bots.ts` | test domain; bots dùng lại cho `scripts/sim.ts` (5.7) | 1.R | xong |
 | Storage an toàn | `save/storage.ts` | save, tabLock, settings | 4.1 | chưa làm |
-| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay | 2.6 | chưa làm |
+| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay (CounterScene) | 2.6 | xong |
 
 ### UI
 
@@ -253,8 +261,12 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 | sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay (Prep/Counter/Summary/Shop) | 2.6 | xong |
 | registerVisibilityHandler | `platform/visibility.ts` | CounterScene (và mọi scene gameplay khác cần pause) | 2.6 | xong |
 | PauseOverlay | `scenes/overlays/PauseOverlay.ts` | mọi scene gameplay | 2.6 | xong |
-| TopBar | `ui/TopBar.ts` | Quầy, Kho | 3.1 | chưa làm |
-| SpeechBubble | `ui/SpeechBubble.ts` | khách, Béo (Onboarding, Tutorial) | 3.2 | chưa làm |
+| TopBar | `ui/TopBar.ts` | Quầy (xong); Kho ở 4.5 (đổi leftLabel/icon, xem ghi chú 3.R) | 3.1 | xong ở Quầy |
+| SpeechBubble | `ui/SpeechBubble.ts` | khách (xong); Béo (Onboarding, Tutorial) chưa làm | 3.2 | xong ở Quầy |
+| StepIndicator | `ui/StepIndicator.ts` | Quầy | 3.3 | xong |
+| FlightList | `ui/FlightList.ts` | Quầy Bước A, có cờ `readOnly` | 3.3 | xong |
+| PatienceBar | `ui/PatienceBar.ts` | Quầy | 3.2 | xong |
+| debug hook | `dev/debug.ts` | test Playwright (đọc `window.__sessionBridge`) | 3.R | xong |
 | SegmentedControl | `ui/SegmentedControl.ts` | Shop (tab), Kho (seat bias) | 5.1 | chưa làm |
 | Card | `ui/Card.ts` | Shop; xem xét dùng cho card chuyến ở Kho khi Review 4 | 5.1 | chưa làm |
 
