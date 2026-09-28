@@ -16,6 +16,8 @@ export interface FlightListOptions {
   flights: readonly Flight[];
   seats: readonly OwnedSeat[];
   onSelect: (flightId: string, cabin: CabinClass) => void;
+  /** PLAN §10.6: khi không có khách, Bước A vẫn xem trước được nhưng không bấm chọn. */
+  readOnly?: boolean;
 }
 
 const ROW_HEIGHT = 110;
@@ -91,7 +93,7 @@ export class FlightList extends ScrollList<Flight> {
       variant: 'primary',
       onTap: () => options.onSelect(flight.id, 'ECONOMY'),
     });
-    ecoButton.setEnabled(eco > 0);
+    ecoButton.setEnabled(!options.readOnly && eco > 0);
     const bizButton = new Button(scene, panelWidth + ROW_INSET - CABIN_BUTTON_WIDTH / 2, ROW_HEIGHT / 2 - 6, {
       width: CABIN_BUTTON_WIDTH,
       height: CABIN_BUTTON_HEIGHT,
@@ -99,7 +101,7 @@ export class FlightList extends ScrollList<Flight> {
       variant: 'success',
       onTap: () => options.onSelect(flight.id, 'BUSINESS'),
     });
-    bizButton.setEnabled(biz > 0);
+    bizButton.setEnabled(!options.readOnly && biz > 0);
     row.add([ecoButton, bizButton]);
     return row;
   }

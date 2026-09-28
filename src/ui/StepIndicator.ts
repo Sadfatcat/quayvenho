@@ -8,14 +8,23 @@ export const BUILD_STEP_ORDER: readonly BuildStep[] = ['FLIGHT', 'SEAT', 'EXTRAS
 const DOT_RADIUS = 14;
 const GAP = 140;
 
+export interface StepIndicatorOptions {
+  /** PLAN §3.5: bấm vào một bước đã hoàn thành trước đó để quay lại sửa. */
+  onStepTap: (step: BuildStep) => void;
+}
+
+const HIT_RADIUS = 40;
+
 /** 4 dots A-B-C-D, labeled "Chuyến · Ghế · Hành lý · Vé" (PLAN §10.6). */
 export class StepIndicator extends Phaser.GameObjects.Container {
   private readonly dots: Phaser.GameObjects.Arc[] = [];
   private readonly labels: Phaser.GameObjects.Text[] = [];
+  private readonly hitAreas: Phaser.GameObjects.Zone[] = [];
+  private activeIndex = 0;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, options: StepIndicatorOptions) {
     super(scene, x, y);
-    BUILD_STEP_ORDER.forEach((_step, index) => {
+    BUILD_STEP_ORDER.forEach((step, index) => {
       const dotX = index * GAP;
       const dot = scene.add.circle(dotX, 0, DOT_RADIUS, COLORS.disabled);
       const label = scene.add
@@ -25,16 +34,21 @@ export class StepIndicator extends Phaser.GameObjects.Container {
           color: toCssColor(COLORS.textMuted),
         })
         .setOrigin(0.5, 0);
+      const hitArea = scene.add.zone(dotX, 0, HIT_RADIUS * 2, HIT_RADIUS * 2).setInteractive({ useHandCursor: true });
+      hitArea.on('pointerup', () => {
+        if (index < this.activeIndex) options.onStepTap(step);
+      });
       this.dots.push(dot);
       this.labels.push(label);
-      this.add([dot, label]);
+      this.hitAreas.push(hitArea);
+      this.add([dot, label, hitArea]);
     });
     scene.add.existing(this);
   }
 
   setCurrentStep(step: BuildStep): void {
-    const activeIndex = BUILD_STEP_ORDER.indexOf(step);
-    this.dots.forEach((dot, index) => dot.setFillStyle(index <= activeIndex ? COLORS.primary : COLORS.disabled));
-    this.labels.forEach((label, index) => label.setColor(toCssColor(index === activeIndex ? COLORS.text : COLORS.textMuted)));
+    this.activeIndex = BUILD_STEP_ORDER.indexOf(step);
+    this.dots.forEach((dot, index) => dot.setFillStyle(index <= this.activeIndex ? COLORS.primary : COLORS.disabled));
+    this.labels.forEach((label, index) => label.setColor(toCssColor(index === this.activeIndex ? COLORS.text : COLORS.textMuted)));
   }
 }

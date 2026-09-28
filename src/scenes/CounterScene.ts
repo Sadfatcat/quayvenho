@@ -34,6 +34,7 @@ import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
 import { TicketView } from '@ui/TicketView';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
+import { TopBar } from '@ui/TopBar';
 import { BaseScene } from './BaseScene';
 import { PauseOverlay } from './overlays/PauseOverlay';
 import { sessionBridge } from './sessionBridge';
@@ -74,9 +75,7 @@ export class CounterScene extends BaseScene {
   private retryButton!: Button;
   private refuseButton!: Button;
   private mainButton!: Button;
-  private topBarMoney!: (amount: number) => void;
-  private topBarClock!: (label: string) => void;
-  private topBarTravelViet!: (value: number | null) => void;
+  private topBar!: TopBar;
 
   private pauseOverlay: PauseOverlay | null = null;
   private summaryOverlay: BaseOverlay | null = null;
@@ -115,19 +114,14 @@ export class CounterScene extends BaseScene {
   private buildLayout(): void {
     const state = sessionBridge.current.state;
 
-    const clockText = this.add
-      .text(30, 90, formatClock(state.today.clock), { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
-      .setOrigin(0, 0.5);
-    const moneyText = this.add
-      .text(GAME_WIDTH * 0.42, 90, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.text) })
-      .setOrigin(0.5);
-    const travelVietText = this.add
-      .text(GAME_WIDTH * 0.68, 90, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.warning) })
-      .setOrigin(0.5);
-    new Button(this, GAME_WIDTH - 74, 90, { width: 72, height: 72, label: STRINGS.common.pauseIcon, variant: 'ghost', onTap: () => this.openPause() });
-    this.topBarClock = (label) => clockText.setText(label);
-    this.topBarMoney = (amount) => moneyText.setText(`${amount} ${STRINGS.common.currencySuffix}`);
-    this.topBarTravelViet = (value) => travelVietText.setText(value === null ? '' : `⭐ ${value.toFixed(1)}`);
+    this.topBar = new TopBar(this, 0, 90, {
+      width: GAME_WIDTH,
+      leftLabel: formatClock(state.today.clock),
+      money: state.money,
+      travelViet: isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null,
+      icon: STRINGS.common.pauseIcon,
+      onIconTap: () => this.openPause(),
+    });
 
     this.brandText = this.add.text(GAME_WIDTH / 2, 180, state.profile?.brandName ?? '', { fontFamily: FONT_FAMILY, fontSize: '32px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5);
     this.eventBadge = this.add.text(GAME_WIDTH / 2, 214, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.warning) }).setOrigin(0.5);
@@ -135,7 +129,9 @@ export class CounterScene extends BaseScene {
     this.waitingText = this.add.text(GAME_WIDTH / 2, 400, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
     this.customerArea = this.add.container(0, 0);
 
-    this.stepIndicator = new StepIndicator(this, GAME_WIDTH / 2 - BUILD_STEP_ORDER.length * 70 + 70, 695);
+    this.stepIndicator = new StepIndicator(this, GAME_WIDTH / 2 - BUILD_STEP_ORDER.length * 70 + 70, 695, {
+      onStepTap: (step) => this.dispatch({ type: 'BUILD_GOTO_STEP', step }),
+    });
 
     this.buildArea = this.add.container(BUILD_AREA_ORIGIN.x, BUILD_AREA_ORIGIN.y);
 
@@ -148,9 +144,9 @@ export class CounterScene extends BaseScene {
 
   private renderAll(): void {
     const state = sessionBridge.current.state;
-    this.topBarClock(formatClock(state.today.clock));
-    this.topBarMoney(state.money);
-    this.topBarTravelViet(isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null);
+    this.topBar.setLeftLabel(formatClock(state.today.clock));
+    this.topBar.setMoney(state.money);
+    this.topBar.setTravelViet(isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null);
     this.brandText.setText(state.profile?.brandName ?? '');
     this.eventBadge.setText(this.eventBadgeText(state));
 
@@ -246,12 +242,14 @@ export class CounterScene extends BaseScene {
       this.renderPrinting(state);
     } else if (counter.state === 'READY_TO_DELIVER' && draft) {
       this.renderReadyToDeliver(state, draft);
+    } else if (counter.state === 'EMPTY') {
+      this.renderStepFlight(state, true);
     }
 
     this.updateButtons(state);
   }
 
-  private renderStepFlight(state: GameState): void {
+  private renderStepFlight(state: GameState, readOnly = false): void {
     const list = new FlightList(this, {
       x: 0,
       y: 0,
@@ -259,6 +257,7 @@ export class CounterScene extends BaseScene {
       height: 340,
       flights: state.today.flights,
       seats: state.today.seats,
+      readOnly,
       onSelect: (flightId, cabin) => this.dispatch({ type: 'BUILD_SELECT_FLIGHT', flightId, cabin }),
     });
     this.buildArea.add(list);
