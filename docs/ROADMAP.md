@@ -1,0 +1,244 @@
+# ROADMAP — Quầy Vé Nhỏ
+
+Kế hoạch thực thi chia nhỏ theo giai đoạn và bước. Đặc tả game nằm ở `docs/PLAN.md`; file này chỉ nói làm gì, theo thứ tự nào, xong khi nào.
+
+## Cách dùng
+
+- Làm đúng thứ tự: giai đoạn → bước. Không nhảy bước, không gộp nhiều bước vào một lần code.
+- Mỗi bước giới hạn theo phạm vi, không theo thời gian: một module (hoặc một nhóm nhỏ liên quan chặt) kèm test, một commit, diff đủ nhỏ để chủ dự án đọc duyệt trong khoảng 15 phút.
+- Hết mỗi bước: chạy `npm run typecheck && npm run lint && npm run test`, tick ô trong file này, cập nhật `docs/STATUS.md`.
+- Hết mỗi giai đoạn: làm bước **Review** (mẫu bên dưới), rồi dừng và hỏi chủ dự án trước khi sang giai đoạn sau.
+- Trạng thái ô: `[ ]` chưa làm, `[~]` đang làm, `[x]` xong.
+
+## Luật common component
+
+- Common component là code dùng chung: helper domain, component UI Phaser, hàm tiện ích save/platform. Danh sách nằm ở mục **Registry** cuối file.
+- Tạo common khi: đã có ≥ 2 chỗ dùng thực tế, hoặc Registry đã ghi rõ ≥ 2 chỗ sẽ dùng trong các bước đã lên kế hoạch.
+- Không tạo common "phòng khi cần". Một chỗ dùng thì viết tại chỗ.
+- Khi Review phát hiện một đoạn logic/UI lặp ở ≥ 2 nơi: tách thành common, sửa các chỗ dùng, thêm dòng vào Registry.
+- Common UI nằm trong `src/ui/`, common domain nằm trong `src/domain/common/`, mỗi file có test (domain) hoặc có mặt trong UI Playground (UI).
+
+## Mẫu bước Review (cuối mỗi giai đoạn)
+
+1. Typecheck, lint, test xanh; đối chiếu từng acceptance của giai đoạn, ghi kết quả vào `STATUS.md`.
+2. Quét trùng lặp trong code của giai đoạn vừa xong: logic, style, layout, pattern xử lý input. Tách phần lặp thành common, cập nhật Registry.
+3. Đọc trước các bước của giai đoạn tiếp theo: liệt kê common component / helper cần mà chưa có, thứ cần sửa ở code hiện tại, rủi ro.
+4. Ghi kết quả phân tích vào mục "Ghi chú review" của giai đoạn tiếp theo trong file này (thêm, bớt, đổi thứ tự bước nếu cần).
+5. Dừng, báo cáo chủ dự án: đã xong gì, đã tách common gì, đề xuất điều chỉnh cho giai đoạn sau.
+
+## Bảng đối chiếu với PLAN §12
+
+| Giai đoạn | Nội dung | PLAN §12 |
+|---|---|---|
+| 0 | Nền móng dự án | Phase 0 |
+| 1 | Domain core | Phase 1 |
+| 2 | Bộ UI dùng chung | (mới, tách từ Phase 2) |
+| 3 | Quầy grey box | Phase 2 |
+| 4 | Title, Onboarding, Kho, Tổng kết, Lưu game | Phase 3 |
+| 5 | Tiến trình đầy đủ | Phase 4 |
+| 6 | Art, audio, tutorial, cốt truyện | Phase 5 |
+| 7 | Mobile hardening, PWA, deploy | Phase 6 |
+| 8 | Ngày đặc biệt, cá nhân hoá | Phase 7 |
+
+---
+
+## Giai đoạn 0 — Nền móng dự án
+
+Mục tiêu: dự án chạy được, lint chặn sai kiến trúc, có CI và bản deploy thử.
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 0.1 | Cài dependency theo CLAUDE.md, chuyển PLAN vào `docs/` | `package.json` | `npm run dev` hiện chữ "Quầy Vé Nhỏ" trên nền trời, không lỗi console |
+| [ ] 0.2 | Kiểm tra rule ESLint của domain | `eslint.config.js` | Tạo tạm `src/domain/x.ts` import `phaser` / dùng `Math.random` / `Date` → lint báo lỗi; xoá file tạm |
+| [ ] 0.3 | HTTPS trong LAN | `vite.config.ts` | `npm run dev:host` mở được trên điện thoại cùng Wi-Fi |
+| [ ] 0.4 | `git init`, `.nvmrc`, GitHub Actions | `.github/workflows/ci.yml` | CI chạy typecheck, lint, test, build và xanh |
+| [ ] 0.5 | Deploy thử Cloudflare Pages, viết hướng dẫn vào README | `README.md` | Mở link `*.pages.dev` trên điện thoại |
+| [ ] 0.R | Review giai đoạn 0 | — | Theo mẫu Review |
+
+Không tạo sẵn toàn bộ cây thư mục placeholder: file được tạo ở đúng bước dùng tới nó.
+
+---
+
+## Giai đoạn 1 — Domain core (TypeScript thuần, không UI)
+
+Mục tiêu: toàn bộ luật game chạy được chỉ bằng `dispatch` / `tick`, có test.
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 1.1 | Common domain | `domain/common/result.ts` (`ok`/`err`), `invariant.ts`, `math.ts` (`clamp`, `sum`) | Test đủ happy + biên |
+| [ ] 1.2 | RNG và ShuffleBag | `domain/rng.ts`, `domain/shuffleBag.ts` | Test theo PLAN §13.1 (tái lập, biên `int`, `weighted` ±2%, túi không lặp quá `weight`) |
+| [ ] 1.3 | Model và dữ liệu | `domain/models.ts`, `data/routes.ts`, `schedule.ts`, `upgrades.ts`, `events.ts`, `days.ts`, `customers.ts` (thoại tạm 1 câu), `strings.ts` | Typecheck xanh; test `getDayConfig(day)` lấy đúng dòng gần nhất và giảm patience từ ngày 11 |
+| [ ] 1.4 | Đồng hồ, sơ đồ ghế, lịch bay | `domain/clock.ts`, `seatMap.ts`, `schedule.ts` | Test: 08:00 = 480, format 00:30, khung NIGHT/LATE; window/aisle; số chuyến theo ngày, mã ổn định, ghế đại lý khác 40–70% |
+| [ ] 1.5 | Kinh tế | `domain/economy.ts` (`roundMoney`, giá vốn, doanh thu, tip, transaction log, `summarizeDay`) | Test §5.2, §5.3, invariant tiền, chi Shop ghi ngày sau |
+| [ ] 1.6 | Kho ghế | `domain/inventory.ts`, `canServe.ts` | Test mua (chiết khấu, giới hạn, thiếu tiền, bias), hold/release/sell, hết hạn cuối ngày, mất do thời tiết |
+| [ ] 1.7 | Lượng khách và TravelViet | `domain/demand.ts` | Test §3.9: base, bảng factor ở mọi biên, bonus theo tầng, RUSH, trần 300 |
+| [ ] 1.8 | Chấm điểm | `domain/scoring.ts` | Mỗi `ScoreOutcome` ≥ 1 test; BUSINESS trừ đôi; tip chỉ BUSINESS PERFECT; POOR không thu tiền |
+| [ ] 1.9 | Sinh đơn và lịch khách đến | `domain/orderGen.ts`, `spawner.ts` | Invariant §8.4 trên 2.000 seed × 30 ngày; mốc đến trong [486, 1110] |
+| [ ] 1.10 | Nâng cấp, sự kiện, lưới an toàn | `domain/upgrades.ts`, `events.ts`, `safetyNet.ts` | Test modifiers cộng dồn; tỉ lệ sự kiện và thời tiết hội tụ; lưới an toàn đúng ngưỡng |
+| [ ] 1.11 | Reducer phần ngoài ca | `domain/dayCycle.ts`: `createNewGame`, `PROFILE_SET`, `PREP_*`, `OPEN_COUNTER`, `GO_TO_SHOP`, `SHOP_*`, `NEXT_DAY`, `SETTINGS_UPDATE`, `FLAG_SET` | Test reject đúng phase, NEXT_DAY hai lần chỉ sang 1 ngày |
+| [ ] 1.12 | Reducer trong ca và `tick` | `domain/dayCycle.ts`: `BUILD_*`, `PRINT_TICKET`, `DELIVER_TICKET`, `REFUSE_CUSTOMER`, tick (đồng hồ, kiên nhẫn, sinh khách, máy in, RESOLVING, CLOSING → SUMMARY) | Test giao vé thắng hết kiên nhẫn cùng tick; delta 5000 bị clamp |
+| [ ] 1.13 | Facade và test tích hợp | `domain/game.ts`, `domain/__integration__/*` | `fullDay`, `thirtyDays`, `replay` xanh; coverage ≥ 90% lines / 85% branches (cần D10) |
+| [ ] 1.R | Review giai đoạn 1 | — | Theo mẫu Review. Chú ý: helper lặp giữa `scoring`/`economy`/`inventory` |
+
+Ghi chú review: _(điền ở bước 0.R)_
+
+---
+
+## Giai đoạn 2 — Bộ UI dùng chung
+
+Mục tiêu: có sẵn các component Phaser mà ≥ 2 màn sẽ dùng, xem được trong một màn Playground trước khi ráp vào game.
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 2.1 | Nền tảng giao diện | `ui/theme.ts` (màu, cỡ chữ, bo góc, khoảng cách), `ui/textStyles.ts`, `ui/layout.ts` (safe area, vùng chạm 88) , `scenes/BaseScene.ts` | Scene mới kế thừa BaseScene có nền, safe area, font đúng |
+| [ ] 2.2 | Khối cơ bản | `ui/Button.ts` (nhấn, disabled, khoá sau khi bấm), `ui/Panel.ts` (nền bo góc, dùng cho Card/Dialog/Bubble), `ui/IconLabel.ts` | Hiện trong Playground ở 360×640 và 430×932 |
+| [ ] 2.3 | Lớp phủ | `ui/BaseOverlay.ts` (làm mờ, chặn input phía dưới, đóng khi chạm ngoài tuỳ chọn), `scenes/overlays/DialogOverlay.ts`, `ui/Toast.ts` | Dialog 1–3 nút; toast xếp hàng không chồng nhau |
+| [ ] 2.4 | Tương tác | `ui/DragController.ts` (chỉ pointer đầu, `pointerup` trên window), `ui/ScrollList.ts` (kéo/chạm ngưỡng 10 px, ảo hoá > 15 item), `ui/ProgressBar.ts` | Kéo ra ngoài canvas vẫn kết thúc; cuộn không kích hoạt nút |
+| [ ] 2.5 | Hiệu ứng số | `ui/FloatingText.ts` (tiền bay lên), `ui/CountUpText.ts` (đếm số) | Hiện trong Playground |
+| [ ] 2.6 | Cầu nối domain | `scenes/sessionBridge.ts` (giữ `GameSession`, `dispatch`, phát `DomainEvent` cho scene đăng ký, gọi `tick`), `platform/visibility.ts`, `scenes/overlays/PauseOverlay.ts` | Ẩn tab → pause; quay lại thấy PauseOverlay |
+| [ ] 2.7 | UI Playground (chỉ DEV) | `dev/PlaygroundScene.ts` | Mở bằng `?playground`, liệt kê mọi common UI |
+| [ ] 2.R | Review giai đoạn 2 | — | Theo mẫu Review |
+
+Ghi chú review: _(điền ở bước 1.R)_
+
+---
+
+## Giai đoạn 3 — Quầy grey box
+
+Mục tiêu: chơi hết một ngày ở Quầy bằng hình khối, với profile và lô ghế cố định (bỏ qua Onboarding và Kho).
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 3.1 | Khung màn Quầy | `scenes/CounterScene.ts`, `ui/TopBar.ts` (dùng lại ở Kho) | Bố cục đúng bảng PLAN §10.6; đồng hồ chạy |
+| [ ] 3.2 | Khách và hàng đợi | `ui/SpeechBubble.ts` (dùng lại cho thoại Béo), `ui/PatienceBar.ts` (dựa trên ProgressBar), hình khách placeholder | Khách vào hàng, lên quầy, đổi mood, bỏ đi |
+| [ ] 3.3 | Bước A | `ui/StepIndicator.ts`, `ui/FlightList.ts` (trên ScrollList) | Chọn chuyến + hạng; dòng xám đúng luật |
+| [ ] 3.4 | Bước B | `ui/SeatMapView.ts` | Chỉ bấm được ghế của mình còn trống |
+| [ ] 3.5 | Bước C | `ui/BaggageSlider.ts` (trên DragController), `ui/ExtrasToggles.ts` | Snap ≤ 1 kg; kéo ra ngoài canvas kết thúc đúng |
+| [ ] 3.6 | Bước D, in vé, giao vé | `ui/TicketView.ts`, máy in (ProgressBar), kéo vé (DragController), kết quả (FloatingText) | Thả ngoài → vé quay về; thả vào khách → chấm điểm |
+| [ ] 3.7 | Nút phụ và hết ngày | Làm lại, Từ chối; tổng kết text thô | Chơi hết ngày 1 trên điện thoại thật |
+| [ ] 3.R | Review giai đoạn 3 | — | Theo mẫu Review. Chú ý: phần lặp giữa FlightList / SeatMapView / ExtrasToggles (nút chọn có trạng thái) |
+
+Ghi chú review: _(điền ở bước 2.R)_
+
+---
+
+## Giai đoạn 4 — Title, Onboarding, Kho, Tổng kết, Lưu game
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 4.1 | Lưu trữ an toàn | `save/storage.ts`, `save/schema.ts`, `save/migrate.ts` (v0→v1 giả) | Test round-trip, JSON hỏng → prev, version tương lai, clamp giá trị bẩn |
+| [ ] 4.2 | Khoá tab | `save/tabLock.ts` | Tab thứ hai hiện "Game đang mở ở tab khác" |
+| [ ] 4.3 | Boot và Title | `scenes/BootScene.ts`, `PreloadScene.ts`, `TitleScene.ts` | Chơi tiếp / Chơi mới đúng luật §10.3 |
+| [ ] 4.4 | Onboarding | `ui/TextInput.ts`, `scenes/OnboardingScene.ts` (thoại tạm) | Nhập tên + thương hiệu, validate độ dài |
+| [ ] 4.5 | Kho | `ui/Stepper.ts`, `scenes/PrepScene.ts` | Mua ghế, chiết khấu, 3 hộp thoại "Mở cửa" |
+| [ ] 4.6 | Tổng kết | `scenes/SummaryScene.ts` (CountUpText) | Hiện đủ dòng §5.6, chạm để bỏ qua hiệu ứng |
+| [ ] 4.7 | Mốc lưu và chơi tiếp | nối save với sessionBridge | Acceptance Phase 3 trong PLAN §12 |
+| [ ] 4.R | Review giai đoạn 4 | — | Theo mẫu Review |
+
+Ghi chú review: _(điền ở bước 3.R)_
+
+---
+
+## Giai đoạn 5 — Tiến trình đầy đủ
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 5.1 | Shop | `ui/SegmentedControl.ts` (dùng lại cho seat bias ở Kho), `ui/Card.ts`, `scenes/ShopScene.ts` | Mua nâng cấp, mở tuyến, hiện điều kiện |
+| [ ] 5.2 | Cơ chế theo ngày | `ui/PassportCard.ts`, bật field đơn theo §4.5 | Mỗi cơ chế chỉ xuất hiện từ đúng ngày |
+| [ ] 5.3 | Sự kiện | banner ở Kho, badge ở Quầy, thông báo thời tiết khi mở cửa | Ép SEVERE bằng debug: mất ghế, khách phải từ chối |
+| [ ] 5.4 | TravelViet | hiển thị điểm, màn giới thiệu cuối ngày 10 | Số khách thay đổi theo điểm |
+| [ ] 5.5 | Lưới an toàn | hộp thoại khi kích hoạt | Ép hết tiền: được tặng ghế |
+| [ ] 5.6 | Cài đặt | `ui/Toggle.ts`, `ui/Slider.ts`, `scenes/overlays/SettingsOverlay.ts` | Đổi âm lượng/rung, lưu ngay |
+| [ ] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
+| [ ] 5.R | Review giai đoạn 5 | — | Theo mẫu Review |
+
+Ghi chú review: _(điền ở bước 4.R)_
+
+---
+
+## Giai đoạn 6 — Art, audio, tutorial, cốt truyện
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 6.1 | Chốt phong cách (D2, D3) | `docs/STYLE.md` | Chủ dự án duyệt |
+| [ ] 6.2 | Asset và atlas | `public/assets/*`, `CREDITS.md` | Không còn hình khối placeholder ở màn chính |
+| [ ] 6.3 | Juice | tween nút, ghế, vé, đồng xu, sao, rung màn | 60 fps trên máy Android |
+| [ ] 6.4 | Audio | `platform/audio.ts`, `platform/haptics.ts` | Âm thanh chạy trên Safari iOS sau lần chạm đầu |
+| [ ] 6.5 | Tutorial | `scenes/overlays/TutorialOverlay.ts` (dùng SpeechBubble cho Béo) | Đủ bảng §10.11 |
+| [ ] 6.6 | Văn bản | thoại Béo, cốt truyện, thoại khách trong `strings.ts` / `customers.ts` | Chủ dự án duyệt (D11) |
+| [ ] 6.R | Review giai đoạn 6 | — | Theo mẫu Review |
+
+Ghi chú review: _(điền ở bước 5.R)_
+
+---
+
+## Giai đoạn 7 — Mobile hardening, PWA, deploy
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 7.1 | PWA | `vite.config.ts` (vite-plugin-pwa), `platform/pwa.ts` | Installable, chơi offline |
+| [ ] 7.2 | Thiết bị | `scenes/overlays/RotateOverlay.ts`, nút Back Android, bàn phím ảo | Mục [TAY] tương ứng trong §14 |
+| [ ] 7.3 | Xuất/nhập save, persist | `save/exportImport.ts` | Test round-trip, checksum sai bị từ chối |
+| [ ] 7.4 | Test tay trên máy thật | `tests/e2e-manual.md` | Toàn bộ §14 tick hoặc có lý do |
+| [ ] 7.5 | Deploy production | — | Link production chạy trên iPhone và Android |
+| [ ] 7.R | Review giai đoạn 7 | — | Theo mẫu Review |
+
+Ghi chú review: _(điền ở bước 6.R)_
+
+---
+
+## Giai đoạn 8 — Ngày đặc biệt, cá nhân hoá
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [ ] 8.1 | Cấu trúc dữ liệu | `data/personal.ts` (placeholder, không bịa nội dung) | `enabled = false` chạy như mặc định |
+| [ ] 8.2 | Khách đặc biệt và scripted moment | `domain/orderGen.ts`, `dayCycle.ts` | Xuất hiện đúng ngày, luôn phục vụ được |
+| [ ] 8.3 | Chạy với dữ liệu thật | chủ dự án điền | Chơi lại các ngày đặc biệt không lỗi |
+| [ ] 8.R | Review giai đoạn 8 | — | Theo mẫu Review |
+
+Ghi chú review: _(điền ở bước 7.R)_
+
+---
+
+## Registry — common component
+
+Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng hoặc đã lên kế hoạch dùng.
+
+### Domain / save / platform
+
+| Component | File | Dùng ở | Giai đoạn tạo | Trạng thái |
+|---|---|---|---|---|
+| Result `ok`/`err` | `domain/common/result.ts` | mọi hàm domain có lỗi nghiệp vụ, save/migrate | 1.1 | chưa làm |
+| `invariant` | `domain/common/invariant.ts` | reducer, inventory, economy | 1.1 | chưa làm |
+| `clamp`, `sum` | `domain/common/math.ts` | economy, demand, scoring, tick | 1.1 | chưa làm |
+| `Rng`, `deriveSeed` | `domain/rng.ts` | schedule, inventory, events, demand, orderGen, spawner, names | 1.2 | chưa làm |
+| `ShuffleBag` | `domain/shuffleBag.ts` | orderGen, (sau này) thoại | 1.2 | chưa làm |
+| `roundMoney` | `domain/economy.ts` | mọi phép tính tiền | 1.5 | chưa làm |
+| `canServe` | `domain/canServe.ts` | orderGen, scoring | 1.6 | chưa làm |
+| `GameClock` / format giờ | `domain/clock.ts` | tick, TopBar, FlightList, TicketView | 1.4 | chưa làm |
+| Storage an toàn | `save/storage.ts` | save, tabLock, settings | 4.1 | chưa làm |
+| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay | 2.6 | chưa làm |
+
+### UI
+
+| Component | File | Dùng ở | Giai đoạn tạo | Trạng thái |
+|---|---|---|---|---|
+| theme, textStyles, layout | `ui/theme.ts`, `textStyles.ts`, `layout.ts` | mọi scene | 2.1 | `theme.ts` có bản đầu |
+| BaseScene | `scenes/BaseScene.ts` | mọi scene | 2.1 | chưa làm |
+| Button | `ui/Button.ts` | mọi scene | 2.2 | chưa làm |
+| Panel | `ui/Panel.ts` | Card, Dialog, SpeechBubble, PassportCard, TicketView | 2.2 | chưa làm |
+| IconLabel | `ui/IconLabel.ts` | TopBar, SpeechBubble, FlightList, Card | 2.2 | chưa làm |
+| BaseOverlay | `ui/BaseOverlay.ts` | Dialog, Pause, Settings, Tutorial, Rotate, PassportCard | 2.3 | chưa làm |
+| DialogOverlay | `scenes/overlays/DialogOverlay.ts` | Title, Kho, Pause, Shop, lưới an toàn | 2.3 | chưa làm |
+| Toast | `ui/Toast.ts` | Quầy, Title, Summary, PWA | 2.3 | chưa làm |
+| DragController | `ui/DragController.ts` | BaggageSlider, kéo vé, Slider, ScrollList | 2.4 | chưa làm |
+| ScrollList | `ui/ScrollList.ts` | Kho, FlightList, Shop | 2.4 | chưa làm |
+| ProgressBar | `ui/ProgressBar.ts` | PatienceBar, máy in, Preload | 2.4 | chưa làm |
+| FloatingText | `ui/FloatingText.ts` | kết quả giao vé, mua ghế, Shop | 2.5 | chưa làm |
+| CountUpText | `ui/CountUpText.ts` | Summary, tiền trên TopBar | 2.5 | chưa làm |
+| TopBar | `ui/TopBar.ts` | Quầy, Kho | 3.1 | chưa làm |
+| SpeechBubble | `ui/SpeechBubble.ts` | khách, Béo (Onboarding, Tutorial) | 3.2 | chưa làm |
+| SegmentedControl | `ui/SegmentedControl.ts` | Shop (tab), Kho (seat bias) | 5.1 | chưa làm |
+| Card | `ui/Card.ts` | Shop; xem xét dùng cho card chuyến ở Kho khi Review 4 | 5.1 | chưa làm |
+
+Component chỉ dùng ở một màn (FlightList, SeatMapView, BaggageSlider, ExtrasToggles, TicketView, PassportCard, Stepper, StepIndicator, TextInput, Toggle, Slider) không nằm trong Registry cho tới khi có chỗ dùng thứ hai.

@@ -1,0 +1,51 @@
+# DECISIONS
+
+Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã loại.
+
+## 2026-09-28 — `dev:host` bật HTTPS qua `--mode https`
+
+- Quyết định: `vite --host --mode https`; `vite.config.ts` bật `basicSsl()` khi `mode === 'https'`.
+- Lý do: cú pháp `HTTPS=1 vite` (PLAN Phase 0 task 6) không chạy trong npm script trên Windows.
+- Đã loại: `cross-env` (thêm dependency), đọc `process.env.HTTPS` (vẫn cần cách set biến đa nền tảng).
+
+## 2026-09-28 — Gộp cấu hình Vitest vào `vite.config.ts`
+
+- Quyết định: không tạo `vitest.config.ts`; khối `test` nằm trong `vite.config.ts`.
+- Lý do: dùng chung alias, một nguồn cấu hình. PLAN §6.1 có liệt kê `vitest.config.ts` riêng.
+- Đã loại: `vitest.config.ts` + `mergeConfig` (lặp alias hoặc phải export config dạng hàm).
+
+## 2026-09-28 — ESLint chỉ dùng `typescript-eslint`
+
+- Quyết định: flat config với `tseslint.configs.recommended` + `no-non-null-assertion` + `no-console`; không thêm `@eslint/js`, `eslint-config-prettier`.
+- Lý do: config recommended của ESLint 9 không còn rule định dạng nên không xung đột Prettier; giữ đúng danh sách dependency trong CLAUDE.md.
+- Rule riêng cho `src/domain/**`:
+  - `no-restricted-imports`: cấm `phaser`, `@scenes/*`, `@ui/*`, `@platform/*`, `@save/*` và đường dẫn tương đối tới các thư mục đó (luật kiến trúc 1).
+  - `no-restricted-globals`: cấm `window`, `document`, `localStorage`, `navigator`, `performance`, `Date` (luật 1, 4 — không dùng giờ hệ thống).
+  - `no-restricted-properties`: cấm `Math.random` (luật 2).
+
+## 2026-09-28 — `vite.config.ts` không nằm trong `tsc --noEmit`
+
+- Quyết định: `tsconfig.json` chỉ include `src`, `scripts`.
+- Lý do: config dùng `node:url`, typecheck nó cần `@types/node` (dependency ngoài danh sách). Vite tự bundle config bằng esbuild.
+- Đã loại: thêm `@types/node` + `tsconfig.node.json`.
+
+## 2026-09-28 — Phiên bản dependency (Phase 0)
+
+- Node 24.19 (LTS, `.nvmrc` = 24), npm 11.17.
+- `phaser` 3.90.0 (bản 3.x mới nhất), `zod` 4.6.5.
+- Dev: `typescript` 6.0.3, `vite` 8.3.1, `vitest` 5.0.2, `@vitest/coverage-v8` 5.0.2, `eslint` 10.11.0, `typescript-eslint` 8.70.1, `prettier` 3.9.9, `vite-plugin-pwa` 1.3.0, `@vitejs/plugin-basic-ssl` 2.3.0, `tsx` 4.23.15, `eruda` 3.4.3.
+- Tất cả pin chính xác (`-E`).
+- `@vitest/coverage-v8`, `tsx`, `eruda` được chủ dự án duyệt (PLAN §15 D10).
+- npm 11 chặn postinstall của `esbuild`; build Vite 8 không cần nó (dùng rolldown), nên không duyệt script.
+
+## 2026-09-28 — Chủ dự án chốt thiết kế, viết lại `docs/PLAN.md`
+
+- Nguồn: `prompt.md` và trả lời trong hội thoại. Chi tiết nằm trong PLAN; mục này chỉ ghi điểm đổi so với bản cũ.
+- Ca làm 08:00–19:00; chuyến bay đêm 21:30–01:30, không cất cánh trong ca; ghế chưa bán lúc SUMMARY là ghế ế.
+- Số khách: không có "sinh đủ khách"; base 5, +1–3/ngày đến ngày 10, +1–2/ngày sau đó; TravelViet (thang 1–5) từ ngày 11: < 3.0 → 30%, 3.0–3.5 → 45%, 3.6–4.4 → 100%, từ 4.5 cộng bonus theo tầng ×3; trần 300 khách/ngày.
+- Chấm khách 1–5 sao. POOR không thu tiền. Tip chỉ khách BUSINESS PERFECT = 0.8 × giá vé. BUSINESS trừ điểm gấp đôi.
+- Bỏ: chế độ Thư giãn, khách đi đôi, VIP_GROUP, DELAY, màn kết thúc ngày 7. Sự kiện: RUSH, WEATHER (dự báo ở PREP, chốt khi mở cửa: 40% tốt, 40% mất 1/3 ghế tuyến đó, 20% mất hết), có từ ngày 1.
+- Chi tiêu SHOP ghi vào ngày hôm sau. Lưới an toàn chỉ còn điều kiện tiền.
+- Thêm Onboarding (tên người chơi, tên thương hiệu), cốt truyện genz, nhân vật dẫn truyện Béo.
+- Máy bay/cơ trưởng/nhân viên, nợ/phá sản, DELAY: đưa vào backlog §17.
+- Chọn "3.0–3.5 → 45%" cho khoảng 3.5–3.6 chủ dự án chưa nói rõ.
