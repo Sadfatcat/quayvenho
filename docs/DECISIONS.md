@@ -66,7 +66,8 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 
 ## 2026-09-28 — UI: PlaygroundScene chỉ tồn tại ở bản dev
 
-- Quyết định: `main.ts` dùng `if (import.meta.env.DEV) { const { PlaygroundScene } = await import('@dev/PlaygroundScene'); ... }` (top-level await, dynamic import). Bản production không có PlaygroundScene trong bundle (đã kiểm bằng `npm run build`: đúng 12 module, không tăng khi thêm Playground).
+- Quyết định: `main.ts` gọi `import('@dev/PlaygroundScene')` trong `if (import.meta.env.DEV)`, bên trong một hàm `async function bootstrap()` gọi bằng `void bootstrap()` — không dùng top-level await. Bản production không có PlaygroundScene trong bundle (đã kiểm bằng `npm run build`: kích thước bundle không đổi khi thêm Playground).
+- **Sửa ngày 2026-09-28 (cùng ngày):** bản đầu dùng top-level await (`await import(...)` ở cấp module, không bọc hàm). Chủ dự án báo không mở được qua `dev:host` trên điện thoại dù mạng/tường lửa đều ổn (đã tự kiểm bằng `curl` tới LAN IP, nhận HTTP 200 — server và tường lửa không phải nguyên nhân). Top-level await là cú pháp ES2022 mới, một số WebView trong ứng dụng nhắn tin và trình duyệt Android đời cũ trên máy tầm trung chưa hỗ trợ; lỗi cú pháp ở cấp module khiến toàn bộ script không chạy, không có thông báo lỗi hiển thị cho người dùng. Đổi sang `async function` + `void bootstrap()` để tương thích rộng hơn (PLAN §1.2: Safari iOS + Chrome Android tầm trung), hành vi loại PlaygroundScene khỏi bundle production không đổi.
 - Thêm alias `@dev/*` → `src/dev/*` trong `tsconfig.json` và `vite.config.ts`, khớp cây thư mục PLAN §6.1 (`dev/debug.ts`).
 - `BootScene` chuyển sang `Playground` khi URL có `?playground` và đang ở DEV; không có nhánh này trong build production (dead-code-eliminated).
 
