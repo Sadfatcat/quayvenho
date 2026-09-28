@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from '@scenes/BootScene';
+import { devError } from '@platform/logger';
 import { COLORS } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from './config';
 
@@ -7,8 +8,13 @@ import { GAME_HEIGHT, GAME_WIDTH } from './config';
 async function bootstrap(): Promise<void> {
   const scenes: Phaser.Types.Scenes.SceneType[] = [BootScene];
   if (import.meta.env.DEV) {
-    const { PlaygroundScene } = await import('@dev/PlaygroundScene');
-    scenes.push(PlaygroundScene);
+    // A failure loading the dev-only Playground must never stop the real game from booting.
+    try {
+      const { PlaygroundScene } = await import('@dev/PlaygroundScene');
+      scenes.push(PlaygroundScene);
+    } catch (error) {
+      devError('Playground scene failed to load (dev-only, game still boots):', error);
+    }
   }
 
   new Phaser.Game({

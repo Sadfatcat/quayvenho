@@ -82,3 +82,17 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Quyết định: `ScrollList` chỉ bắt kéo qua một `viewport` Rectangle trong suốt nằm dưới các item; việc "chạm không nhầm thành kéo" (PLAN §10.4) do chính `Button` tự đảm bảo — `Button` so khoảng cách giữa điểm nhấn và điểm thả (ngưỡng `DRAG_TAP_THRESHOLD_PX`), không cần `ScrollList` biết về các Button con.
 - Đã loại: cơ chế `ScrollList` phát cờ `isDragging` để các con tự kiểm tra (yêu cầu con phải biết về cha, tăng khớp nối) — đơn giản hơn vì Button vốn đã cần logic phân biệt kéo/chạm cho chính nó (BaggageSlider, kéo vé sau này).
 - Đã kiểm bằng Playwright: kéo danh sách 20 mục ảo hoá đúng, bấm "Chọn" trên item sau khi cuộn vẫn ra đúng toast, không có false-tap trong quá trình kéo.
+
+## 2026-09-28 — `dev:host` chuyển sang HTTP thường, không HTTPS tự ký
+
+- Vấn đề: chủ dự án test trên điện thoại thật, Safari báo "kết nối mạng bị mất". Tự kiểm chứng chỉ do `@vitejs/plugin-basic-ssl` sinh ra: SAN chỉ gồm `localhost`, `127.0.0.1`, `::1` — không có địa chỉ LAN (`192.168.x.x`) mà điện thoại thực sự gọi vào. Plugin không cho cấu hình thêm SAN.
+- Quyết định: `npm run dev:host` đổi thành `vite --host` (HTTP thường). Thêm script `dev:host:https` giữ nguyên bản HTTPS cũ, dùng khi cần test API đòi secure context.
+- Lý do đổi mặc định sang HTTP: chưa có tính năng nào ở Phase 0–2 cần secure context (Service Worker/PWA là Phase 6). HTTP đơn giản, không phụ thuộc IP LAN thay đổi theo DHCP.
+- Đã loại: `vite-plugin-mkcert` (cần cài mkcert hệ thống, phức tạp hơn mức cần ở giai đoạn này) — sẽ cân nhắc lại ở Phase 6 khi thật sự cần test PWA/Service Worker qua HTTPS trên điện thoại.
+- Đã kiểm bằng Playwright, điều hướng thẳng tới địa chỉ LAN qua HTTP (giả lập đúng cách điện thoại gọi vào): tải đúng, không lỗi console.
+
+## 2026-09-28 — main.ts: lỗi nạp PlaygroundScene không được chặn cả game
+
+- Vấn đề: sau khi sửa top-level await, chủ dự án test qua HTTP vẫn thấy màn đen. Nguyên nhân: `await import('@dev/PlaygroundScene')` không có try/catch — nếu import lỗi (mạng, hoặc cú pháp thiết bị không hỗ trợ) thì `bootstrap()` ném lỗi trước dòng `new Phaser.Game(...)`, cả game không khởi tạo.
+- Quyết định: bọc try/catch quanh import Playground; lỗi (nếu có) chỉ ghi log DEV, không chặn `new Phaser.Game(...)`.
+- Thêm `src/platform/logger.ts` (`devError`) làm nơi duy nhất được phép gọi `console.*`, tự kiểm `import.meta.env.DEV`, đúng luật CLAUDE.md "console.log trừ logger có kiểm tra import.meta.env.DEV". ESLint `no-console` giữ nguyên chặn toàn dự án, chỉ file này có `eslint-disable-line` kèm giải thích.
