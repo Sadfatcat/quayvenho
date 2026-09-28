@@ -48,12 +48,12 @@ Mục tiêu: dự án chạy được, lint chặn sai kiến trúc, có CI và 
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 0.1 | Cài dependency theo CLAUDE.md, chuyển PLAN vào `docs/` | `package.json` | `npm run dev` hiện chữ "Quầy Vé Nhỏ" trên nền trời, không lỗi console |
-| [ ] 0.2 | Kiểm tra rule ESLint của domain | `eslint.config.js` | Tạo tạm `src/domain/x.ts` import `phaser` / dùng `Math.random` / `Date` → lint báo lỗi; xoá file tạm |
-| [ ] 0.3 | HTTPS trong LAN | `vite.config.ts` | `npm run dev:host` mở được trên điện thoại cùng Wi-Fi |
-| [ ] 0.4 | `git init`, `.nvmrc`, GitHub Actions | `.github/workflows/ci.yml` | CI chạy typecheck, lint, test, build và xanh |
-| [ ] 0.5 | Deploy thử Cloudflare Pages, viết hướng dẫn vào README | `README.md` | Mở link `*.pages.dev` trên điện thoại |
-| [ ] 0.R | Review giai đoạn 0 | — | Theo mẫu Review |
+| [x] 0.1 | Cài dependency theo CLAUDE.md, chuyển PLAN vào `docs/` | `package.json` | `npm run dev` hiện chữ "Quầy Vé Nhỏ" trên nền trời, không lỗi console |
+| [x] 0.2 | Kiểm tra rule ESLint của domain | `eslint.config.js` | Tạo tạm `src/domain/x.ts` import `phaser` / dùng `Math.random` / `Date` → lint báo lỗi; xoá file tạm |
+| [~] 0.3 | HTTPS trong LAN | `vite.config.ts` | `npm run dev:host` mở được trên điện thoại cùng Wi-Fi — chờ chủ dự án thử trên điện thoại |
+| [~] 0.4 | `git init`, `.nvmrc`, GitHub Actions | `.github/workflows/ci.yml` | CI chạy typecheck, lint, test, build và xanh — đã có commit, chờ repo GitHub |
+| [~] 0.5 | Deploy thử Cloudflare Pages, viết hướng dẫn vào README | `README.md` | Mở link `*.pages.dev` trên điện thoại — README xong, chờ tài khoản Cloudflare |
+| [x] 0.R | Review giai đoạn 0 | — | Theo mẫu Review |
 
 Không tạo sẵn toàn bộ cây thư mục placeholder: file được tạo ở đúng bước dùng tới nó.
 
@@ -80,7 +80,12 @@ Mục tiêu: toàn bộ luật game chạy được chỉ bằng `dispatch` / `t
 | [ ] 1.13 | Facade và test tích hợp | `domain/game.ts`, `domain/__integration__/*` | `fullDay`, `thirtyDays`, `replay` xanh; coverage ≥ 90% lines / 85% branches (cần D10) |
 | [ ] 1.R | Review giai đoạn 1 | — | Theo mẫu Review. Chú ý: helper lặp giữa `scoring`/`economy`/`inventory` |
 
-Ghi chú review: _(điền ở bước 0.R)_
+Ghi chú review (từ 0.R):
+- Bước 1.13: thêm khối `coverage` (provider v8, include `src/domain/**`, ngưỡng 90/85) vào `test` trong `vite.config.ts` và script `test:coverage`.
+- Test invariant 2.000 seed × 30 ngày có thể chậm: đặt trong file riêng, nếu > 30 s thì giảm seed ở `npm run test` và giữ số đầy đủ ở một script riêng (hỏi trước khi đổi acceptance).
+- `tsx` đọc được path alias từ `tsconfig.json`, dùng cho `scripts/sim.ts` ở bước 5.7.
+- Build cảnh báo chunk 1,2 MB (Phaser): để giai đoạn 7 xử lý (tách chunk Phaser hoặc nâng `chunkSizeWarningLimit`), không làm bây giờ.
+- Chưa tách common gì ở giai đoạn 0 (chưa có code lặp).
 
 ---
 
