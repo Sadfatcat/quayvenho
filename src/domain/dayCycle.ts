@@ -1,0 +1,606 @@
+import {
+  BAGGAGE_MARKS,
+  BAGGAGE_MAX_KG,
+  BAGGAGE_TOLERANCE_KG,
+  DEFAULT_SETTINGS,
+  MAX_TICK_MS,
+  MOOD_HAPPY_ABOVE,
+  MOOD_NEUTRAL_FROM,
+  PROFILE_LIMITS,
+  QUEUE_PATIENCE_RATE,
+  RESOLVE_MS,
+  SAVE_VERSION,
+  STARTING_MONEY,
+} from '@data/balance';
+import { TRAVELVIET_FROM_DAY, TRAVELVIET_WINDOW } from '@data/demand';
+import { WEATHER_LOSS_SHARE } from '@data/events';
+import { SHOP_CLOSE_MINUTE, SHOP_OPEN_MINUTE } from '@data/schedule';
+import { canServe } from './canServe';
+import { advanceClock } from './clock';
+import { invariant } from './common/invariant';
+import { clamp } from './common/math';
+import { getDayConfig, isMechanicOpen } from './dayConfig';
+import { customersForDay, isTravelVietOpen, travelVietScore } from './demand';
+import { makeTx, moneyBalances, refundFor, summarizeDay } from './economy';
+import { isRush, resolveWeather, rollDayEvent } from './events';
+import {
+  expireAvailable,
+  holdSeat,
+  loseSeats,
+  maxPurchasable,
+  pendingKey,
+  purchasePending,
+  releaseHeld,
+  sellHeld,
+} from './inventory';
+import type {
+  BuildStep,
+  Command,
+  CounterSlot,
+  Customer,
+  DomainEvent,
+  GameState,
+  Mood,
+  RouteId,
+  ScoreResult,
+  TicketDraft,
+  TodayState,
+} from './models';
+import { buildRouteBag, generateOrder } from './orderGen';
+import { type Rng, rngFor } from './rng';
+import { startingRouteIds } from './routes';
+import { needsSupport, supportGift } from './safetyNet';
+import { findFlight, generateFlights } from './schedule';
+import { scoreCustomer, type CustomerAction } from './scoring';
+import type { ShuffleBag } from './shuffleBag';
+import { generateArrivals } from './spawner';
+import { checkRouteUnlock, checkUpgrade, computeModifiers } from './upgrades';
+
+/** Per-shift RNG state; rebuilt deterministically at OPEN_COUNTER, never saved. */
+export interface DayRuntime {
+  routeBag: ShuffleBag<RouteId>;
+  ordersRng: Rng;
+  namesRng: Rng;
+}
+
+/** Mutable holder owned by GameSession. Commands and ticks mutate `state` in place. */
+export interface Session {
+  state: GameState;
+  runtime: DayRuntime | null;
+}
+
+export const TUTORIAL_FLAG = 'tutorialDone_1';
+const BUILD_STEPS: readonly BuildStep[] = ['FLIGHT', 'SEAT', 'EXTRAS', 'REVIEW'];
+
+const freshDraft = (): TicketDraft => ({ step: 'FLIGHT', flightId: null, cabin: null, seat: null, baggageKg: 0, extras: [] });
+const emptyCounter = (): CounterSlot => ({ state: 'EMPTY', draft: null, printLeftMs: 0, resolveLeftMs: 0 });
+
+const createToday = (
+  seed: number,
+  day: number,
+  unlockedRoutes: readonly RouteId[],
+  moneyStart: number,
+  transactions: TodayState['transactions'],
+): TodayState => ({
+  moneyStart,
+  event: rollDayEvent(seed, day, unlockedRoutes),
+  flights: generateFlights(seed, day, unlockedRoutes),
+  seats: [],
+  pendingPurchase: {},
+  seatBias: 'BALANCED',
+  purchaseCount: 0,
+  transactions,
+  targetCustomers: 0,
+  arrivals: [],
+  nextArrivalIndex: 0,
+  clock: SHOP_OPEN_MINUTE,
+  queue: [],
+  counter: emptyCounter(),
+  results: [],
+  turnedAway: 0,
+});
+
+const applySafetyNet = (state: GameState): DomainEvent[] => {
+  if (!needsSupport(state.money, state.unlockedRoutes)) return [];
+  const { today } = state;
+  const gift = supportGift(state.seed, state.day, today.flights, today.seats, state.unlockedRoutes);
+  if (!gift || !gift.seats.length) return [];
+  today.seats.push(...gift.seats);
+  today.transactions.push(makeTx('SUPPORT_GIFT', 0, state.day, null, gift.flight.id));
+  return [{ type: 'SUPPORT_GIFT', flightId: gift.flight.id, seats: gift.seats.map((seat) => seat.seat) }];
+};
+
+export const createNewGame = (seed: number): GameState => {
+  const unlockedRoutes = startingRouteIds();
+  const state: GameState = {
+    version: SAVE_VERSION,
+    seed,
+    day: 1,
+    phase: 'PREP',
+    money: STARTING_MONEY,
+    profile: null,
+    starHistory: [],
+    unlockedRoutes,
+    routeUnlockedDay: {},
+    upgrades: [],
+    settings: { ...DEFAULT_SETTINGS },
+    flags: {},
+    today: createToday(seed, 1, unlockedRoutes, STARTING_MONEY, []),
+    nextDayTransactions: [],
+    lastSummary: null,
+  };
+  applySafetyNet(state);
+  return state;
+};
+
+// ---------- helpers ----------
+
+export const snapBaggage = (kg: number): number => {
+  const clamped = clamp(Math.round(kg), 0, BAGGAGE_MAX_KG);
+  return BAGGAGE_MARKS.find((mark) => Math.abs(mark - clamped) <= BAGGAGE_TOLERANCE_KG) ?? clamped;
+};
+
+const moodOf = (ratio: number): Mood =>
+  ratio > MOOD_HAPPY_ABOVE ? 'HAPPY' : ratio >= MOOD_NEUTRAL_FROM ? 'NEUTRAL' : 'IMPATIENT';
+
+export const patienceRatioOf = (customer: Customer): number =>
+  customer.infinitePatience ? 1 : clamp(customer.patienceLeftMs / customer.order.patienceMaxMs, 0, 1);
+
+export const counterCustomer = (today: TodayState): Customer | undefined =>
+  today.queue[0]?.position === 'COUNTER' ? today.queue[0] : undefined;
+
+const isStepComplete = (draft: TicketDraft, step: BuildStep): boolean =>
+  step === 'FLIGHT' ? draft.flightId !== null && draft.cabin !== null : step === 'SEAT' ? draft.seat !== null : true;
+
+export const canGoToStep = (draft: TicketDraft, target: BuildStep): boolean =>
+  BUILD_STEPS.slice(0, BUILD_STEPS.indexOf(target)).every((step) => isStepComplete(draft, step));
+
+const isShift = (state: GameState) => state.phase === 'OPEN' || state.phase === 'CLOSING';
+
+const recordResult = (state: GameState, result: ScoreResult): void => {
+  const { today } = state;
+  const minute = Math.floor(today.clock);
+  state.money += result.revenue + result.tip - result.penalty;
+  invariant(state.money >= 0, 'money went negative');
+  if (result.revenue) today.transactions.push(makeTx('TICKET_REVENUE', result.revenue, state.day, minute, result.customerId));
+  if (result.tip) today.transactions.push(makeTx('TIP', result.tip, state.day, minute, result.customerId));
+  if (result.penalty) today.transactions.push(makeTx('PENALTY', -result.penalty, state.day, minute, result.customerId));
+  state.starHistory = [...state.starHistory, result.stars].slice(-TRAVELVIET_WINDOW);
+  today.results.push(result);
+};
+
+const scoreAction = (state: GameState, customer: Customer, action: CustomerAction): ScoreResult =>
+  scoreCustomer({
+    order: customer.order,
+    action,
+    patienceRatio: patienceRatioOf(customer),
+    day: state.day,
+    rush: isRush(state.today.event),
+    tipMult: computeModifiers(state.upgrades).tipMult,
+    money: state.money,
+  });
+
+/** Scores the counter customer and starts the leave animation. */
+const resolveCounter = (state: GameState, customer: Customer, action: CustomerAction): ScoreResult => {
+  const result = scoreAction(state, customer, action);
+  recordResult(state, result);
+  state.today.counter = { state: 'RESOLVING', draft: null, printLeftMs: 0, resolveLeftMs: RESOLVE_MS };
+  return result;
+};
+
+// ---------- commands ----------
+
+export const applyCommand = (session: Session, command: Command): DomainEvent[] => {
+  const { state } = session;
+  const { today } = state;
+  const reject = (reason: string): DomainEvent[] => [{ type: 'COMMAND_REJECTED', command: command.type, reason }];
+  const building = () => {
+    const customer = counterCustomer(today);
+    const draft = today.counter.draft;
+    return isShift(state) && today.counter.state === 'BUILDING' && customer && draft ? { customer, draft } : null;
+  };
+
+  switch (command.type) {
+    case 'PROFILE_SET': {
+      if (state.profile) return reject('PROFILE_ALREADY_SET');
+      const playerName = command.playerName.trim();
+      const brandName = command.brandName.trim();
+      if (!playerName || playerName.length > PROFILE_LIMITS.playerName) return reject('BAD_PLAYER_NAME');
+      if (!brandName || brandName.length > PROFILE_LIMITS.brandName) return reject('BAD_BRAND_NAME');
+      state.profile = { playerName, brandName };
+      return [{ type: 'PROFILE_SET' }];
+    }
+
+    case 'PREP_SET_QTY': {
+      if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      const flight = findFlight(today.flights, command.flightId);
+      if (!flight) return reject('UNKNOWN_FLIGHT');
+      const { qty, cabin } = command;
+      if (!Number.isInteger(qty) || qty < 0 || qty > maxPurchasable(flight, cabin, today.seats)) return reject('BAD_QTY');
+      const key = pendingKey(flight.id, cabin);
+      if (qty === 0) delete today.pendingPurchase[key];
+      else today.pendingPurchase[key] = qty;
+      return [];
+    }
+
+    case 'PREP_SET_SEAT_BIAS': {
+      if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      if (!computeModifiers(state.upgrades).seatBias) return reject('UPGRADE_REQUIRED');
+      today.seatBias = command.bias;
+      return [];
+    }
+
+    case 'PREP_CONFIRM_PURCHASE': {
+      if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      const result = purchasePending({
+        pending: today.pendingPurchase,
+        flights: today.flights,
+        seats: today.seats,
+        money: state.money,
+        bias: today.seatBias,
+        rng: rngFor(state.seed, state.day, `purchase:${today.purchaseCount}`),
+      });
+      if (!result.ok) return reject(result.reason);
+      today.seats = result.value.seats;
+      state.money -= result.value.totalCost;
+      today.pendingPurchase = {};
+      today.purchaseCount++;
+      return result.value.purchases.map((purchase) => {
+        today.transactions.push(makeTx('SEAT_PURCHASE', -purchase.cost, state.day, null, pendingKey(purchase.flightId, purchase.cabin)));
+        return { type: 'SEATS_PURCHASED', ...purchase };
+      });
+    }
+
+    case 'PREP_CLEAR_PENDING': {
+      if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      today.pendingPurchase = {};
+      return [];
+    }
+
+    case 'OPEN_COUNTER': {
+      if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      if (Object.keys(today.pendingPurchase).length) return reject('PENDING_NOT_CONFIRMED');
+      return openCounter(session);
+    }
+
+    case 'BUILD_SELECT_FLIGHT': {
+      if (!building()) return reject('NOT_BUILDING');
+      const flight = findFlight(today.flights, command.flightId);
+      if (!flight || flight.status !== 'SCHEDULED') return reject('FLIGHT_UNAVAILABLE');
+      const seats = releaseHeld(today.seats);
+      const hasSeat = seats.some((s) => s.flightId === flight.id && s.cabin === command.cabin && s.state === 'AVAILABLE');
+      if (!hasSeat) return reject('NO_SEAT_IN_CABIN');
+      today.seats = seats;
+      today.counter.draft = { ...freshDraft(), baggageKg: 0, step: 'SEAT', flightId: flight.id, cabin: command.cabin };
+      return [];
+    }
+
+    case 'BUILD_SELECT_SEAT': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      const { draft } = ctx;
+      if (!draft.flightId || !draft.cabin) return reject('NO_FLIGHT_SELECTED');
+      const result = holdSeat(today.seats, draft.flightId, draft.cabin, command.seat);
+      if (!result.ok) return reject(result.reason);
+      today.seats = result.value;
+      draft.seat = command.seat;
+      return [];
+    }
+
+    case 'BUILD_SET_BAGGAGE': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      ctx.draft.baggageKg = snapBaggage(command.kg);
+      return [];
+    }
+
+    case 'BUILD_TOGGLE_EXTRA': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      if (!isMechanicOpen('extras', state.day)) return reject('MECHANIC_LOCKED');
+      const { extras } = ctx.draft;
+      ctx.draft.extras = extras.includes(command.extra)
+        ? extras.filter((extra) => extra !== command.extra)
+        : [...extras, command.extra];
+      return [];
+    }
+
+    case 'BUILD_GOTO_STEP': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      if (!canGoToStep(ctx.draft, command.step)) return reject('STEP_INCOMPLETE');
+      ctx.draft.step = command.step;
+      return [];
+    }
+
+    case 'BUILD_RESET': {
+      if (!building()) return reject('NOT_BUILDING');
+      today.seats = releaseHeld(today.seats);
+      today.counter.draft = freshDraft();
+      return [];
+    }
+
+    case 'PRINT_TICKET': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      if (ctx.draft.step !== 'REVIEW' || !canGoToStep(ctx.draft, 'REVIEW')) return reject('TICKET_INCOMPLETE');
+      const printMs = computeModifiers(state.upgrades).printMs;
+      today.counter = { ...today.counter, state: 'PRINTING', printLeftMs: printMs };
+      return [{ type: 'PRINT_STARTED', durationMs: printMs }];
+    }
+
+    case 'DELIVER_TICKET': {
+      const customer = counterCustomer(today);
+      const draft = today.counter.draft;
+      if (!isShift(state) || today.counter.state !== 'READY_TO_DELIVER' || !customer || !draft) return reject('NOT_READY');
+      const flight = draft.flightId ? findFlight(today.flights, draft.flightId) : undefined;
+      invariant(flight && draft.cabin && draft.seat, 'printed ticket is incomplete');
+      today.seats = sellHeld(today.seats);
+      const result = resolveCounter(state, customer, {
+        type: 'DELIVER',
+        ticket: { flight, cabin: draft.cabin, seat: draft.seat, baggageKg: draft.baggageKg, extras: draft.extras },
+      });
+      return [{ type: 'TICKET_SCORED', result }];
+    }
+
+    case 'REFUSE_CUSTOMER': {
+      const customer = counterCustomer(today);
+      const refusable = ['BUILDING', 'PRINTING', 'READY_TO_DELIVER'].includes(today.counter.state);
+      if (!isShift(state) || !customer || !refusable) return reject('NO_CUSTOMER');
+      today.seats = releaseHeld(today.seats);
+      const result = resolveCounter(state, customer, {
+        type: 'REFUSE',
+        canServe: canServe(customer.order, today.flights, today.seats),
+      });
+      return [{ type: 'TICKET_SCORED', result }];
+    }
+
+    case 'GO_TO_SHOP': {
+      if (state.phase !== 'SUMMARY') return reject('WRONG_PHASE');
+      state.phase = 'SHOP';
+      return [];
+    }
+
+    case 'SHOP_BUY_UPGRADE': {
+      if (state.phase !== 'SHOP') return reject('WRONG_PHASE');
+      const result = checkUpgrade(command.upgradeId, state.upgrades, shopContext(state));
+      if (!result.ok) return reject(result.reason);
+      state.money -= result.value.cost;
+      state.upgrades.push(command.upgradeId);
+      state.nextDayTransactions.push(makeTx('UPGRADE_PURCHASE', -result.value.cost, state.day + 1, null, command.upgradeId));
+      return [{ type: 'UPGRADE_BOUGHT', upgradeId: command.upgradeId }];
+    }
+
+    case 'SHOP_UNLOCK_ROUTE': {
+      if (state.phase !== 'SHOP') return reject('WRONG_PHASE');
+      const result = checkRouteUnlock(command.routeId, state.unlockedRoutes, shopContext(state));
+      if (!result.ok) return reject(result.reason);
+      state.money -= result.value;
+      state.unlockedRoutes.push(command.routeId);
+      state.routeUnlockedDay[command.routeId] = state.day;
+      state.nextDayTransactions.push(makeTx('ROUTE_UNLOCK', -result.value, state.day + 1, null, command.routeId));
+      return [{ type: 'ROUTE_UNLOCKED', routeId: command.routeId }];
+    }
+
+    case 'NEXT_DAY': {
+      if (state.phase !== 'SHOP') return reject('WRONG_PHASE');
+      invariant(state.lastSummary, 'SHOP without a summary');
+      state.day += 1;
+      state.today = createToday(state.seed, state.day, state.unlockedRoutes, state.lastSummary.moneyEnd, state.nextDayTransactions);
+      state.nextDayTransactions = [];
+      state.phase = 'PREP';
+      session.runtime = null;
+      return applySafetyNet(state);
+    }
+
+    case 'SETTINGS_UPDATE': {
+      const { musicVolume, sfxVolume, haptics } = { ...state.settings, ...command.patch };
+      state.settings = { musicVolume: clamp(musicVolume, 0, 1), sfxVolume: clamp(sfxVolume, 0, 1), haptics };
+      return [{ type: 'SETTINGS_UPDATED' }];
+    }
+
+    case 'FLAG_SET': {
+      state.flags[command.flag] = true;
+      return [{ type: 'FLAG_SET', flag: command.flag }];
+    }
+  }
+};
+
+/** Shop purchases apply from the next day, so conditions use the next day. */
+const shopContext = (state: GameState) => ({
+  day: state.day + 1,
+  money: state.money,
+  travelViet: travelVietScore(state.starHistory),
+});
+
+const openCounter = (session: Session): DomainEvent[] => {
+  const { state } = session;
+  const { today, seed, day } = state;
+  const events: DomainEvent[] = [];
+
+  if (today.event.type === 'WEATHER') {
+    const { routeId } = today.event;
+    const outcome = resolveWeather(seed, day);
+    today.event = { ...today.event, outcome };
+    const routeFlights = today.flights.filter((flight) => flight.routeId === routeId);
+    const { seats, lost } = loseSeats(today.seats, routeFlights.map((f) => f.id), WEATHER_LOSS_SHARE[outcome], rngFor(seed, day, 'weather:loss'));
+    today.seats = seats;
+    if (outcome === 'SEVERE') {
+      today.flights = today.flights.map((flight) => (flight.routeId === routeId ? { ...flight, status: 'CANCELLED' } : flight));
+    }
+    if (outcome !== 'GOOD') today.transactions.push(makeTx('WEATHER_LOSS', 0, day, SHOP_OPEN_MINUTE, routeId));
+    events.push({ type: 'WEATHER_RESOLVED', routeId, outcome, lostSeats: lost.length });
+  }
+
+  today.targetCustomers = customersForDay({
+    seed,
+    day,
+    rating: travelVietScore(state.starHistory),
+    rush: isRush(today.event),
+  });
+  today.arrivals = generateArrivals(rngFor(seed, day, 'spawn'), today.targetCustomers);
+  today.nextArrivalIndex = 0;
+  today.clock = SHOP_OPEN_MINUTE;
+  session.runtime = {
+    routeBag: buildRouteBag(rngFor(seed, day, 'routes'), state.unlockedRoutes, state.routeUnlockedDay, day),
+    ordersRng: rngFor(seed, day, 'orders'),
+    namesRng: rngFor(seed, day, 'names'),
+  };
+  state.phase = 'OPEN';
+  events.push({ type: 'DAY_OPENED', targetCustomers: today.targetCustomers });
+  return events;
+};
+
+// ---------- tick ----------
+
+export const advanceTime = (session: Session, deltaMs: number): DomainEvent[] => {
+  const { state } = session;
+  if (!isShift(state)) return [];
+  const runtime = session.runtime;
+  invariant(runtime, 'runtime missing during a shift');
+  const delta = clamp(deltaMs, 0, MAX_TICK_MS);
+  const events: DomainEvent[] = [];
+
+  tickCounter(state, delta, events);
+  tickClock(state, delta, events);
+  spawnArrivals(state, runtime, events);
+  if (state.phase === 'OPEN' && state.today.clock >= SHOP_CLOSE_MINUTE) {
+    state.phase = 'CLOSING';
+    events.push({ type: 'DAY_CLOSING' });
+  }
+  promoteNextCustomer(state, events);
+  tickPatience(state, delta, events);
+  endDayIfDone(session, events);
+  return events;
+};
+
+const tickCounter = (state: GameState, delta: number, events: DomainEvent[]): void => {
+  const { today } = state;
+  const counter = today.counter;
+  if (counter.state === 'PRINTING') {
+    counter.printLeftMs -= delta;
+    if (counter.printLeftMs <= 0) {
+      today.counter = { ...counter, state: 'READY_TO_DELIVER', printLeftMs: 0 };
+      events.push({ type: 'PRINT_DONE' });
+    }
+  } else if (counter.state === 'RESOLVING') {
+    counter.resolveLeftMs -= delta;
+    if (counter.resolveLeftMs <= 0) {
+      today.queue = today.queue.slice(1);
+      today.counter = emptyCounter();
+    }
+  }
+};
+
+const tickClock = (state: GameState, delta: number, events: DomainEvent[]): void => {
+  const before = Math.floor(state.today.clock);
+  state.today.clock = advanceClock(state.today.clock, delta);
+  const after = Math.floor(state.today.clock);
+  if (after !== before) events.push({ type: 'CLOCK_TICK', minute: after });
+};
+
+const spawnArrivals = (state: GameState, runtime: DayRuntime, events: DomainEvent[]): void => {
+  const { today } = state;
+  if (state.phase !== 'OPEN') return;
+  const modifiers = computeModifiers(state.upgrades);
+  while (today.nextArrivalIndex < today.arrivals.length && (today.arrivals[today.nextArrivalIndex] ?? Infinity) <= today.clock) {
+    const index = today.nextArrivalIndex++;
+    const waiting = today.queue.filter((customer) => customer.position === 'QUEUE').length;
+    if (waiting >= modifiers.queueMax) {
+      today.turnedAway++;
+      events.push({ type: 'CUSTOMER_TURNED_AWAY', customerId: `d${state.day}-c${index}` });
+      continue;
+    }
+    const order = generateOrder({
+      rng: runtime.ordersRng,
+      namesRng: runtime.namesRng,
+      day: state.day,
+      cfg: getDayConfig(state.day),
+      flights: today.flights,
+      seats: today.seats,
+      unlockedRoutes: state.unlockedRoutes,
+      routeBag: runtime.routeBag,
+      modifiers,
+      customerIndex: index,
+    });
+    today.queue.push({
+      order,
+      patienceLeftMs: order.patienceMaxMs,
+      infinitePatience: state.day === 1 && index === 0 && !state.flags[TUTORIAL_FLAG],
+      mood: 'HAPPY',
+      position: 'QUEUE',
+    });
+    events.push({ type: 'CUSTOMER_SPAWNED', customerId: order.customerId });
+  }
+};
+
+const promoteNextCustomer = (state: GameState, events: DomainEvent[]): void => {
+  const { today } = state;
+  const next = today.queue[0];
+  if (today.counter.state !== 'EMPTY' || !next) return;
+  next.position = 'COUNTER';
+  today.counter = { state: 'BUILDING', draft: freshDraft(), printLeftMs: 0, resolveLeftMs: 0 };
+  events.push({ type: 'CUSTOMER_AT_COUNTER', customerId: next.order.customerId });
+};
+
+const tickPatience = (state: GameState, delta: number, events: DomainEvent[]): void => {
+  const { today } = state;
+  const leavers: Customer[] = [];
+  today.queue.forEach((customer, index) => {
+    const resolving = index === 0 && customer.position === 'COUNTER' && today.counter.state === 'RESOLVING';
+    if (customer.infinitePatience || resolving) return;
+    customer.patienceLeftMs -= delta * (customer.position === 'COUNTER' ? 1 : QUEUE_PATIENCE_RATE);
+    const mood = moodOf(patienceRatioOf(customer));
+    if (mood !== customer.mood) {
+      customer.mood = mood;
+      events.push({ type: 'CUSTOMER_MOOD_CHANGED', customerId: customer.order.customerId, mood });
+    }
+    if (customer.patienceLeftMs <= 0) leavers.push(customer);
+  });
+
+  for (const customer of leavers) {
+    events.push({ type: 'CUSTOMER_LEFT', customerId: customer.order.customerId });
+    if (customer.position === 'COUNTER') {
+      today.seats = releaseHeld(today.seats);
+      events.push({ type: 'TICKET_SCORED', result: resolveCounter(state, customer, { type: 'LEFT' }) });
+    } else {
+      today.queue = today.queue.filter((candidate) => candidate !== customer);
+      const result = scoreAction(state, customer, { type: 'LEFT' });
+      recordResult(state, result);
+      events.push({ type: 'TICKET_SCORED', result });
+    }
+  }
+};
+
+const endDayIfDone = (session: Session, events: DomainEvent[]): void => {
+  const { state } = session;
+  const { today } = state;
+  if (state.phase !== 'CLOSING' || today.queue.length || today.counter.state !== 'EMPTY') return;
+
+  today.seats = expireAvailable(today.seats);
+  const refund = refundFor(
+    today.seats.filter((seat) => seat.state === 'EXPIRED'),
+    computeModifiers(state.upgrades).refundRate,
+  );
+  if (refund > 0) {
+    state.money += refund;
+    today.transactions.push(makeTx('REFUND_EXPIRED', refund, state.day, Math.floor(today.clock)));
+  }
+  invariant(moneyBalances(today.moneyStart, today.transactions, state.money), `money invariant broken on day ${state.day}`);
+
+  const summary = summarizeDay({
+    day: state.day,
+    moneyStart: today.moneyStart,
+    moneyEnd: state.money,
+    transactions: today.transactions,
+    seats: today.seats,
+    results: today.results,
+    turnedAway: today.turnedAway,
+    travelVietAfter: isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null,
+  });
+  state.lastSummary = summary;
+  state.phase = 'SUMMARY';
+  session.runtime = null;
+  events.push({ type: 'DAY_ENDED', summary });
+  if (state.day === TRAVELVIET_FROM_DAY - 1) events.push({ type: 'TRAVELVIET_UNLOCKED' });
+};

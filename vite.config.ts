@@ -19,5 +19,11 @@ export default defineConfig(({ mode }) => ({
   plugins: mode === 'https' ? [basicSsl()] : [],
   test: {
     include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/domain/**/*.ts'],
+      exclude: ['src/domain/**/*.test.ts', 'src/domain/__integration__/**', 'src/domain/models.ts'],
+      thresholds: { lines: 90, branches: 85 },
+    },
   },
 }));
