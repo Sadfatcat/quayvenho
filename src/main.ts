@@ -1,13 +1,15 @@
 import Phaser from 'phaser';
 import { BootScene } from '@scenes/BootScene';
 import { CounterScene } from '@scenes/CounterScene';
+import { PreloadScene } from '@scenes/PreloadScene';
+import { TitleScene } from '@scenes/TitleScene';
 import { devError } from '@platform/logger';
 import { COLORS } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from './config';
 
 /** Async function instead of top-level await: broader phone/WebView compatibility (PLAN §1.2 target Safari iOS + Chrome Android). */
 async function bootstrap(): Promise<void> {
-  const scenes: Phaser.Types.Scenes.SceneType[] = [BootScene, CounterScene];
+  const scenes: Phaser.Types.Scenes.SceneType[] = [BootScene, PreloadScene, TitleScene, CounterScene];
   if (import.meta.env.DEV) {
     // A failure loading the dev-only Playground must never stop the real game from booting.
     try {

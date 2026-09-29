@@ -16,6 +16,20 @@ export const STRINGS = {
     exitConfirmYes: 'Về màn hình chính',
     exitConfirmCancel: 'Huỷ',
   },
+  title: {
+    continue: 'Chơi tiếp',
+    newGame: 'Chơi mới',
+    settings: 'Cài đặt',
+    newGameConfirmTitle: 'Bắt đầu ván mới?',
+    newGameConfirmMessage: 'Ván đang chơi sẽ được cất riêng, không mất, nhưng bạn sẽ chơi lại từ đầu.',
+    newGameConfirmYes: 'Chơi mới',
+    newGameConfirmCancel: 'Huỷ',
+    dayLabel: 'Ngày',
+    secondTabWarning: 'Game đang mở ở tab khác',
+  },
+  preload: {
+    loading: 'Đang tải...',
+  },
   playground: {
     title: 'UI Playground',
     buttons: 'Button',

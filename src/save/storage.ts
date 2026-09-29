@@ -35,7 +35,13 @@ const parseAndValidate = (json: string): LoadSaveResult => {
 };
 
 const readKey = (key: string): LoadSaveResult => {
-  const json = localStorage.getItem(key);
+  let json: string | null;
+  try {
+    json = localStorage.getItem(key);
+  } catch (error) {
+    devError('localStorage không truy cập được', error);
+    return { ok: false, reason: 'EMPTY' };
+  }
   if (json === null) {
     return { ok: false, reason: 'EMPTY' };
   }

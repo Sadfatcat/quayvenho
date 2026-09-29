@@ -427,6 +427,7 @@ export class CounterScene extends BaseScene {
       },
       onExit: () => {
         this.pauseOverlay = null;
+        this.scene.start('Title');
       },
     });
   }
