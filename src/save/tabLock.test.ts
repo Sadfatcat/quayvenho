@@ -1,27 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import { watchTabLock } from './tabLock';
 
-const flush = () => new Promise((resolve) => setTimeout(resolve, 100));
+const flush = () => new Promise((resolve) => setTimeout(resolve, 400));
 
 describe('watchTabLock', () => {
   it('tab đầu tiên không bị coi là tab thứ hai', async () => {
-    const onSecondTab = () => {
-      throw new Error('không nên gọi');
-    };
-    const tab = watchTabLock(onSecondTab);
+    const first = watchTabLock({
+      onSecondTabDetected: () => {
+        throw new Error('không nên gọi');
+      },
+      onTakenOver: () => {
+        throw new Error('không nên gọi');
+      },
+    });
 
     await flush();
 
-    tab.release();
+    first.release();
   });
 
   it('tab mở sau bị phát hiện là tab thứ hai', async () => {
     let secondTabDetected = false;
-    const first = watchTabLock(() => {});
+    const first = watchTabLock({ onSecondTabDetected: () => {}, onTakenOver: () => {} });
     await flush();
 
-    const second = watchTabLock(() => {
-      secondTabDetected = true;
+    const second = watchTabLock({
+      onSecondTabDetected: () => {
+        secondTabDetected = true;
+      },
+      onTakenOver: () => {},
     });
     await flush();
 
@@ -31,18 +38,20 @@ describe('watchTabLock', () => {
     second.release();
   });
 
-  it('release() ngừng nhận thông báo', async () => {
-    let calls = 0;
-    const first = watchTabLock(() => {});
+  it('requestTakeover khiến tab cũ nhận onTakenOver', async () => {
+    let takenOver = false;
+    const first = watchTabLock({ onSecondTabDetected: () => {}, onTakenOver: () => { takenOver = true; } });
     await flush();
+
+    const second = watchTabLock({ onSecondTabDetected: () => {}, onTakenOver: () => {} });
+    await flush();
+
+    second.requestTakeover();
+    await flush();
+
+    expect(takenOver).toBe(true);
+
     first.release();
-
-    const second = watchTabLock(() => {
-      calls += 1;
-    });
-    await flush();
-
-    expect(calls).toBe(0);
     second.release();
   });
 });

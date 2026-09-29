@@ -145,16 +145,22 @@ Ghi chú review (từ 3.R):
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 4.1 | Lưu trữ an toàn | `save/storage.ts`, `save/schema.ts`, `save/migrate.ts` (v0→v1 giả) | Test round-trip, JSON hỏng → prev, version tương lai, clamp giá trị bẩn |
-| [ ] 4.2 | Khoá tab | `save/tabLock.ts` | Tab thứ hai hiện "Game đang mở ở tab khác" |
-| [ ] 4.3 | Boot và Title | `scenes/BootScene.ts`, `PreloadScene.ts`, `TitleScene.ts` | Chơi tiếp / Chơi mới đúng luật §10.3 |
-| [ ] 4.4 | Onboarding | `ui/TextInput.ts`, `scenes/OnboardingScene.ts` (thoại tạm) | Nhập tên + thương hiệu, validate độ dài |
-| [ ] 4.5 | Kho | `ui/Stepper.ts`, `scenes/PrepScene.ts` | Mua ghế, chiết khấu, 3 hộp thoại "Mở cửa" |
-| [ ] 4.6 | Tổng kết | `scenes/SummaryScene.ts` (CountUpText) | Hiện đủ dòng §5.6, chạm để bỏ qua hiệu ứng |
-| [ ] 4.7 | Mốc lưu và chơi tiếp | nối save với sessionBridge | Acceptance Phase 3 trong PLAN §12 |
-| [ ] 4.R | Review giai đoạn 4 | — | Theo mẫu Review |
+| [x] 4.1 | Lưu trữ an toàn | `save/storage.ts`, `save/schema.ts`, `save/migrate.ts` (v0→v1 giả) | Test round-trip, JSON hỏng → prev, version tương lai, clamp giá trị bẩn |
+| [x] 4.2 | Khoá tab | `save/tabLock.ts` | Tab thứ hai hiện "Game đang mở ở tab khác" |
+| [x] 4.3 | Boot và Title | `scenes/BootScene.ts`, `PreloadScene.ts`, `TitleScene.ts` | Chơi tiếp / Chơi mới đúng luật §10.3 |
+| [x] 4.4 | Onboarding | `ui/TextInput.ts`, `scenes/OnboardingScene.ts` (thoại tạm) | Nhập tên + thương hiệu, validate độ dài |
+| [x] 4.5 | Kho | `ui/Stepper.ts`, `scenes/PrepScene.ts` | Mua ghế, chiết khấu, 3 hộp thoại "Mở cửa" |
+| [x] 4.6 | Tổng kết | `scenes/SummaryScene.ts` (CountUpText) | Hiện đủ dòng §5.6, chạm để bỏ qua hiệu ứng |
+| [x] 4.7 | Mốc lưu và chơi tiếp | nối save với sessionBridge | Acceptance Phase 3 trong PLAN §12 |
+| [x] 4.R | Review giai đoạn 4 | — | Theo mẫu Review |
 
-Ghi chú review: _(điền ở bước 3.R)_
+Ghi chú review (từ 4.R):
+- **Sai lệch so với PLAN §9 bị code-reviewer bắt được và đã sửa**: key localStorage đổi từ `quayvenho:save`/`:backup` sang đúng `qvn:save`/`qvn:save:prev` (PLAN §9.1); `tabLock.ts` viết lại đúng giao thức HELLO/ALIVE/TAKEOVER (PLAN §9.5) thay vì PING/PONG đơn giản ban đầu — tab thứ hai giờ có nút "Chơi ở đây" thật sự khiến tab cũ dừng lưu và hiện màn "Game đã mở ở tab khác" (đã kiểm bằng Playwright 2 tab thật); thêm `isStorageAvailable()`/`requestPersistentStorage()` gọi lúc Boot (PLAN §9.4/§9.7); `SummaryScene` sửa bug chạm-bỏ-qua-hiệu-ứng không hiện nốt các dòng chưa tới lượt (P1).
+- **Quyết định ghi vào DECISIONS.md**: `Math.random()` chấp nhận dùng đúng 1 chỗ (`TitleScene.startNewGame`) làm nguồn entropy biên cho seed ván mới; bỏ key `qvn:lock` (PLAN §9.1 dư, §9.5 không dùng tới).
+- **Tự phát hiện thêm 1 bug khi tự kiểm bằng Playwright** (không phải code-reviewer báo): overlay khoá tab (`BaseScene.showTabLockOverlay`) quên `overlay.add(panel)` nên nút "Chơi ở đây" hiện đúng nhưng không bấm được (backdrop phía sau chặn click dù panel vẽ đè lên trên) — đã sửa, đã kiểm lại bằng 2 tab Playwright thật (không phải mô phỏng), xác nhận tab bị chiếm dừng lưu (`sessionBridge.isPaused === true`) và tab kia chơi tiếp bình thường.
+- **`ShopScene` chưa tồn tại (Giai đoạn 5)**: `SummaryScene."Tiếp tục"` tạm thời dispatch `GO_TO_SHOP` rồi `NEXT_DAY` liền để bỏ qua Shop — có comment rõ trong code là tạm, Giai đoạn 5 bước 5.1 phải xoá dòng `NEXT_DAY` thừa đó và để người chơi dừng lại ở `ShopScene` thật.
+- **`TopBar` icon ⚙ ở Kho** tạm thời vẫn mở `PauseOverlay` (chưa có `SettingsOverlay` — Giai đoạn 5 bước 5.6), đúng như ghi chú đã để lại từ 3.R.
+- Đã kiểm bằng Playwright ở 360×640 và 430×932, qua toàn bộ luồng Onboarding → Kho (mua ghế, chiết khấu, xác nhận) → Quầy → Tổng kết (đếm số, mẹo Béo khi lỗ, "Tiếp tục") → Kho ngày 2 → refresh giữ đúng tiến trình → JSON hỏng tự khôi phục + toast → mở 2 tab thật (tab mới hiện "Chơi ở đây", tab cũ dừng lưu) — 0 lỗi console toàn bộ.
 
 ---
 
@@ -238,15 +244,16 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 | `getRoute`, `routeNumber` | `domain/routes.ts` | schedule, scoring, safetyNet, UI (tên/màu tuyến) | 1.3 | xong |
 | `getDayConfig`, `isMechanicOpen` | `domain/dayConfig.ts` | orderGen, dayCycle, UI (ẩn nút Hộ chiếu/dịch vụ) | 1.3 | xong |
 | Test fixtures, bots | `domain/__integration__/fixtures.ts`, `bots.ts` | test domain; bots dùng lại cho `scripts/sim.ts` (5.7) | 1.R | xong |
-| Storage an toàn | `save/storage.ts` | save, tabLock, settings | 4.1 | chưa làm |
-| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay (CounterScene) | 2.6 | xong |
+| Storage an toàn | `save/storage.ts` | BootScene (đọc + kiểm khả dụng), TitleScene (toast khôi phục), sessionBridge (ghi ở mốc checkpoint) | 4.1 | xong |
+| `watchTabLock` | `save/tabLock.ts` | main.ts (toàn cục), BaseScene (overlay khoá tab) | 4.2 | xong |
+| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay (Prep/Counter/Summary); tự ghi save ở mốc §6.6 | 2.6 | xong |
 
 ### UI
 
 | Component | File | Dùng ở | Giai đoạn tạo | Trạng thái |
 |---|---|---|---|---|
 | theme, textStyles, layout | `ui/theme.ts`, `textStyles.ts`, `layout.ts` | mọi scene/UI | 2.1 | xong |
-| BaseScene | `scenes/BaseScene.ts` | BootScene, PlaygroundScene, mọi scene sau này | 2.1 | xong |
+| BaseScene | `scenes/BaseScene.ts` | mọi scene; từ 4.R còn lo overlay khoá tab (§9.5) + banner "không lưu được" (§9.4) toàn cục qua `game.events` | 2.1 | xong |
 | Button | `ui/Button.ts` | mọi scene có nút; `lock()/unlock()` quanh `sessionBridge.dispatch` | 2.2 | xong |
 | Panel | `ui/Panel.ts` | Card, Dialog, Pause, Toast, SpeechBubble, PassportCard, TicketView | 2.2 | xong |
 | IconLabel | `ui/IconLabel.ts` | TopBar, SpeechBubble, FlightList, Card, Playground | 2.2 | xong |
@@ -257,12 +264,11 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 | ScrollList | `ui/ScrollList.ts` | Kho, FlightList, Shop | 2.4 | xong |
 | ProgressBar | `ui/ProgressBar.ts` | PatienceBar, máy in, Preload | 2.4 | xong |
 | FloatingText | `ui/FloatingText.ts` (`showFloatingText`) | kết quả giao vé, mua ghế, Shop | 2.5 | xong |
-| CountUpText | `ui/CountUpText.ts` | Summary, tiền trên TopBar | 2.5 | xong |
-| sessionBridge | `scenes/sessionBridge.ts` | mọi scene gameplay (Prep/Counter/Summary/Shop) | 2.6 | xong |
+| CountUpText | `ui/CountUpText.ts` | SummaryScene (đếm từng dòng tổng kết) | 2.5 | xong |
 | registerVisibilityHandler | `platform/visibility.ts` | CounterScene (và mọi scene gameplay khác cần pause) | 2.6 | xong |
-| PauseOverlay | `scenes/overlays/PauseOverlay.ts` | mọi scene gameplay | 2.6 | xong |
-| TopBar | `ui/TopBar.ts` | Quầy (xong); Kho ở 4.5 (đổi leftLabel/icon, xem ghi chú 3.R) | 3.1 | xong ở Quầy |
-| SpeechBubble | `ui/SpeechBubble.ts` | khách (xong); Béo (Onboarding, Tutorial) chưa làm | 3.2 | xong ở Quầy |
+| PauseOverlay | `scenes/overlays/PauseOverlay.ts` | mọi scene gameplay; nút ⚙ ở Kho tạm mở PauseOverlay (SettingsOverlay thật ở 5.6) | 2.6 | xong |
+| TopBar | `ui/TopBar.ts` | Quầy, Kho | 3.1 | xong |
+| SpeechBubble | `ui/SpeechBubble.ts` | khách (Quầy), Béo (Onboarding — thoại tạm); Tutorial (6.5) chưa làm | 3.2 | xong |
 | StepIndicator | `ui/StepIndicator.ts` | Quầy | 3.3 | xong |
 | FlightList | `ui/FlightList.ts` | Quầy Bước A, có cờ `readOnly` | 3.3 | xong |
 | PatienceBar | `ui/PatienceBar.ts` | Quầy | 3.2 | xong |

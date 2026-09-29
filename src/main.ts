@@ -5,7 +5,8 @@ import { OnboardingScene } from '@scenes/OnboardingScene';
 import { PreloadScene } from '@scenes/PreloadScene';
 import { PrepScene } from '@scenes/PrepScene';
 import { SummaryScene } from '@scenes/SummaryScene';
-import { SECOND_TAB_DETECTED_EVENT } from '@scenes/BaseScene';
+import { SECOND_TAB_LOCK_EVENT, TAKEN_OVER_EVENT } from '@scenes/BaseScene';
+import { sessionBridge } from '@scenes/sessionBridge';
 import { TitleScene } from '@scenes/TitleScene';
 import { devError } from '@platform/logger';
 import { watchTabLock } from '@save/tabLock';
@@ -41,7 +42,13 @@ async function bootstrap(): Promise<void> {
     scene: scenes,
   });
 
-  watchTabLock(() => game.events.emit(SECOND_TAB_DETECTED_EVENT));
+  const tabLock = watchTabLock({
+    onSecondTabDetected: () => game.events.emit(SECOND_TAB_LOCK_EVENT, () => tabLock.requestTakeover()),
+    onTakenOver: () => {
+      sessionBridge.markTakenOver();
+      game.events.emit(TAKEN_OVER_EVENT);
+    },
+  });
 }
 
 void bootstrap();

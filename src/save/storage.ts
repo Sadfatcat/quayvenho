@@ -3,8 +3,8 @@ import { devError } from '@platform/logger';
 import { migrateSave } from './migrate';
 import { gameStateSchema } from './schema';
 
-const SAVE_KEY = 'quayvenho:save';
-const BACKUP_KEY = 'quayvenho:save:backup';
+const SAVE_KEY = 'qvn:save';
+const BACKUP_KEY = 'qvn:save:prev';
 
 export type LoadSaveReason = 'EMPTY' | 'CORRUPTED' | 'FUTURE_VERSION';
 type RawLoadResult = { ok: true; value: GameState } | { ok: false; reason: LoadSaveReason };
@@ -75,4 +75,23 @@ export const writeSave = (state: GameState): void => {
 export const clearSave = (): void => {
   localStorage.removeItem(SAVE_KEY);
   localStorage.removeItem(BACKUP_KEY);
+};
+
+const PROBE_KEY = 'qvn:probe';
+
+/** PLAN §9.4: kiểm tra localStorage khả dụng lúc boot bằng cách ghi/đọc/xoá một key thử. */
+export const isStorageAvailable = (): boolean => {
+  try {
+    localStorage.setItem(PROBE_KEY, '1');
+    const ok = localStorage.getItem(PROBE_KEY) === '1';
+    localStorage.removeItem(PROBE_KEY);
+    return ok;
+  } catch {
+    return false;
+  }
+};
+
+/** PLAN §9.7: không chặn luồng, bỏ qua kết quả lỗi. */
+export const requestPersistentStorage = (): void => {
+  navigator.storage?.persist?.().catch((error: unknown) => devError('persist() thất bại', error));
 };

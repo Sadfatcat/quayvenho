@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createNewGame } from '@domain/dayCycle';
 import { clearSave, loadSave, writeSave } from './storage';
 
-const SAVE_KEY = 'quayvenho:save';
+const SAVE_KEY = 'qvn:save';
 
 const createMemoryStorage = (): Storage => {
   const store = new Map<string, string>();

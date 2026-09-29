@@ -1,4 +1,4 @@
-import { loadSave, type LoadSaveResult } from '@save/storage';
+import { isStorageAvailable, loadSave, requestPersistentStorage, type LoadSaveResult } from '@save/storage';
 import { BaseScene } from './BaseScene';
 
 export class BootScene extends BaseScene {
@@ -11,6 +11,9 @@ export class BootScene extends BaseScene {
       this.scene.start('Playground');
       return;
     }
+
+    this.registry.set('storageUnavailable', !isStorageAvailable());
+    requestPersistentStorage();
 
     const loadResult: LoadSaveResult = loadSave();
     this.registry.set('loadResult', loadResult);

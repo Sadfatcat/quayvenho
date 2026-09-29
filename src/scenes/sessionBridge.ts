@@ -24,6 +24,7 @@ const CHECKPOINT_COMMANDS: ReadonlySet<Command['type']> = new Set([
 class SessionBridge {
   private session: GameSession | null = null;
   private paused = false;
+  private takenOver = false;
   private readonly listeners = new Set<DomainEventListener>();
 
   start(session: GameSession): void {
@@ -47,6 +48,12 @@ class SessionBridge {
     return this.paused;
   }
 
+  /** PLAN §9.5: called when another tab takes over — this tab must stop writing save. */
+  markTakenOver(): void {
+    this.takenOver = true;
+    this.paused = true;
+  }
+
   /** Returns an unsubscribe function. */
   onEvents(listener: DomainEventListener): () => void {
     this.listeners.add(listener);
@@ -57,7 +64,7 @@ class SessionBridge {
   dispatch(command: Command): DomainEvent[] {
     const events = this.current.dispatch(command);
     this.notify(events);
-    if (CHECKPOINT_COMMANDS.has(command.type) && !events.some((event) => event.type === 'COMMAND_REJECTED')) {
+    if (!this.takenOver && CHECKPOINT_COMMANDS.has(command.type) && !events.some((event) => event.type === 'COMMAND_REJECTED')) {
       writeSave(this.current.state);
     }
     return events;
@@ -67,7 +74,7 @@ class SessionBridge {
     if (this.paused || !this.session) return [];
     const events = this.session.tick(deltaMs);
     this.notify(events);
-    if (events.some((event) => event.type === 'DAY_ENDED')) writeSave(this.current.state);
+    if (!this.takenOver && events.some((event) => event.type === 'DAY_ENDED')) writeSave(this.current.state);
     return events;
   }
 

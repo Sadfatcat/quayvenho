@@ -25,8 +25,15 @@ export const STRINGS = {
     newGameConfirmYes: 'Chơi mới',
     newGameConfirmCancel: 'Huỷ',
     dayLabel: 'Ngày',
-    secondTabWarning: 'Game đang mở ở tab khác',
     recoveredFromBackup: 'Save bị lỗi, đã khôi phục từ bản lưu gần nhất',
+  },
+  storageUnavailableBanner: 'Tiến trình sẽ không được lưu trên trình duyệt này',
+  tabLock: {
+    secondTabTitle: 'Game đang mở ở tab khác',
+    secondTabMessage: 'Bạn có một tab khác đang mở game này. Chơi tiếp ở đây sẽ khiến tab kia dừng lưu.',
+    playHere: 'Chơi ở đây',
+    takenOverTitle: 'Game đã mở ở tab khác',
+    takenOverMessage: 'Bạn đã chuyển sang chơi ở một tab khác. Tab này sẽ không lưu tiến trình nữa.',
   },
   preload: {
     loading: 'Đang tải...',

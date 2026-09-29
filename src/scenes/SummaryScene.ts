@@ -110,22 +110,27 @@ export class SummaryScene extends BaseScene {
         .text(GAME_WIDTH / 2 - 260, y, line.label, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted) })
         .setOrigin(0, 0.5)
         .setAlpha(0);
-      const timer = this.time.delayedCall(index * stagger, () => {
-        label.setAlpha(1);
-        const value = new CountUpText(this, GAME_WIDTH / 2 + 260, y, {
-          to: line.to,
-          durationMs: Math.min(500, Math.max(150, stagger)),
-          format: line.format,
-          style: { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) },
-        }).setOrigin(1, 0.5);
-        this.countUps.push(value);
-      });
+      const timer = this.time.delayedCall(index * stagger, () => this.revealLine(label, line, y, Math.min(500, Math.max(150, stagger))));
       this.pendingTimers.push(timer);
     });
   }
 
+  private revealLine(label: Phaser.GameObjects.Text, line: SummaryLine, y: number, durationMs: number): void {
+    label.setAlpha(1);
+    const value = new CountUpText(this, GAME_WIDTH / 2 + 260, y, {
+      to: line.to,
+      durationMs,
+      format: line.format,
+      style: { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) },
+    }).setOrigin(1, 0.5);
+    this.countUps.push(value);
+  }
+
   private skipReveal(): void {
-    for (const timer of this.pendingTimers) timer.remove();
+    for (const timer of this.pendingTimers) {
+      if (!timer.hasDispatched) timer.callback.apply(timer.callbackScope, timer.args);
+      timer.remove();
+    }
     this.pendingTimers = [];
     for (const value of this.countUps) value.skip();
   }

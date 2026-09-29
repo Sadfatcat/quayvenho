@@ -96,3 +96,16 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Vấn đề: sau khi sửa top-level await, chủ dự án test qua HTTP vẫn thấy màn đen. Nguyên nhân: `await import('@dev/PlaygroundScene')` không có try/catch — nếu import lỗi (mạng, hoặc cú pháp thiết bị không hỗ trợ) thì `bootstrap()` ném lỗi trước dòng `new Phaser.Game(...)`, cả game không khởi tạo.
 - Quyết định: bọc try/catch quanh import Playground; lỗi (nếu có) chỉ ghi log DEV, không chặn `new Phaser.Game(...)`.
 - Thêm `src/platform/logger.ts` (`devError`) làm nơi duy nhất được phép gọi `console.*`, tự kiểm `import.meta.env.DEV`, đúng luật CLAUDE.md "console.log trừ logger có kiểm tra import.meta.env.DEV". ESLint `no-console` giữ nguyên chặn toàn dự án, chỉ file này có `eslint-disable-line` kèm giải thích.
+
+## 2026-09-30 — Seed ván mới sinh bằng `Math.random()` ở TitleScene
+
+- Vấn đề: luật kiến trúc 2 (CLAUDE.md) chỉ cho phép `Math.random()` ở tầng presentation cho hiệu ứng thuần hình ảnh; seed ván mới quyết định toàn bộ chuỗi RNG gameplay (weather/demand/spawn/orders), không phải hiệu ứng hình ảnh — nhưng domain (luật 1) không được đụng `Math.random`/`Date`/`window`, nên không có nơi nào trong domain có thể tự sinh entropy.
+- Quyết định: chấp nhận `Math.random()` tại đúng một chỗ — `TitleScene.startNewGame()` — làm nguồn entropy biên (boundary) duy nhất để sinh seed cho `GameSession.newGame(seed)`. Không dùng ở nơi khác cho mục đích tương tự.
+- Lý do: đây là ranh giới bắt buộc phải có entropy thật (không thể seed từ chính domain thuần), tương tự cách `BOOTSTRAP_SEED` cố định trước đây (Giai đoạn 3) chỉ là giá trị tạm cho grey box.
+- Đã loại: `Date.now()` (cũng "impure" như `Math.random`, ít ngẫu nhiên hơn, không có lợi thế); `crypto.getRandomValues` (phức tạp hơn mức cần cho một seed 31-bit).
+
+## 2026-09-30 — Tab lock: bỏ key `qvn:lock` trong localStorage
+
+- PLAN §9.1 liệt kê `qvn:lock` là key localStorage cho khoá tab, nhưng §9.5 mô tả cơ chế thực tế chỉ dùng `BroadcastChannel('qvn')` (HELLO/ALIVE/TAKEOVER), không nhắc lại `qvn:lock` ở bước nào.
+- Quyết định: không tạo key `qvn:lock`; toàn bộ khoá tab chỉ qua BroadcastChannel, đúng như §9.5 mô tả chi tiết.
+- Lý do: PLAN §9.1 có vẻ là tài liệu dư/không nhất quán với §9.5; thêm một cơ chế localStorage song song không được §9.5 dùng tới sẽ chỉ tạo thêm trạng thái phải đồng bộ mà không giải quyết thêm rủi ro nào.
