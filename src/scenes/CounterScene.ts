@@ -33,6 +33,7 @@ import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
 import { TopBar } from '@ui/TopBar';
 import { BaseScene } from './BaseScene';
+import { PassportCard } from './overlays/PassportCard';
 import { PauseOverlay } from './overlays/PauseOverlay';
 import { sessionBridge } from './sessionBridge';
 
@@ -72,6 +73,7 @@ export class CounterScene extends BaseScene {
   private retryButton!: Button;
   private refuseButton!: Button;
   private mainButton!: Button;
+  private passportButton!: Button;
   private topBar!: TopBar;
 
   private pauseOverlay: PauseOverlay | null = null;
@@ -134,6 +136,16 @@ export class CounterScene extends BaseScene {
     this.retryButton = new Button(this, 140, 1170, { width: 210, height: 80, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
     this.refuseButton = new Button(this, 360, 1170, { width: 210, height: 80, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
     this.mainButton = new Button(this, 590, 1170, { width: 220, height: 80, label: STRINGS.counter.next, variant: 'primary', onTap: () => this.onMainAction() });
+
+    this.passportButton = new Button(this, GAME_WIDTH - 60, 250, { width: 72, height: 72, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
+    this.passportButton.setVisible(false);
+  }
+
+  private openPassportCard(): void {
+    const state = sessionBridge.current.state;
+    const customer = counterCustomer(state.today);
+    if (!customer) return;
+    new PassportCard(this, customer.order, state.day);
   }
 
   // ---------- per-frame render ----------
@@ -177,6 +189,7 @@ export class CounterScene extends BaseScene {
     queued.forEach((_customer, index) => this.renderQueuedCustomer(index));
 
     this.waitingText.setVisible(!counter && queued.length === 0);
+    this.passportButton.setVisible(!!counter && isMechanicOpen('badPassport', state.day));
   }
 
   private renderCounterCustomer(customer: Customer): void {

@@ -28,6 +28,12 @@ export const STRINGS = {
     recoveredFromBackup: 'Save bị lỗi, đã khôi phục từ bản lưu gần nhất',
   },
   storageUnavailableBanner: 'Tiến trình sẽ không được lưu trên trình duyệt này',
+  passport: {
+    expires: 'Hết hạn: Ngày',
+    bookedName: 'Tên đặt vé',
+    today: 'Hôm nay: Ngày',
+    icon: '🛂',
+  },
   shop: {
     title: 'Shop',
     tabUpgrades: 'Nâng cấp',
