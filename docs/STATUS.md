@@ -1,14 +1,14 @@
 # STATUS
 
-- Giai đoạn hiện tại: 3 — Quầy grey box (Review xong, chờ chủ dự án)
-- **Phiên làm việc đã chạm giới hạn quota. Xem `docs/HANDOFF.md` để biết chi tiết và bước tiếp theo.**
-- Đã xong giai đoạn 3:
-  - 7 bước ROADMAP + Review: CounterScene chơi được trọn ngày 1 (bootstrap cố định, bỏ qua Onboarding/Kho theo đúng scope giai đoạn)
-  - 9 UI component mới: TopBar (dùng ở Quầy), SpeechBubble, PatienceBar, StepIndicator (có quay lại bước trước), FlightList (có chế độ chỉ đọc), SeatMapView, BaggageSlider, ExtrasToggles, TicketView
-  - Thêm `src/dev/debug.ts` (expose sessionBridge ra `window`, chỉ DEV) để test qua Playwright bằng cách đọc thẳng state
-  - typecheck/lint/test(111)/build đều xanh
-  - Kiểm bằng Playwright ở 360×640 và 430×932: chơi tay 1 khách trọn vẹn (4 bước → in vé → kéo giao vé → PERFECT, doanh thu khớp), chạy hết ngày 1 tới màn tổng kết không vỡ, quay lại bước trước, màn chờ khách hiện danh sách chỉ đọc — 0 lỗi console
-  - code-reviewer: 2 P1 (StepIndicator không bấm lùi được, màn EMPTY thiếu Bước A chỉ đọc) + 1 P3 (TopBar viết sẵn nhưng không dùng) — đã sửa cả 3, đã kiểm lại bằng Playwright
-  - Tự phát hiện và sửa 1 bug thật: ScrollList tính vùng cắt hình bằng toạ độ trước khi được gắn vào container cha, làm danh sách bị ẩn
+- Giai đoạn hiện tại: 4 — Title, Onboarding, Kho, Tổng kết, Lưu game
+- **Tạm dừng theo yêu cầu chủ dự án giữa bước 4.5. Xem `docs/HANDOFF.md` để biết thiết kế đã chốt và bước tiếp theo.**
+- Đã xong trong Giai đoạn 4:
+  - 4.1 Lưu trữ an toàn (`save/storage.ts`, `schema.ts`, `migrate.ts`) — round-trip, JSON hỏng → backup, version tương lai, clamp giá trị bẩn
+  - 4.2 Khoá tab (`save/tabLock.ts`, BroadcastChannel)
+  - 4.3 Boot/Preload/Title thật, thay bootstrap cố định của Giai đoạn 3
+  - 4.4 OnboardingScene + `ui/TextInput.ts` (input HTML thật qua Phaser DOMElement)
+  - typecheck/lint/test(123)/build đều xanh sau mỗi bước
+- Đang dở: 4.5 Kho (PrepScene) — đã có `ui/Stepper.ts` và `strings.prep.*`, chưa viết `PrepScene.ts`. Thiết kế đầy đủ (layout, công thức giới hạn stepper, 3 hộp thoại "Mở cửa", cách re-render) đã ghi trong `docs/HANDOFF.md`.
+- Còn lại: 4.6 (SummaryScene), 4.7 (nối mốc lưu vào sessionBridge), 4.R (Review)
 - Từ giai đoạn 0 còn chờ: Cloudflare Pages (đã xác nhận điện thoại xem được qua `dev:host`)
-- Bước tiếp theo: Giai đoạn 4, bước 4.1 (save/storage.ts) — xem `docs/HANDOFF.md`
+- Bước tiếp theo: viết `src/scenes/PrepScene.ts` theo thiết kế trong `docs/HANDOFF.md`
