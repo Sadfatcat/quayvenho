@@ -35,6 +35,7 @@ import { TopBar } from '@ui/TopBar';
 import { BaseScene } from './BaseScene';
 import { PassportCard } from './overlays/PassportCard';
 import { PauseOverlay } from './overlays/PauseOverlay';
+import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const COUNTER_SURFACE_Y = 650;
@@ -434,6 +435,7 @@ export class CounterScene extends BaseScene {
         sessionBridge.setPaused(false);
         this.pauseOverlay = null;
       },
+      onSettings: () => new SettingsOverlay(this),
       onExit: () => {
         this.pauseOverlay = null;
         this.scene.start('Title');

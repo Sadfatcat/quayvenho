@@ -16,7 +16,7 @@ import { TopBar } from '@ui/TopBar';
 import { GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
 import { DialogOverlay } from './overlays/DialogOverlay';
-import { PauseOverlay } from './overlays/PauseOverlay';
+import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const ROW_HEIGHT = 150;
@@ -33,7 +33,6 @@ export class PrepScene extends BaseScene {
   private flightList!: ScrollList<Flight>;
   private totalText!: Phaser.GameObjects.Text;
   private confirmButton!: Button;
-  private pauseOverlay: PauseOverlay | null = null;
   private unsubscribeEvents: (() => void) | null = null;
 
   constructor() {
@@ -69,7 +68,7 @@ export class PrepScene extends BaseScene {
       money: state.money,
       travelViet: isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null,
       icon: STRINGS.common.settingsIcon,
-      onIconTap: () => this.openPause(),
+      onIconTap: () => new SettingsOverlay(this, { onExitToTitle: () => this.scene.start('Title') }),
     });
 
     this.bannerText = this.add
@@ -227,13 +226,5 @@ export class PrepScene extends BaseScene {
   private dispatch(command: Parameters<typeof sessionBridge.dispatch>[0]): void {
     sessionBridge.dispatch(command);
     this.renderAll();
-  }
-
-  private openPause(): void {
-    if (this.pauseOverlay) return;
-    this.pauseOverlay = new PauseOverlay(this, {
-      onResume: () => { this.pauseOverlay = null; },
-      onExit: () => { this.pauseOverlay = null; this.scene.start('Title'); },
-    });
   }
 }

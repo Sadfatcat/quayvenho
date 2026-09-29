@@ -28,6 +28,13 @@ export const STRINGS = {
     recoveredFromBackup: 'Save bị lỗi, đã khôi phục từ bản lưu gần nhất',
   },
   storageUnavailableBanner: 'Tiến trình sẽ không được lưu trên trình duyệt này',
+  settings: {
+    title: 'Cài đặt',
+    musicVolume: 'Âm lượng nhạc',
+    sfxVolume: 'Âm lượng hiệu ứng',
+    haptics: 'Rung',
+    close: 'Đóng',
+  },
   safetyNet: {
     title: 'Lưới an toàn',
     message: 'Bạn sắp hết tiền! Được tặng miễn phí một ít ghế ECO để tiếp tục buôn bán.',
