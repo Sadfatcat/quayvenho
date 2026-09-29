@@ -31,6 +31,26 @@ export const randomDecide = (rng: Rng): Decide => (order, i, state) => {
   return perfectDecide(order, i, state);
 };
 
+export interface ErrorProfile {
+  /** Chance to walk away without acting (models a customer lost to a slow/inattentive bot). */
+  walkAwayRate: number;
+  minorErrorRate: number;
+  majorErrorRate: number;
+  /** POOR (§13.3): sells anyway even with an invalid passport, instead of refusing. */
+  neverRefuse: boolean;
+}
+
+/** §13.3 AVERAGE/POOR bots: fixed error/walk-away rates on top of an otherwise-correct decision. */
+export const makeErrorProneDecide = (rng: Rng, profile: ErrorProfile): Decide => (order, i, state) => {
+  const roll = rng.next();
+  if (roll < profile.walkAwayRate) return 'IGNORE';
+  const rest = (roll - profile.walkAwayRate) / (1 - profile.walkAwayRate);
+  if (rest < profile.majorErrorRate) return 'WRONG_CABIN';
+  if (rest < profile.majorErrorRate + profile.minorErrorRate) return 'WRONG_BAGGAGE';
+  if (!profile.neverRefuse) return perfectDecide(order, i, state);
+  return isPassportValid(order.passport, state.day) && !findTicket(state, order, order.cabin) ? 'REFUSE' : 'CORRECT';
+};
+
 export const findTicket = (
   state: Readonly<GameState>,
   order: Order,
@@ -58,10 +78,10 @@ const run = (game: GameSession, command: Command): DomainEvent[] => {
 };
 
 /** Buys about the expected demand, spread over routes (by weight) and flights, within budget. */
-export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1): void => {
+export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1, avoidWeather = true): void => {
   const { state } = game;
   const { today } = state;
-  const avoid = today.event.type === 'WEATHER' ? today.event.routeId : null;
+  const avoid = avoidWeather && today.event.type === 'WEATHER' ? today.event.routeId : null;
   const routes = ROUTES.filter((route) => state.unlockedRoutes.includes(route.id) && route.id !== avoid);
   if (!routes.length) return;
   const expected = customersForDay({ seed: state.seed, day: state.day, rating: travelVietScore(state.starHistory), rush: today.event.type === 'RUSH' }) * demandScale;
@@ -115,8 +135,16 @@ const buildTicket = (game: GameSession, order: Order, decision: Decision): void 
   run(game, { type: 'PRINT_TICKET' });
 };
 
-/** Runs the shift until SUMMARY. Returns every event emitted. */
-export const playShift = (game: GameSession, decide: Decide): DomainEvent[] => {
+const tickExtra = (game: GameSession, events: DomainEvent[], ms: number): void => {
+  for (let elapsed = 0; elapsed < ms; elapsed += 100) events.push(...game.tick(100));
+};
+
+/**
+ * Runs the shift until SUMMARY. Returns every event emitted.
+ * `serveTimeMs` (§13.3): extra real-time delay inserted once a ticket is ready, before delivering —
+ * models a bot that takes longer per customer, backing up the queue behind them.
+ */
+export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0): DomainEvent[] => {
   const events: DomainEvent[] = [];
   const decided = new Set<string>();
   let servedIndex = 0;
@@ -124,8 +152,12 @@ export const playShift = (game: GameSession, decide: Decide): DomainEvent[] => {
     invariant(guard < 50_000, 'shift did not end');
     const { today } = game.state;
     const customer = counterCustomer(today);
-    if (today.counter.state === 'READY_TO_DELIVER') events.push(...run(game, { type: 'DELIVER_TICKET' }));
-    else if (today.counter.state === 'BUILDING' && customer && !decided.has(customer.order.customerId)) {
+    if (today.counter.state === 'READY_TO_DELIVER') {
+      if (serveTimeMs > 0) tickExtra(game, events, serveTimeMs);
+      // A slow bot can let the customer's patience run out while the ticket sits printed —
+      // the domain already fires CUSTOMER_LEFT and resets the counter in that case.
+      if (game.state.today.counter.state === 'READY_TO_DELIVER') events.push(...run(game, { type: 'DELIVER_TICKET' }));
+    } else if (today.counter.state === 'BUILDING' && customer && !decided.has(customer.order.customerId)) {
       decided.add(customer.order.customerId);
       const decision = decide(customer.order, servedIndex++, game.state);
       if (decision === 'REFUSE') events.push(...run(game, { type: 'REFUSE_CUSTOMER' }));
@@ -154,11 +186,18 @@ export const shop = (game: GameSession, reserve: number): void => {
   run(game, { type: 'NEXT_DAY' });
 };
 
-export const playDay = (game: GameSession, decide: Decide = perfectDecide, reserve = 250): DomainEvent[] => {
+export const playDay = (
+  game: GameSession,
+  decide: Decide = perfectDecide,
+  reserve = 250,
+  demandScale = 1,
+  avoidWeather = true,
+  serveTimeMs = 0,
+): DomainEvent[] => {
   if (game.state.day === 1) run(game, { type: 'FLAG_SET', flag: 'tutorialDone_1' });
-  buyForDay(game);
+  buyForDay(game, 0.9, demandScale, avoidWeather);
   run(game, { type: 'OPEN_COUNTER' });
-  const events = playShift(game, decide);
+  const events = playShift(game, decide, serveTimeMs);
   shop(game, reserve);
   return events;
 };

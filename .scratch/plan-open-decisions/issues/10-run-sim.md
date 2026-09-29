@@ -1,10 +1,14 @@
 # D12a — Chạy `npm run sim`, đo tỉ lệ khách bỏ về vì đông
 
 Type: task
-Status: open
+Status: resolved
 
 ## Question
 
 Trước khi trả lời được D12 (ticket 11), cần số liệu thật: chạy `npm run sim` (PLAN §13.3, ROADMAP bước 5.7 — "cần D10", đã chốt) và đọc tỉ lệ khách "bỏ về vì đông" (`turnedAway`) trong bảng thống kê in ra.
 
 Việc này phụ thuộc `scripts/sim.ts` đã được viết xong ở Giai đoạn 5 bước 5.7 — **ticket này chỉ làm được sau khi ROADMAP tới bước 5.7**, không làm sớm hơn được vì `scripts/sim.ts` chưa tồn tại ở Giai đoạn 4. Đây không phải một quyết định, chỉ là bước thu thập số liệu (task, AFK, Claude Code tự chạy).
+
+## Answer
+
+Đã chạy (20 seed × 30 ngày, xem chi tiết đầy đủ ở `.scratch/roadmap-remaining/issues/11-mo-phong-kinh-te.md`). Tỉ lệ khách bỏ về vì đông (`turnedAway`): PERFECT 8.7%, AVERAGE 2.3%, POOR 3.4%. Không có ngưỡng nào quá cao bất thường — không thấy dấu hiệu cần cơ chế nhân viên (PLAN §17) sớm hơn dự kiến. D12b (ticket 11 ở map này) giờ làm được.
