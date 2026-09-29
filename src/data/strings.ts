@@ -30,6 +30,28 @@ export const STRINGS = {
   preload: {
     loading: 'Đang tải...',
   },
+  prep: {
+    dayLabel: 'Ngày',
+    ownedEco: 'ECO đã có',
+    ownedBiz: 'BIZ đã có',
+    estimateLabel: 'Dự tính',
+    moneyAfterLabel: 'Còn lại',
+    confirmPurchase: 'Xác nhận nhập ghế',
+    openCounter: 'Mở cửa',
+    weatherForecastIcon: '⛈️',
+    bannerRush: 'Cao điểm lễ hội: khách đông hơn, giá bán ×1.2',
+    bannerWeather: 'Dự báo xấu ở một tuyến: có thể mất ghế khi mở cửa',
+    emptyStockTitle: 'Kho trống',
+    emptyStockMessage: 'Khách sẽ không mua được vé. Vẫn mở cửa?',
+    emptyStockConfirm: 'Vẫn mở cửa',
+    emptyStockCancel: 'Huỷ',
+    pendingTitle: 'Chưa xác nhận nhập ghế',
+    pendingMessagePrefix: 'Bạn chưa xác nhận nhập ',
+    pendingMessageSuffix: ' ghế. Nhập luôn?',
+    pendingConfirmAndOpen: 'Nhập và mở cửa',
+    pendingDiscardAndOpen: 'Bỏ và mở cửa',
+    pendingCancel: 'Huỷ',
+  },
   onboarding: {
     introLines: [
       'Béo: Ê, tỉnh chưa? Nghe vụ này chưa — vé bay đêm ế queo, mà dân đi bụi, dân về quê gấp thì cần rẻ.',
