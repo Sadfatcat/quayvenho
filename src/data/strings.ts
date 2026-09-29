@@ -30,6 +30,21 @@ export const STRINGS = {
   preload: {
     loading: 'Đang tải...',
   },
+  onboarding: {
+    introLines: [
+      'Béo: Ê, tỉnh chưa? Nghe vụ này chưa — vé bay đêm ế queo, mà dân đi bụi, dân về quê gấp thì cần rẻ.',
+      'Béo: Hãng bán sỉ ghế giá bèo cho đại lý. Mình dựng quầy, săn vé, bán lại đúng người cần — ăn chênh lệch, không ai thiệt.',
+      'Béo: Giờ xưng danh đi. Tên cậu, rồi tên cái quầy này, cho nó chất!',
+    ],
+    tapToContinue: 'Chạm để tiếp',
+    playerNameLabel: 'Tên của bạn',
+    playerNamePlaceholder: 'Nhập tên...',
+    brandNameLabel: 'Tên thương hiệu quầy',
+    brandNamePlaceholder: 'Nhập tên quầy...',
+    next: 'Tiếp',
+    brandConfirmPrefix: 'Béo: "',
+    brandConfirmSuffix: '" nghe được đó! Mở quầy thôi!',
+  },
   playground: {
     title: 'UI Playground',
     buttons: 'Button',
