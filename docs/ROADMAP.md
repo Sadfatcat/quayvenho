@@ -273,7 +273,7 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 | FlightList | `ui/FlightList.ts` | Quầy Bước A, có cờ `readOnly` | 3.3 | xong |
 | PatienceBar | `ui/PatienceBar.ts` | Quầy | 3.2 | xong |
 | debug hook | `dev/debug.ts` | test Playwright (đọc `window.__sessionBridge`) | 3.R | xong |
-| SegmentedControl | `ui/SegmentedControl.ts` | Shop (tab), Kho (seat bias) | 5.1 | chưa làm |
-| Card | `ui/Card.ts` | Shop; xem xét dùng cho card chuyến ở Kho khi Review 4 | 5.1 | chưa làm |
+| SegmentedControl | `ui/SegmentedControl.ts` | Shop (tab); Kho (seat bias, khi có AIRLINE_RELATIONS) chưa làm | 5.1 | xong ở Shop |
+| Card | `ui/Card.ts` | Shop (nâng cấp + tuyến bay) | 5.1 | xong |
 
 Component chỉ dùng ở một màn (FlightList, SeatMapView, BaggageSlider, ExtrasToggles, TicketView, PassportCard, Stepper, StepIndicator, TextInput, Toggle, Slider) không nằm trong Registry cho tới khi có chỗ dùng thứ hai.

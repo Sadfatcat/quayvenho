@@ -4,6 +4,7 @@ import { CounterScene } from '@scenes/CounterScene';
 import { OnboardingScene } from '@scenes/OnboardingScene';
 import { PreloadScene } from '@scenes/PreloadScene';
 import { PrepScene } from '@scenes/PrepScene';
+import { ShopScene } from '@scenes/ShopScene';
 import { SummaryScene } from '@scenes/SummaryScene';
 import { SECOND_TAB_LOCK_EVENT, TAKEN_OVER_EVENT } from '@scenes/BaseScene';
 import { sessionBridge } from '@scenes/sessionBridge';
@@ -15,7 +16,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from './config';
 
 /** Async function instead of top-level await: broader phone/WebView compatibility (PLAN §1.2 target Safari iOS + Chrome Android). */
 async function bootstrap(): Promise<void> {
-  const scenes: Phaser.Types.Scenes.SceneType[] = [BootScene, PreloadScene, TitleScene, OnboardingScene, PrepScene, CounterScene, SummaryScene];
+  const scenes: Phaser.Types.Scenes.SceneType[] = [BootScene, PreloadScene, TitleScene, OnboardingScene, PrepScene, CounterScene, SummaryScene, ShopScene];
   if (import.meta.env.DEV) {
     // A failure loading the dev-only Playground must never stop the real game from booting.
     try {

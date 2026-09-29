@@ -1,4 +1,4 @@
-import type { UpgradeDef } from '@domain/models';
+import type { UpgradeDef, UpgradeId } from '@domain/models';
 
 export const UPGRADES: readonly UpgradeDef[] = [
   { id: 'COMFY_CHAIRS', name: 'Ghế chờ êm', cost: 200, minDay: null, minTravelViet: null, effect: { patienceMult: 1.2 } },
@@ -10,3 +10,15 @@ export const UPGRADES: readonly UpgradeDef[] = [
   { id: 'BIGGER_COUNTER', name: 'Quầy rộng', cost: 300, minDay: null, minTravelViet: null, effect: { queueMax: 6 } },
   { id: 'LOYALTY_BOARD', name: 'Bảng khách quen', cost: 450, minDay: null, minTravelViet: 4.3, effect: { tipMult: 1.15 } },
 ];
+
+/** Mô tả hiệu ứng hiển thị ở Shop (PLAN §10.9) — tách khỏi UpgradeDef vì chỉ là văn bản trình bày. */
+export const UPGRADE_DESCRIPTIONS: Record<UpgradeId, string> = {
+  COMFY_CHAIRS: 'Khách kiên nhẫn hơn 20%.',
+  FAN: 'Khách kiên nhẫn hơn 10%.',
+  FAST_PRINTER: 'In vé nhanh hơn.',
+  SEARCH_FILTER: 'Thêm ô lọc điểm đến ở Bước A.',
+  AIRLINE_RELATIONS: 'Chọn được thiên hướng ghế (cửa sổ/lối đi) khi nhập kho.',
+  REFUND_POLICY: 'Hoàn 30% giá vốn ghế ế mỗi ngày.',
+  BIGGER_COUNTER: 'Hàng đợi chứa được nhiều khách hơn.',
+  LOYALTY_BOARD: 'Tăng 15% tiền tip (cần TravelViet ≥ 4.3).',
+};

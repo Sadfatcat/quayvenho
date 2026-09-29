@@ -407,7 +407,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
 };
 
 /** Shop purchases apply from the next day, so conditions use the next day. */
-const shopContext = (state: GameState) => ({
+export const shopContext = (state: GameState) => ({
   day: state.day + 1,
   money: state.money,
   travelViet: travelVietScore(state.starHistory),

@@ -142,18 +142,16 @@ export class SummaryScene extends BaseScene {
       new DialogOverlay(this, {
         title: STRINGS.summary.travelVietIntroTitle,
         message: STRINGS.summary.travelVietIntroMessage,
-        buttons: [{ label: STRINGS.summary.continueButton, variant: 'primary', onTap: () => this.goToNextDay() }],
+        buttons: [{ label: STRINGS.summary.continueButton, variant: 'primary', onTap: () => this.goToShop() }],
       });
       return;
     }
-    this.goToNextDay();
+    this.goToShop();
   }
 
-  /** Tạm thời bỏ qua Shop (chưa build, ticket 05) — đi thẳng GO_TO_SHOP -> NEXT_DAY. */
-  private goToNextDay(): void {
+  private goToShop(): void {
     this.continueButton.lock();
     sessionBridge.dispatch({ type: 'GO_TO_SHOP' });
-    sessionBridge.dispatch({ type: 'NEXT_DAY' });
-    this.scene.start('Prep');
+    this.scene.start('Shop');
   }
 }

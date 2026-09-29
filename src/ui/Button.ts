@@ -37,7 +37,7 @@ const PRESS_SCALE = 0.95;
 export class Button extends Phaser.GameObjects.Container {
   private readonly bg: Phaser.GameObjects.Rectangle;
   private readonly labelText: Phaser.GameObjects.Text;
-  private readonly variant: ButtonVariant;
+  private variant: ButtonVariant;
   private readonly onTap: () => void;
   private disabledFlag = false;
   private lockedFlag = false;
@@ -72,6 +72,12 @@ export class Button extends Phaser.GameObjects.Container {
 
   setLabel(label: string): void {
     this.labelText.setText(label);
+  }
+
+  setVariant(variant: ButtonVariant): void {
+    this.variant = variant;
+    this.labelText.setColor(toCssColor(VARIANT_TEXT[variant]));
+    this.refreshInteractive();
   }
 
   setEnabled(enabled: boolean): void {
