@@ -8,7 +8,6 @@ import type {
   BuildStep,
   Command,
   Customer,
-  DaySummary,
   DomainEvent,
   GameState,
   Order,
@@ -17,16 +16,14 @@ import type {
 } from '@domain/models';
 import { getRoute } from '@domain/routes';
 import { computeModifiers } from '@domain/upgrades';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { GAME_WIDTH } from '../config';
 import { registerVisibilityHandler } from '@platform/visibility';
 import { BaggageSlider } from '@ui/BaggageSlider';
-import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { DragController } from '@ui/DragController';
 import { ExtrasToggles } from '@ui/ExtrasToggles';
 import { FlightList } from '@ui/FlightList';
 import { showFloatingText } from '@ui/FloatingText';
-import { Panel } from '@ui/Panel';
 import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
 import { SpeechBubble } from '@ui/SpeechBubble';
@@ -78,7 +75,6 @@ export class CounterScene extends BaseScene {
   private topBar!: TopBar;
 
   private pauseOverlay: PauseOverlay | null = null;
-  private summaryOverlay: BaseOverlay | null = null;
   private unsubscribeEvents: (() => void) | null = null;
   private unsubscribeVisibility: (() => void) | null = null;
 
@@ -153,7 +149,7 @@ export class CounterScene extends BaseScene {
     this.renderCustomerArea(state);
     this.renderBuildArea(state);
 
-    if (state.phase === 'SUMMARY' && state.lastSummary) this.showDaySummary(state.lastSummary);
+    if (state.phase === 'SUMMARY') this.scene.start('Summary');
   }
 
   private eventBadgeText(state: GameState): string {
@@ -432,30 +428,4 @@ export class CounterScene extends BaseScene {
     });
   }
 
-  private showDaySummary(summary: DaySummary): void {
-    if (this.summaryOverlay) return;
-    const lines = [
-      `${STRINGS.summary.title} ${summary.day}`,
-      `${STRINGS.summary.moneyStart}: ${summary.moneyStart} ${STRINGS.common.currencySuffix}`,
-      `${STRINGS.summary.moneyEnd}: ${summary.moneyEnd} ${STRINGS.common.currencySuffix}`,
-      `${STRINGS.summary.ticketRevenue}: ${summary.ticketRevenue} ${STRINGS.common.currencySuffix}`,
-      `${STRINGS.summary.tips}: ${summary.tips} ${STRINGS.common.currencySuffix}`,
-      `${STRINGS.summary.seatCost}: ${summary.seatCost} ${STRINGS.common.currencySuffix}`,
-      `${STRINGS.summary.expiredSeats}: ${summary.expiredSeats}`,
-      `${STRINGS.summary.served}: ${summary.served}`,
-      `${STRINGS.summary.left}: ${summary.left}`,
-      `${STRINGS.summary.turnedAway}: ${summary.turnedAway}`,
-      `${STRINGS.summary.avgStars}: ${summary.avgStars.toFixed(1)}`,
-      ...(summary.travelVietAfter !== null ? [`${STRINGS.summary.travelViet}: ${summary.travelVietAfter.toFixed(1)}`] : []),
-    ];
-    const overlay = new BaseOverlay(this, { closeOnBackdropTap: false });
-    const height = 80 + lines.length * 40;
-    const panel = new Panel(this, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: 600, height });
-    const text = this.add
-      .text(0, -(lines.length * 40) / 2, lines.join('\n'), { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text), align: 'left', lineSpacing: 12 })
-      .setOrigin(0.5, 0);
-    panel.add(text);
-    overlay.add(panel);
-    this.summaryOverlay = overlay;
-  }
 }
