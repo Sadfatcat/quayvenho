@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { invariant } from './common/invariant';
 import { canGoToStep, createNewGame, snapBaggage } from './dayCycle';
+import { rollDayEvent } from './events';
 import { GameSession } from './game';
 import type { Command, DomainEvent, GameState } from './models';
-import { seedWithDay1Event } from './__integration__/fixtures';
+import { seedWithDay1Event, seedWithWeatherOutcome } from './__integration__/fixtures';
 
 const rejected = (events: DomainEvent[]) => events.find((e) => e.type === 'COMMAND_REJECTED');
 
@@ -233,5 +235,51 @@ describe('shift', () => {
     expect(events.at(-1)).toMatchObject({ type: 'DAY_ENDED' });
     expect(game.state.lastSummary?.expiredSeats).toBe(5);
     expect(game.state.today.seats.every((s) => s.state === 'EXPIRED')).toBe(true);
+  });
+
+  it('SEVERE weather cancels every flight and loses every seat of the forecast route only', () => {
+    const seed = seedWithWeatherOutcome('SEVERE');
+    const forecast = rollDayEvent(seed, 1, ['HAN-SGN', 'HAN-DAD']);
+    invariant(forecast.type === 'WEATHER', 'fixture must forecast WEATHER');
+    const otherRoute = forecast.routeId === 'HAN-SGN' ? 'HAN-DAD' : 'HAN-SGN';
+
+    const game = GameSession.newGame(seed);
+    const flightOf = (routeId: string) => game.state.today.flights.find((f) => f.routeId === routeId)?.id ?? '';
+    game.dispatch({ type: 'PREP_SET_QTY', flightId: flightOf(forecast.routeId), cabin: 'ECONOMY', qty: 2 });
+    game.dispatch({ type: 'PREP_SET_QTY', flightId: flightOf(otherRoute), cabin: 'ECONOMY', qty: 2 });
+    game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+
+    const routeOfSeat = (flightId: string) => game.state.today.flights.find((f) => f.id === flightId)?.routeId;
+    const forecastSeats = game.state.today.seats.filter((s) => routeOfSeat(s.flightId) === forecast.routeId);
+    const otherSeats = game.state.today.seats.filter((s) => routeOfSeat(s.flightId) === otherRoute);
+
+    expect(game.state.today.flights.filter((f) => f.routeId === forecast.routeId).every((f) => f.status === 'CANCELLED')).toBe(true);
+    expect(forecastSeats.every((s) => s.state === 'LOST')).toBe(true);
+    expect(otherSeats.every((s) => s.state === 'AVAILABLE')).toBe(true);
+    expect(game.state.today.event).toMatchObject({ type: 'WEATHER', outcome: 'SEVERE' });
+  });
+
+  it('BAD weather loses about a third of the forecast route seats, leaves the other route untouched', () => {
+    const seed = seedWithWeatherOutcome('BAD');
+    const forecast = rollDayEvent(seed, 1, ['HAN-SGN', 'HAN-DAD']);
+    invariant(forecast.type === 'WEATHER', 'fixture must forecast WEATHER');
+    const otherRoute = forecast.routeId === 'HAN-SGN' ? 'HAN-DAD' : 'HAN-SGN';
+
+    const game = GameSession.newGame(seed);
+    const flightOf = (routeId: string) => game.state.today.flights.find((f) => f.routeId === routeId)?.id ?? '';
+    game.dispatch({ type: 'PREP_SET_QTY', flightId: flightOf(forecast.routeId), cabin: 'ECONOMY', qty: 9 });
+    game.dispatch({ type: 'PREP_SET_QTY', flightId: flightOf(otherRoute), cabin: 'ECONOMY', qty: 9 });
+    game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+
+    const routeOfSeat = (flightId: string) => game.state.today.flights.find((f) => f.id === flightId)?.routeId;
+    const forecastSeats = game.state.today.seats.filter((s) => routeOfSeat(s.flightId) === forecast.routeId);
+    const otherSeats = game.state.today.seats.filter((s) => routeOfSeat(s.flightId) === otherRoute);
+    const forecastLost = forecastSeats.filter((s) => s.state === 'LOST').length;
+
+    expect(forecastLost).toBe(Math.round(forecastSeats.length / 3));
+    expect(otherSeats.every((s) => s.state === 'AVAILABLE')).toBe(true);
+    expect(game.state.today.flights.filter((f) => f.routeId === forecast.routeId).every((f) => f.status === 'SCHEDULED')).toBe(true);
   });
 });
