@@ -1,8 +1,20 @@
 import { invariant } from '@domain/common/invariant';
 import { GameSession } from '@domain/game';
 import type { Command, DomainEvent } from '@domain/models';
+import { writeSave } from '@save/storage';
 
 export type DomainEventListener = (events: DomainEvent[]) => void;
+
+/** PLAN §6.6: lưu ngay sau các command này (nếu không bị từ chối). Không bao giờ lưu giữa OPEN/CLOSING. */
+const CHECKPOINT_COMMANDS: ReadonlySet<Command['type']> = new Set([
+  'PROFILE_SET',
+  'PREP_CONFIRM_PURCHASE',
+  'SHOP_BUY_UPGRADE',
+  'SHOP_UNLOCK_ROUTE',
+  'NEXT_DAY',
+  'SETTINGS_UPDATE',
+  'FLAG_SET',
+]);
 
 /**
  * One GameSession shared across every gameplay scene (Prep/Counter/Summary/Shop).
@@ -45,6 +57,9 @@ class SessionBridge {
   dispatch(command: Command): DomainEvent[] {
     const events = this.current.dispatch(command);
     this.notify(events);
+    if (CHECKPOINT_COMMANDS.has(command.type) && !events.some((event) => event.type === 'COMMAND_REJECTED')) {
+      writeSave(this.current.state);
+    }
     return events;
   }
 
@@ -52,6 +67,7 @@ class SessionBridge {
     if (this.paused || !this.session) return [];
     const events = this.session.tick(deltaMs);
     this.notify(events);
+    if (events.some((event) => event.type === 'DAY_ENDED')) writeSave(this.current.state);
     return events;
   }
 

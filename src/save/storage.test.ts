@@ -37,17 +37,17 @@ describe('storage', () => {
     writeSave(state);
     const result = loadSave();
 
-    expect(result).toEqual({ ok: true, value: state });
+    expect(result).toEqual({ ok: true, value: state, recoveredFromBackup: false });
   });
 
-  it('JSON hỏng thì rơi về bản sao lưu gần nhất', () => {
+  it('JSON hỏng thì rơi về bản sao lưu gần nhất và báo recoveredFromBackup', () => {
     const good = createNewGame(1);
     writeSave(good);
     writeSave(createNewGame(2)); // đẩy `good` xuống backup
 
     localStorage.setItem(SAVE_KEY, '{not valid json');
 
-    expect(loadSave()).toEqual({ ok: true, value: good });
+    expect(loadSave()).toEqual({ ok: true, value: good, recoveredFromBackup: true });
   });
 
   it('version tương lai thì báo FUTURE_VERSION, không rơi về backup', () => {

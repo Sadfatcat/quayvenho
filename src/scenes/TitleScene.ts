@@ -14,7 +14,7 @@ import { sessionBridge } from './sessionBridge';
 const BUTTON_WIDTH = 420;
 const BUTTON_HEIGHT = 100;
 
-/** PLAN §10.3. `loadResult`/`secondTabDetected` are stashed on the registry by BootScene. */
+/** PLAN §10.3. `loadResult` is stashed on the registry by BootScene. */
 export class TitleScene extends BaseScene {
   constructor() {
     super('Title');
@@ -54,8 +54,8 @@ export class TitleScene extends BaseScene {
       onTap: () => this.requestNewGame(loadResult),
     });
 
-    if (this.registry.get('secondTabDetected') === true) {
-      new ToastQueue(this).show(STRINGS.title.secondTabWarning, 4000);
+    if (loadResult?.ok && loadResult.recoveredFromBackup) {
+      new ToastQueue(this).show(STRINGS.title.recoveredFromBackup, 4000);
     }
   }
 

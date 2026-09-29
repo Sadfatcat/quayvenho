@@ -7,9 +7,10 @@ const SAVE_KEY = 'quayvenho:save';
 const BACKUP_KEY = 'quayvenho:save:backup';
 
 export type LoadSaveReason = 'EMPTY' | 'CORRUPTED' | 'FUTURE_VERSION';
-export type LoadSaveResult = { ok: true; value: GameState } | { ok: false; reason: LoadSaveReason };
+type RawLoadResult = { ok: true; value: GameState } | { ok: false; reason: LoadSaveReason };
+export type LoadSaveResult = { ok: true; value: GameState; recoveredFromBackup: boolean } | { ok: false; reason: LoadSaveReason };
 
-const parseAndValidate = (json: string): LoadSaveResult => {
+const parseAndValidate = (json: string): RawLoadResult => {
   let raw: unknown;
   try {
     raw = JSON.parse(json);
@@ -34,7 +35,7 @@ const parseAndValidate = (json: string): LoadSaveResult => {
   return { ok: true, value: parsed.data as GameState };
 };
 
-const readKey = (key: string): LoadSaveResult => {
+const readKey = (key: string): RawLoadResult => {
   let json: string | null;
   try {
     json = localStorage.getItem(key);
@@ -51,10 +52,11 @@ const readKey = (key: string): LoadSaveResult => {
 /** Đọc save chính; JSON hỏng hoặc không hợp lệ thì rơi về bản sao lưu gần nhất. */
 export const loadSave = (): LoadSaveResult => {
   const primary = readKey(SAVE_KEY);
-  if (primary.ok || primary.reason === 'FUTURE_VERSION') {
-    return primary;
-  }
-  return readKey(BACKUP_KEY);
+  if (primary.ok) return { ...primary, recoveredFromBackup: false };
+  if (primary.reason === 'FUTURE_VERSION') return primary;
+
+  const backup = readKey(BACKUP_KEY);
+  return backup.ok ? { ...backup, recoveredFromBackup: true } : backup;
 };
 
 /** Ghi save mới; bản cũ (nếu có) được giữ lại làm backup trước khi ghi đè. */

@@ -5,8 +5,10 @@ import { OnboardingScene } from '@scenes/OnboardingScene';
 import { PreloadScene } from '@scenes/PreloadScene';
 import { PrepScene } from '@scenes/PrepScene';
 import { SummaryScene } from '@scenes/SummaryScene';
+import { SECOND_TAB_DETECTED_EVENT } from '@scenes/BaseScene';
 import { TitleScene } from '@scenes/TitleScene';
 import { devError } from '@platform/logger';
+import { watchTabLock } from '@save/tabLock';
 import { COLORS } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from './config';
 
@@ -25,7 +27,7 @@ async function bootstrap(): Promise<void> {
     }
   }
 
-  new Phaser.Game({
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: 'game',
     backgroundColor: COLORS.sky,
@@ -38,6 +40,8 @@ async function bootstrap(): Promise<void> {
     dom: { createContainer: true },
     scene: scenes,
   });
+
+  watchTabLock(() => game.events.emit(SECOND_TAB_DETECTED_EVENT));
 }
 
 void bootstrap();

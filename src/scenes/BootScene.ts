@@ -1,5 +1,4 @@
 import { loadSave, type LoadSaveResult } from '@save/storage';
-import { watchTabLock } from '@save/tabLock';
 import { BaseScene } from './BaseScene';
 
 export class BootScene extends BaseScene {
@@ -12,8 +11,6 @@ export class BootScene extends BaseScene {
       this.scene.start('Playground');
       return;
     }
-
-    watchTabLock(() => this.registry.set('secondTabDetected', true));
 
     const loadResult: LoadSaveResult = loadSave();
     this.registry.set('loadResult', loadResult);

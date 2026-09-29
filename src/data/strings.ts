@@ -26,6 +26,7 @@ export const STRINGS = {
     newGameConfirmCancel: 'Huỷ',
     dayLabel: 'Ngày',
     secondTabWarning: 'Game đang mở ở tab khác',
+    recoveredFromBackup: 'Save bị lỗi, đã khôi phục từ bản lưu gần nhất',
   },
   preload: {
     loading: 'Đang tải...',
