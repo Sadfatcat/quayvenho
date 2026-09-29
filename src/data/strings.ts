@@ -28,6 +28,11 @@ export const STRINGS = {
     recoveredFromBackup: 'Save bị lỗi, đã khôi phục từ bản lưu gần nhất',
   },
   storageUnavailableBanner: 'Tiến trình sẽ không được lưu trên trình duyệt này',
+  safetyNet: {
+    title: 'Lưới an toàn',
+    message: 'Bạn sắp hết tiền! Được tặng miễn phí một ít ghế ECO để tiếp tục buôn bán.',
+    confirm: 'Cảm ơn Béo',
+  },
   passport: {
     expires: 'Hết hạn: Ngày',
     bookedName: 'Tên đặt vé',

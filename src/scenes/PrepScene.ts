@@ -45,6 +45,19 @@ export class PrepScene extends BaseScene {
     this.unsubscribeEvents = sessionBridge.onEvents(() => this.renderAll());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribeEvents?.());
     this.renderAll();
+    this.maybeShowSafetyNet();
+  }
+
+  /** PLAN §3.10: lưới an toàn đã ghi transaction SUPPORT_GIFT của đúng ngày này — báo cho người chơi biết vì sao. */
+  private maybeShowSafetyNet(): void {
+    const state = sessionBridge.current.state;
+    const gifted = state.today.transactions.some((tx) => tx.type === 'SUPPORT_GIFT');
+    if (!gifted) return;
+    new DialogOverlay(this, {
+      title: STRINGS.safetyNet.title,
+      message: STRINGS.safetyNet.message,
+      buttons: [{ label: STRINGS.safetyNet.confirm, variant: 'primary', onTap: () => {} }],
+    });
   }
 
   private buildLayout(): void {
