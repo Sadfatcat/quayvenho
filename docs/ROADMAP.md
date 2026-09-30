@@ -168,14 +168,14 @@ Ghi chú review (từ 4.R):
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 5.1 | Shop | `ui/SegmentedControl.ts` (dùng lại cho seat bias ở Kho), `ui/Card.ts`, `scenes/ShopScene.ts` | Mua nâng cấp, mở tuyến, hiện điều kiện |
-| [ ] 5.2 | Cơ chế theo ngày | `ui/PassportCard.ts`, bật field đơn theo §4.5 | Mỗi cơ chế chỉ xuất hiện từ đúng ngày |
-| [ ] 5.3 | Sự kiện | banner ở Kho, badge ở Quầy, thông báo thời tiết khi mở cửa | Ép SEVERE bằng debug: mất ghế, khách phải từ chối |
-| [ ] 5.4 | TravelViet | hiển thị điểm, màn giới thiệu cuối ngày 10 | Số khách thay đổi theo điểm |
-| [ ] 5.5 | Lưới an toàn | hộp thoại khi kích hoạt | Ép hết tiền: được tặng ghế |
-| [ ] 5.6 | Cài đặt | `ui/Toggle.ts`, `ui/Slider.ts`, `scenes/overlays/SettingsOverlay.ts` | Đổi âm lượng/rung, lưu ngay |
-| [ ] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
-| [ ] 5.R | Review giai đoạn 5 | — | Theo mẫu Review |
+| [x] 5.1 | Shop | `ui/SegmentedControl.ts` (dùng lại cho seat bias ở Kho), `ui/Card.ts`, `scenes/ShopScene.ts` | Mua nâng cấp, mở tuyến, hiện điều kiện |
+| [x] 5.2 | Cơ chế theo ngày | `ui/PassportCard.ts`, bật field đơn theo §4.5 | Mỗi cơ chế chỉ xuất hiện từ đúng ngày |
+| [x] 5.3 | Sự kiện | banner ở Kho, badge ở Quầy, thông báo thời tiết khi mở cửa | Ép SEVERE bằng debug: mất ghế, khách phải từ chối |
+| [x] 5.4 | TravelViet | hiển thị điểm, màn giới thiệu cuối ngày 10 | Số khách thay đổi theo điểm |
+| [x] 5.5 | Lưới an toàn | hộp thoại khi kích hoạt | Ép hết tiền: được tặng ghế |
+| [x] 5.6 | Cài đặt | `ui/Toggle.ts`, `ui/Slider.ts`, `scenes/overlays/SettingsOverlay.ts` | Đổi âm lượng/rung, lưu ngay |
+| [x] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
+| [x] 5.R | Review giai đoạn 5 | — | Theo mẫu Review |
 
 Ghi chú review: _(điền ở bước 4.R)_
 
@@ -193,7 +193,7 @@ Ghi chú review: _(điền ở bước 4.R)_
 | [ ] 6.6 | Văn bản | thoại Béo, cốt truyện, thoại khách trong `strings.ts` / `customers.ts` | Chủ dự án duyệt (D11) |
 | [ ] 6.R | Review giai đoạn 6 | — | Theo mẫu Review |
 
-Ghi chú review: _(điền ở bước 5.R)_
+Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene bỏ qua COMMAND_REJECTED của NEXT_DAY; sim.ts đếm lưới an toàn lệch 1 ngày (sau sửa POOR median 6→5, vẫn > mục tiêu ≤3). Đã sửa P2 hard-code ngày 10 ở SummaryScene. Còn tồn (P2/P3, chưa sửa): chuỗi upgrades.ts nằm ngoài strings.ts, thiếu test hành vi thời tiết/lưới an toàn cấp dayCycle, lặp style/confirm ở Shop/Settings. Playwright chỉ kiểm được Title→Onboarding; thấy input tên tràn mép phải ở 360px (x=137, rộng 250). Số liệu sim lệch mục tiêu, chờ chủ dự án duyệt.
 
 ---
 

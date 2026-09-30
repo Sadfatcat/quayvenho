@@ -4,7 +4,7 @@
 
 **Blocked by:** 09, 10, 11
 
-**Status:** ready-for-agent
+**Status:** resolved — Playwright chỉ kiểm được một phần
 
 - [ ] `code-reviewer` subagent 1 lần, chỉ gửi danh sách file + số mục PLAN
 - [ ] Playwright kiểm 1 lượt cho Shop, cơ chế theo ngày, sự kiện, TravelViet, Cài đặt

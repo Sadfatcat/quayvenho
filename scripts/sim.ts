@@ -73,10 +73,10 @@ const runBot = (profile: BotProfile): DayRecord[][] => {
     const game = GameSession.newGame(seed);
     for (let day = 1; day <= DAYS; day++) {
       const demandScale = 1 + (demandRng.next() * 2 - 1) * profile.demandJitter;
+      const safetyNet = game.state.today.transactions.some((tx) => tx.type === 'SUPPORT_GIFT') ? 1 : 0;
       playDay(game, decide, profile.reserve, demandScale, profile.avoidWeather, profile.serveTimeMs);
       const summary = game.state.lastSummary;
       if (!summary) break;
-      const safetyNet = game.state.today.transactions.some((tx) => tx.type === 'SUPPORT_GIFT') ? 1 : 0;
       byDay[day - 1]?.push({
         seedIndex,
         moneyEnd: summary.moneyEnd,

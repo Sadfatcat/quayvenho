@@ -180,7 +180,11 @@ export class ShopScene extends BaseScene {
 
   private handleNextDay(): void {
     this.nextDayButton.lock();
-    sessionBridge.dispatch({ type: 'NEXT_DAY' });
+    const events = sessionBridge.dispatch({ type: 'NEXT_DAY' });
+    if (events.some((event) => event.type === 'COMMAND_REJECTED')) {
+      this.nextDayButton.unlock();
+      return;
+    }
     this.scene.start('Prep');
   }
 }

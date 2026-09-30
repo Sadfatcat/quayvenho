@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TRAVELVIET_FROM_DAY } from '@data/demand';
 import { STRINGS } from '@data/strings';
 import type { DaySummary } from '@domain/models';
 import { Button } from '@ui/Button';
@@ -137,7 +138,7 @@ export class SummaryScene extends BaseScene {
 
   private handleContinue(summary: DaySummary): void {
     const state = sessionBridge.current.state;
-    if (summary.day === 10 && !state.flags['travelVietIntro']) {
+    if (summary.day === TRAVELVIET_FROM_DAY - 1 && !state.flags['travelVietIntro']) {
       sessionBridge.dispatch({ type: 'FLAG_SET', flag: 'travelVietIntro' });
       new DialogOverlay(this, {
         title: STRINGS.summary.travelVietIntroTitle,

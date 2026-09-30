@@ -109,3 +109,8 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - PLAN §9.1 liệt kê `qvn:lock` là key localStorage cho khoá tab, nhưng §9.5 mô tả cơ chế thực tế chỉ dùng `BroadcastChannel('qvn')` (HELLO/ALIVE/TAKEOVER), không nhắc lại `qvn:lock` ở bước nào.
 - Quyết định: không tạo key `qvn:lock`; toàn bộ khoá tab chỉ qua BroadcastChannel, đúng như §9.5 mô tả chi tiết.
 - Lý do: PLAN §9.1 có vẻ là tài liệu dư/không nhất quán với §9.5; thêm một cơ chế localStorage song song không được §9.5 dùng tới sẽ chỉ tạo thêm trạng thái phải đồng bộ mà không giải quyết thêm rủi ro nào.
+
+## 2026-10-01 — Review Giai đoạn 5: sửa P1, hoãn P2/P3
+
+- Quyết định: sửa 2 P1 (ShopScene xử lý COMMAND_REJECTED; sim.ts đọc cờ SUPPORT_GIFT trước khi playDay) và P2 hard-code ngày TravelViet; hoãn chuyển chuỗi upgrades.ts sang strings.ts, bổ sung test dayCycle và gộp style lặp.
+- Lý do: P1 ảnh hưởng hành vi/số liệu; phần còn lại không đổi hành vi, để Giai đoạn 6 (văn bản, D11) xử lý cùng lúc.
