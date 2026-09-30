@@ -137,7 +137,7 @@ const runChecks = (name: string, byDay: DayRecord[][]): void => {
   console.log(`Tỉ lệ ngày lợi nhuận âm: ${totalDays ? round1((negativeProfitDays / totalDays) * 100) : 0}%`);
 
   const totalExpired = byDay.flat().reduce((sum, r) => sum + r.expiredSeats, 0);
-  const totalBought = byDay.flat().reduce((sum, r) => sum + r.expiredSeats + r.served, 0);
+  const totalBought = byDay.flat().reduce((sum, r) => sum + r.expiredSeats + r.served + r.weatherLostSeats, 0);
   console.log(`Tỉ lệ ghế ế (ghế ế / ghế đã mua): ${totalBought ? round1((totalExpired / totalBought) * 100) : 0}%`);
 
   const avgTurnedAwayRatio =

@@ -19,7 +19,7 @@
 | TravelViet ngày 20 | PERFECT ≥4.5; AVERAGE 3.6-4.4 | **3.7 ❌ (thấp hơn)** | **3.2 ❌ (thấp hơn)** | 2.7 (không có mục tiêu) |
 | Lưới an toàn / 30 ngày (median) | POOR p50 ≤ 3 | 0 | 0 | **6 ❌ (cao hơn gấp đôi)** |
 | Lợi nhuận âm | AVERAGE ≤ 20% ngày | 40.8% | **43.8% ❌ (cao hơn nhiều)** | 48.2% (không có mục tiêu) |
-| Ghế ế | AVERAGE 10-30% | 25.3% | 10% ✅ (sát biên dưới) | 6.4% (không có mục tiêu) |
+| Ghế ế | AVERAGE 10-30% | 25.3% | 9.9% ❌ (dưới biên, sát ngưỡng) | 6.4% (không có mục tiêu) |
 | Khách bỏ về vì đông | Chỉ báo cáo (§15 D10) | 8.7% | 2.3% | 3.4% |
 
 **Nhận xét** (không tự sửa số liệu game, chỉ đề xuất):
@@ -32,3 +32,5 @@
 `scripts/sim.ts` mới + mở rộng `src/domain/__integration__/bots.ts` (tương thích ngược — mọi tham số mới đều optional, test cũ không đổi). Thêm `"sim": "tsx scripts/sim.ts"` vào `package.json`, thêm override `no-console: off` cho `scripts/**` trong `eslint.config.js` (script CLI cần in báo cáo, đúng mục đích `npm run sim` PLAN yêu cầu). Đã sửa 1 bug thật lúc chạy: bot chậm (POOR, 30s/khách) có thể khiến khách hết kiên nhẫn ngay sau khi in vé xong (trước khi kịp giao) — `DELIVER_TICKET` bị domain từ chối đúng luật, code cũ crash vì coi mọi rejection là lỗi; đã sửa để coi đây là kết quả hợp lệ (khách bỏ đi). 134 test domain vẫn xanh, typecheck/lint/build xanh.
 
 **Việc còn lại thuộc quyết định chủ dự án, không tự làm**: xem xét 3 nhận xét ở trên, quyết định có đổi số liệu cân bằng game hay không trước khi làm ticket 5.7 review cuối Giai đoạn 5.
+
+**Sửa ở 4.R (Review Giai đoạn 5)**: code-reviewer bắt 1 lỗi P1 thật — công thức "tỉ lệ ghế ế" thiếu `weatherLostSeats` ở mẫu số (ghế mất do thời tiết cũng là ghế đã mua). Đã sửa, số liệu AVERAGE đổi rất nhẹ (10% → 9.9%, không đổi kết luận).
