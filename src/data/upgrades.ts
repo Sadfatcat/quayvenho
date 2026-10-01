@@ -1,24 +1,12 @@
-import type { UpgradeDef, UpgradeId } from '@domain/models';
+import type { UpgradeDef } from '@domain/models';
 
 export const UPGRADES: readonly UpgradeDef[] = [
-  { id: 'COMFY_CHAIRS', name: 'Ghế chờ êm', cost: 200, minDay: null, minTravelViet: null, effect: { patienceMult: 1.2 } },
-  { id: 'FAN', name: 'Quạt mát', cost: 150, minDay: null, minTravelViet: null, effect: { patienceMult: 1.1 } },
-  { id: 'FAST_PRINTER', name: 'Máy in nhanh', cost: 250, minDay: null, minTravelViet: null, effect: { printMs: 1500 } },
-  { id: 'SEARCH_FILTER', name: 'Ô lọc chuyến', cost: 180, minDay: null, minTravelViet: null, effect: { searchFilter: true } },
-  { id: 'AIRLINE_RELATIONS', name: 'Quan hệ hãng bay', cost: 400, minDay: 3, minTravelViet: null, effect: { seatBias: true } },
-  { id: 'REFUND_POLICY', name: 'Chính sách hoàn ghế', cost: 350, minDay: 4, minTravelViet: null, effect: { refundRate: 0.3 } },
-  { id: 'BIGGER_COUNTER', name: 'Quầy rộng', cost: 300, minDay: null, minTravelViet: null, effect: { queueMax: 6 } },
-  { id: 'LOYALTY_BOARD', name: 'Bảng khách quen', cost: 450, minDay: null, minTravelViet: 4.3, effect: { tipMult: 1.15 } },
+  { id: 'COMFY_CHAIRS', cost: 200, minDay: null, minTravelViet: null, effect: { patienceMult: 1.2 } },
+  { id: 'FAN', cost: 150, minDay: null, minTravelViet: null, effect: { patienceMult: 1.1 } },
+  { id: 'FAST_PRINTER', cost: 250, minDay: null, minTravelViet: null, effect: { printMs: 1500 } },
+  { id: 'SEARCH_FILTER', cost: 180, minDay: null, minTravelViet: null, effect: { searchFilter: true } },
+  { id: 'AIRLINE_RELATIONS', cost: 400, minDay: 3, minTravelViet: null, effect: { seatBias: true } },
+  { id: 'REFUND_POLICY', cost: 350, minDay: 4, minTravelViet: null, effect: { refundRate: 0.3 } },
+  { id: 'BIGGER_COUNTER', cost: 300, minDay: null, minTravelViet: null, effect: { queueMax: 6 } },
+  { id: 'LOYALTY_BOARD', cost: 450, minDay: null, minTravelViet: 4.3, effect: { tipMult: 1.15 } },
 ];
-
-/** Mô tả hiệu ứng hiển thị ở Shop (PLAN §10.9) — tách khỏi UpgradeDef vì chỉ là văn bản trình bày. */
-export const UPGRADE_DESCRIPTIONS: Record<UpgradeId, string> = {
-  COMFY_CHAIRS: 'Khách kiên nhẫn hơn 20%.',
-  FAN: 'Khách kiên nhẫn hơn 10%.',
-  FAST_PRINTER: 'In vé nhanh hơn.',
-  SEARCH_FILTER: 'Thêm ô lọc điểm đến ở Bước A.',
-  AIRLINE_RELATIONS: 'Chọn được thiên hướng ghế (cửa sổ/lối đi) khi nhập kho.',
-  REFUND_POLICY: 'Hoàn 30% giá vốn ghế ế mỗi ngày.',
-  BIGGER_COUNTER: 'Hàng đợi chứa được nhiều khách hơn.',
-  LOYALTY_BOARD: 'Tăng 15% tiền tip (cần TravelViet ≥ 4.3).',
-};

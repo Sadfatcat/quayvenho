@@ -46,6 +46,16 @@ export const STRINGS = {
     today: 'Hôm nay: Ngày',
     icon: '🛂',
   },
+  upgrades: {
+    COMFY_CHAIRS: { name: 'Ghế chờ êm', description: 'Khách kiên nhẫn hơn 20%.' },
+    FAN: { name: 'Quạt mát', description: 'Khách kiên nhẫn hơn 10%.' },
+    FAST_PRINTER: { name: 'Máy in nhanh', description: 'In vé nhanh hơn.' },
+    SEARCH_FILTER: { name: 'Ô lọc chuyến', description: 'Thêm ô lọc điểm đến ở Bước A.' },
+    AIRLINE_RELATIONS: { name: 'Quan hệ hãng bay', description: 'Chọn được thiên hướng ghế (cửa sổ/lối đi) khi nhập kho.' },
+    REFUND_POLICY: { name: 'Chính sách hoàn ghế', description: 'Hoàn 30% giá vốn ghế ế mỗi ngày.' },
+    BIGGER_COUNTER: { name: 'Quầy rộng', description: 'Hàng đợi chứa được nhiều khách hơn.' },
+    LOYALTY_BOARD: { name: 'Bảng khách quen', description: 'Tăng 15% tiền tip (cần TravelViet ≥ {minTravelViet}).' },
+  } as Record<string, { name: string; description: string }>,
   shop: {
     title: 'Shop',
     tabUpgrades: 'Nâng cấp',

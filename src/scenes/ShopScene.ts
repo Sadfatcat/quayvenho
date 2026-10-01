@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { ROUTES } from '@data/routes';
-import { UPGRADE_DESCRIPTIONS, UPGRADES } from '@data/upgrades';
+import { UPGRADES } from '@data/upgrades';
 import { shopContext } from '@domain/dayCycle';
-import type { Route, UpgradeDef } from '@domain/models';
+import type { Command, Route, UpgradeDef } from '@domain/models';
 import { checkRouteUnlock, checkUpgrade, type RouteUnlockError, type UpgradeError } from '@domain/upgrades';
 import { Button } from '@ui/Button';
 import { Card } from '@ui/Card';
@@ -97,18 +97,19 @@ export class ShopScene extends BaseScene {
     const width = GAME_WIDTH - 40;
 
     if (item.kind === 'upgrade') {
+      const upgradeText = STRINGS.upgrades[item.upgrade.id] ?? { name: item.upgrade.id, description: '' };
       const owned = state.upgrades.includes(item.upgrade.id);
       const result = checkUpgrade(item.upgrade.id, state.upgrades, ctx);
       return new Card(this, 0, 0, {
         width,
         height: CARD_HEIGHT,
-        title: item.upgrade.name,
-        description: UPGRADE_DESCRIPTIONS[item.upgrade.id] ?? '',
+        title: upgradeText.name,
+        description: upgradeText.description.replace('{minTravelViet}', String(item.upgrade.minTravelViet ?? '')),
         priceLabel: `${item.upgrade.cost} ${STRINGS.common.currencySuffix}`,
         statusLabel: owned ? STRINGS.shop.owned : result.ok ? '' : this.upgradeStatusText(result.reason, item.upgrade.minDay),
         buttonLabel: STRINGS.shop.buy,
         buttonEnabled: result.ok,
-        onBuy: () => this.confirmBuyUpgrade(item.upgrade),
+        onBuy: () => this.confirmPurchase(upgradeText.name, { type: 'SHOP_BUY_UPGRADE', upgradeId: item.upgrade.id }),
       });
     }
 
@@ -124,7 +125,7 @@ export class ShopScene extends BaseScene {
       statusLabel: unlocked ? STRINGS.shop.unlocked : result.ok ? '' : this.routeStatusText(result.reason, item.route.unlock?.minTravelViet ?? null),
       buttonLabel: STRINGS.shop.buy,
       buttonEnabled: result.ok,
-      onBuy: () => this.confirmUnlockRoute(item.route),
+      onBuy: () => this.confirmPurchase(item.route.name, { type: 'SHOP_UNLOCK_ROUTE', routeId: item.route.id }),
     });
   }
 
@@ -156,24 +157,13 @@ export class ShopScene extends BaseScene {
     }
   }
 
-  private confirmBuyUpgrade(upgrade: UpgradeDef): void {
+  private confirmPurchase(itemName: string, command: Command): void {
     new DialogOverlay(this, {
       title: STRINGS.shop.confirmTitle,
-      message: upgrade.name,
+      message: itemName,
       buttons: [
         { label: STRINGS.shop.confirmCancel, variant: 'ghost', onTap: () => {} },
-        { label: STRINGS.shop.confirmBuy, variant: 'primary', onTap: () => sessionBridge.dispatch({ type: 'SHOP_BUY_UPGRADE', upgradeId: upgrade.id }) },
-      ],
-    });
-  }
-
-  private confirmUnlockRoute(route: Route): void {
-    new DialogOverlay(this, {
-      title: STRINGS.shop.confirmTitle,
-      message: route.name,
-      buttons: [
-        { label: STRINGS.shop.confirmCancel, variant: 'ghost', onTap: () => {} },
-        { label: STRINGS.shop.confirmBuy, variant: 'primary', onTap: () => sessionBridge.dispatch({ type: 'SHOP_UNLOCK_ROUTE', routeId: route.id }) },
+        { label: STRINGS.shop.confirmBuy, variant: 'primary', onTap: () => sessionBridge.dispatch(command) },
       ],
     });
   }

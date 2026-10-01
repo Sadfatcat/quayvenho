@@ -198,7 +198,6 @@ export interface Modifiers {
 
 export interface UpgradeDef {
   id: UpgradeId;
-  name: string;
   cost: number;
   minDay: number | null;
   minTravelViet: number | null;

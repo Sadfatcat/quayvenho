@@ -19,6 +19,7 @@ const PANEL_WIDTH = 600;
 const PANEL_HEIGHT_BASE = 480;
 const EXIT_BUTTON_EXTRA_HEIGHT = 120;
 const SLIDER_WIDTH = 440;
+const LABEL_STYLE = { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text) };
 
 /** PLAN §10.9-style settings overlay: đổi âm lượng/rung, lưu ngay (SETTINGS_UPDATE là mốc lưu). */
 export class SettingsOverlay extends BaseOverlay {
@@ -31,7 +32,7 @@ export class SettingsOverlay extends BaseOverlay {
     const title = scene.add.text(0, -PANEL_HEIGHT / 2 + 50, STRINGS.settings.title, TEXT_STYLES.heading).setOrigin(0.5);
 
     const musicLabel = scene.add
-      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 140, STRINGS.settings.musicVolume, { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text) })
+      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 140, STRINGS.settings.musicVolume, LABEL_STYLE)
       .setOrigin(0, 0.5);
     const musicSlider = new Slider(scene, -SLIDER_WIDTH / 2, -PANEL_HEIGHT / 2 + 190, {
       width: SLIDER_WIDTH,
@@ -40,7 +41,7 @@ export class SettingsOverlay extends BaseOverlay {
     });
 
     const sfxLabel = scene.add
-      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 260, STRINGS.settings.sfxVolume, { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text) })
+      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 260, STRINGS.settings.sfxVolume, LABEL_STYLE)
       .setOrigin(0, 0.5);
     const sfxSlider = new Slider(scene, -SLIDER_WIDTH / 2, -PANEL_HEIGHT / 2 + 310, {
       width: SLIDER_WIDTH,
@@ -49,7 +50,7 @@ export class SettingsOverlay extends BaseOverlay {
     });
 
     const hapticsLabel = scene.add
-      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 380, STRINGS.settings.haptics, { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text) })
+      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 380, STRINGS.settings.haptics, LABEL_STYLE)
       .setOrigin(0, 0.5);
     const hapticsToggle = new Toggle(scene, PANEL_WIDTH / 2 - 100, -PANEL_HEIGHT / 2 + 380, {
       value: settings.haptics,

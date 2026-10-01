@@ -121,6 +121,29 @@ describe('commands outside the shift', () => {
     expect(game.state.today.seats.filter((s) => s.unitCost === 0)).toHaveLength(3);
   });
 
+  it('safety net gives nothing when money is at or above the threshold', () => {
+    const state = createNewGame(seedWithDay1Event('NONE'));
+    state.money = 150;
+    state.phase = 'SHOP';
+    state.lastSummary = { day: 1, moneyStart: 400, moneyEnd: 150 } as GameState['lastSummary'];
+    const game = new GameSession(state);
+    const events = game.dispatch({ type: 'NEXT_DAY' });
+    expect(events.some((e) => e.type === 'SUPPORT_GIFT')).toBe(false);
+    expect(game.state.today.seats.some((s) => s.unitCost === 0)).toBe(false);
+  });
+
+  it('safety net does not stack when NEXT_DAY is repeated', () => {
+    const state = createNewGame(seedWithDay1Event('NONE'));
+    state.money = 100;
+    state.phase = 'SHOP';
+    state.lastSummary = { day: 1, moneyStart: 400, moneyEnd: 100 } as GameState['lastSummary'];
+    const game = new GameSession(state);
+    game.dispatch({ type: 'NEXT_DAY' });
+    const repeated = game.dispatch({ type: 'NEXT_DAY' });
+    expect(rejected(repeated)).toBeDefined();
+    expect(game.state.today.seats.filter((s) => s.unitCost === 0)).toHaveLength(3);
+  });
+
   it('cannot construct a session mid-shift', () => {
     const state = createNewGame(1);
     state.phase = 'OPEN';

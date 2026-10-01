@@ -174,7 +174,7 @@ Ghi chú review (từ 4.R):
 | [x] 5.4 | TravelViet | hiển thị điểm, màn giới thiệu cuối ngày 10 | Số khách thay đổi theo điểm |
 | [x] 5.5 | Lưới an toàn | hộp thoại khi kích hoạt | Ép hết tiền: được tặng ghế |
 | [x] 5.6 | Cài đặt | `ui/Toggle.ts`, `ui/Slider.ts`, `scenes/overlays/SettingsOverlay.ts` | Đổi âm lượng/rung, lưu ngay |
-| [x] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
+| [~] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
 | [x] 5.R | Review giai đoạn 5 | — | Theo mẫu Review |
 
 Ghi chú review: _(điền ở bước 4.R)_
@@ -193,7 +193,7 @@ Ghi chú review: _(điền ở bước 4.R)_
 | [ ] 6.6 | Văn bản | thoại Béo, cốt truyện, thoại khách trong `strings.ts` / `customers.ts` | Chủ dự án duyệt (D11) |
 | [ ] 6.R | Review giai đoạn 6 | — | Theo mẫu Review |
 
-Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene bỏ qua COMMAND_REJECTED của NEXT_DAY; sim.ts đếm lưới an toàn lệch 1 ngày (sau sửa POOR median 6→5, vẫn > mục tiêu ≤3). Đã sửa P2 hard-code ngày 10 ở SummaryScene. Còn tồn (P2/P3, chưa sửa): chuỗi upgrades.ts nằm ngoài strings.ts, thiếu test hành vi thời tiết/lưới an toàn cấp dayCycle, lặp style/confirm ở Shop/Settings. Playwright 360×640 đã kiểm Onboarding→Kho→Quầy→Tổng kết→Shop (2 tab)→Kho ngày 2 (huy hiệu thời tiết, hộp thoại lưới an toàn)→Cài đặt, 0 lỗi console; đã sửa 2 lỗi bố cục (input tên tràn mép phải, panel Cài đặt đè nút "Về màn hình chính"). Chưa kiểm bằng UI: giới thiệu TravelViet cuối ngày 10, thời tiết SEVERE (chỉ có test domain). Số liệu sim lệch mục tiêu, chờ chủ dự án duyệt.
+Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene bỏ qua COMMAND_REJECTED của NEXT_DAY; sim.ts đếm lưới an toàn lệch 1 ngày (sau sửa POOR median 6→5, vẫn > mục tiêu ≤3). Đã sửa P2 hard-code ngày 10 ở SummaryScene. Đã trả nợ P2/P3: chuỗi upgrades chuyển vào strings.ts, gộp confirmPurchase ở Shop, thêm 2 test lưới an toàn (thời tiết đã có test dayCycle từ trước, reviewer báo thiếu là nhầm); còn lặp style inline ở Summary/Card. Playwright 360×640 đã kiểm Onboarding→Kho→Quầy→Tổng kết→Shop (2 tab)→Kho ngày 2 (huy hiệu thời tiết, hộp thoại lưới an toàn)→Cài đặt, 0 lỗi console; đã sửa 2 lỗi bố cục (input tên tràn mép phải, panel Cài đặt đè nút "Về màn hình chính"). Chưa kiểm bằng UI: giới thiệu TravelViet cuối ngày 10, thời tiết SEVERE (chỉ có test domain). Số liệu sim lệch mục tiêu, chờ chủ dự án duyệt.
 
 ---
 
