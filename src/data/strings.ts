@@ -34,6 +34,12 @@ export const STRINGS = {
     sfxVolume: 'Âm lượng hiệu ứng',
     haptics: 'Rung',
     close: 'Đóng',
+    exportCode: 'Xuất mã save',
+    importCode: 'Nhập mã save',
+    exportPrompt: 'Sao chép mã này để chuyển sang máy khác:',
+    importPrompt: 'Dán mã save vào đây:',
+    importConfirm: 'Nhập mã sẽ ghi đè tiến trình hiện tại trên máy này. Tiếp tục?',
+    importFailed: 'Mã không hợp lệ hoặc bị chép thiếu. Tiến trình hiện tại không bị đổi.',
   },
   tutorial: {
     speaker: 'Béo',

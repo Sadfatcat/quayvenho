@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
+import { exportSaveCode, importSaveCode } from '@save/exportImport';
+import { writeSave } from '@save/storage';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
@@ -10,6 +12,24 @@ import { Toggle } from '@ui/Toggle';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { sessionBridge } from '../sessionBridge';
 
+/** Hộp thoại gốc của trình duyệt: đơn giản, chạy được trên Safari iOS và Android, không cần dựng thêm ô nhập trong canvas. */
+const exportSaveCodeToPlayer = (): void => {
+  window.prompt(STRINGS.settings.exportPrompt, exportSaveCode(sessionBridge.current.state));
+};
+
+const importSaveCodeFromPlayer = (): void => {
+  const code = window.prompt(STRINGS.settings.importPrompt);
+  if (code === null || code.trim() === '') return;
+  const result = importSaveCode(code);
+  if (!result.ok) {
+    window.alert(STRINGS.settings.importFailed);
+    return;
+  }
+  if (!window.confirm(STRINGS.settings.importConfirm)) return;
+  writeSave(result.value);
+  window.location.reload();
+};
+
 export interface SettingsOverlayOptions {
   /** Only PrepScene needs this — CounterScene already has "Về màn hình chính" in PauseOverlay. */
   onExitToTitle?: () => void;
@@ -18,6 +38,8 @@ export interface SettingsOverlayOptions {
 const PANEL_WIDTH = 600;
 const PANEL_HEIGHT_BASE = 480;
 const EXIT_BUTTON_EXTRA_HEIGHT = 120;
+const SAVE_CODE_EXTRA_HEIGHT = 200;
+const SAVE_CODE_BUTTON_HEIGHT = 80;
 const SLIDER_WIDTH = 440;
 const LABEL_STYLE = { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text) };
 
@@ -25,7 +47,7 @@ const LABEL_STYLE = { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssCol
 export class SettingsOverlay extends BaseOverlay {
   constructor(scene: Phaser.Scene, options: SettingsOverlayOptions = {}) {
     super(scene, { closeOnBackdropTap: true });
-    const PANEL_HEIGHT = PANEL_HEIGHT_BASE + (options.onExitToTitle ? EXIT_BUTTON_EXTRA_HEIGHT : 0);
+    const PANEL_HEIGHT = PANEL_HEIGHT_BASE + (options.onExitToTitle ? EXIT_BUTTON_EXTRA_HEIGHT + SAVE_CODE_EXTRA_HEIGHT : 0);
     const settings = sessionBridge.current.state.settings;
 
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });
@@ -66,6 +88,21 @@ export class SettingsOverlay extends BaseOverlay {
     panel.add([title, musicLabel, musicSlider, sfxLabel, sfxSlider, hapticsLabel, hapticsToggle, closeText]);
 
     if (options.onExitToTitle) {
+      const exportButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60 - SAVE_CODE_EXTRA_HEIGHT, {
+        width: PANEL_WIDTH - 80,
+        height: SAVE_CODE_BUTTON_HEIGHT,
+        label: STRINGS.settings.exportCode,
+        variant: 'ghost',
+        onTap: exportSaveCodeToPlayer,
+      });
+      const importButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60 - SAVE_CODE_EXTRA_HEIGHT / 2, {
+        width: PANEL_WIDTH - 80,
+        height: SAVE_CODE_BUTTON_HEIGHT,
+        label: STRINGS.settings.importCode,
+        variant: 'ghost',
+        onTap: importSaveCodeFromPlayer,
+      });
+      panel.add([exportButton, importButton]);
       const exitButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60, {
         width: PANEL_WIDTH - 80,
         height: 80,

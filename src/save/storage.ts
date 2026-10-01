@@ -10,7 +10,7 @@ export type LoadSaveReason = 'EMPTY' | 'CORRUPTED' | 'FUTURE_VERSION';
 type RawLoadResult = { ok: true; value: GameState } | { ok: false; reason: LoadSaveReason };
 export type LoadSaveResult = { ok: true; value: GameState; recoveredFromBackup: boolean } | { ok: false; reason: LoadSaveReason };
 
-const parseAndValidate = (json: string): RawLoadResult => {
+export const parseSaveJson = (json: string): RawLoadResult => {
   let raw: unknown;
   try {
     raw = JSON.parse(json);
@@ -46,7 +46,7 @@ const readKey = (key: string): RawLoadResult => {
   if (json === null) {
     return { ok: false, reason: 'EMPTY' };
   }
-  return parseAndValidate(json);
+  return parseSaveJson(json);
 };
 
 /** Đọc save chính; JSON hỏng hoặc không hợp lệ thì rơi về bản sao lưu gần nhất. */

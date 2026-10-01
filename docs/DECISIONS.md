@@ -127,3 +127,9 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Quyết định: SFX và nhạc lofi tạo bằng oscillator (`platform/audio.ts`); gương mặt khách vẽ bằng Graphics (`ui/CustomerAvatar.ts`).
 - Lý do: không có file âm thanh/tranh dùng được; không thêm dependency; vẫn hoạt động offline.
 - Phương án đã loại: Kenney/asset ngoài (cần chủ dự án chọn); atlas ảnh (cần tranh).
+
+## 2026-10-02 — D1: không cloud save, chỉ xuất/nhập mã
+
+- Quyết định: giữ mặc định PLAN §15 D1 — chỉ `localStorage` + xuất/nhập mã (`QVN1.<base64>.<checksum>`, `save/exportImport.ts`). Nút "Xuất mã save"/"Nhập mã save" nằm trong Cài đặt ở Kho (không hiện giữa ca).
+- Lý do: CLAUDE.md "Không có backend"; chủ dự án chưa đề nghị cloud save.
+- Phương án đã loại: cloud save (cần backend). Nhập mã dùng hộp thoại gốc của trình duyệt (`prompt`/`confirm`) cho gọn; có thể đổi sang ô nhập trong canvas nếu thấy xấu trên máy thật.
