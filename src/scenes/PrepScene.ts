@@ -19,7 +19,9 @@ import { DialogOverlay } from './overlays/DialogOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { sessionBridge } from './sessionBridge';
 
-const ROW_HEIGHT = 150;
+const ROW_HEIGHT = 230;
+const ECONOMY_ROW_Y = 112;
+const BUSINESS_ROW_Y = 184;
 const LIST_Y = 230;
 const LIST_HEIGHT = 1060 - LIST_Y;
 const TOTAL_Y = 1095;
@@ -143,8 +145,8 @@ export class PrepScene extends BaseScene {
       .setOrigin(0, 0);
     row.add([panel, title, meta]);
 
-    row.add(this.renderCabinRow(flight, 'ECONOMY', 74, today));
-    row.add(this.renderCabinRow(flight, 'BUSINESS', 112, today));
+    row.add(this.renderCabinRow(flight, 'ECONOMY', ECONOMY_ROW_Y, today));
+    row.add(this.renderCabinRow(flight, 'BUSINESS', BUSINESS_ROW_Y, today));
     return row;
   }
 

@@ -3,6 +3,8 @@ import { STRINGS } from '@data/strings';
 import { Button } from './Button';
 import { COLORS, FONT_FAMILY, toCssColor } from './theme';
 
+const EDGE_PADDING = 24;
+
 export interface TopBarOptions {
   width: number;
   leftLabel: string;
@@ -21,7 +23,7 @@ export class TopBar extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number, options: TopBarOptions) {
     super(scene, x, y);
     this.leftText = scene.add
-      .text(0, 0, options.leftLabel, { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
+      .text(EDGE_PADDING, 0, options.leftLabel, { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
       .setOrigin(0, 0.5);
     this.moneyText = scene.add
       .text(options.width * 0.42, 0, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.text) })

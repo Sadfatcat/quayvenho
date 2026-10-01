@@ -39,7 +39,7 @@ import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const COUNTER_SURFACE_Y = 650;
-const BUILD_AREA_ORIGIN = { x: 40, y: 730 };
+const BUILD_AREA_ORIGIN = { x: 40, y: 775 };
 const BUILD_AREA_WIDTH = GAME_WIDTH - 80;
 
 const formatOrderSummary = (order: Order): string => {
