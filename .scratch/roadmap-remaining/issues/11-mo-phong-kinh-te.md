@@ -81,3 +81,6 @@ Còn làm hỏng 7 test (doanh thu, tuyến). Đã `git checkout` hoàn tác, ga
 **Đề xuất tiếp (chờ chủ dự án):**
 1. Sửa bot mua ghế theo đơn có thể xảy ra (chuyến theo `timePref`, hạng) thay vì chia đều — sửa bot, không đổi số game.
 2. Hoặc xem lại luật PLAN §5.5: `REFUSED_NO_STOCK` = 3 sao có hợp lý không (đây là nguồn kéo TravelViet).
+
+## Cập nhật 2026-10-02 — đã tự cân bằng (chủ dự án giao quyền)
+Sửa bot (mua ghế xen kẽ tuyến, giữ tiền nhập ghế, giao vé theo patienceRatio) và chỉnh `SEAT_COST_FACTOR` 0.8, sao `REFUSED_NO_STOCK` 4 / `REFUSED_CORRECT` 5, `PATIENCE_SCALE` 1.25. Với 200 seed: mọi chỉ số PLAN §13.3 đạt (PERFECT nâng cấp ngày 2, BKK ngày 11, TV20 4.6; AVERAGE nâng cấp ngày 3, BKK ngày 13, TV20 4.0, lỗ 15.9%, ghế ế 27.1%; POOR lưới AT 1). Chi tiết ở `docs/DECISIONS.md`. `QUIET=1 SEEDS=n npm run sim` in nhanh dòng METRICS; `npm run soak` kiểm bất biến 12.000 ngày ngẫu nhiên (0 lỗi).

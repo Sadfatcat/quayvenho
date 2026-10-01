@@ -35,3 +35,9 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - Kiểm UI bằng Playwright chưa xong cho: giới thiệu TravelViet ngày 10, thời tiết SEVERE, Shop/Tổng kết sau đợt căn lại nút.
 - Style chữ inline lặp ở nhiều scene (nên gom vào `TEXT_STYLES` khi dựng lại theo thiết kế).
 - Kiểm tra cấu hình `personal.ts` lúc load (đơn không hợp lệ làm khách không phục vụ được) chưa có.
+
+## 6. Gợi ý cho cân bằng game (từ sim)
+
+- Bot hoàn hảo cuối game có ~2,2 triệu k (2,2 tỉ đồng): chưa có khoản chi lớn để tiêu. PLAN §17 (mua máy bay, thuê nhân viên, nợ/vay) là chỗ giải quyết; cần bạn mô tả luật nếu muốn làm.
+- Người chơi chậm hoặc hay sai (POOR) gần như đứng yên ở ~10k, không mở thêm tuyến. Nếu muốn dễ hơn cho người mới: nâng `STARTING_MONEY` hoặc giảm `SEAT_COST_FACTOR` thêm.
+- Kết quả sim phụ thuộc bot; người thật có thể chơi khác. Nên chơi thử và báo cảm giác (quá dễ/khó ở ngày nào) để chỉnh tiếp.
