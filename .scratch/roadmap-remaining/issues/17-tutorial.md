@@ -4,7 +4,7 @@
 
 **Blocked by:** 14
 
-**Status:** ready-for-agent
+**Status:** resolved — đủ mốc §10.11 trừ "cuối ngày 10" (đã có hộp thoại TravelViet ở SummaryScene); nội dung chữ là bản nháp, chờ ticket 18
 
 - [ ] `scenes/overlays/TutorialOverlay.ts` mới, dùng lại `SpeechBubble` đã có
 - [ ] Đủ các mốc hướng dẫn trong bảng §10.11 (ví dụ lần đầu có RUSH, lần đầu có dự báo thời tiết...)

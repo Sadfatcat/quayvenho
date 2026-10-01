@@ -39,6 +39,7 @@ import { BaseScene } from './BaseScene';
 import { PassportCard } from './overlays/PassportCard';
 import { PauseOverlay } from './overlays/PauseOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
+import { showPendingTutorials } from './overlays/TutorialOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const COUNTER_SURFACE_Y = 650;
@@ -110,6 +111,7 @@ export class CounterScene extends BaseScene {
       this.unsubscribeVisibility?.();
     });
     this.renderAll();
+    showPendingTutorials(this, 'Counter');
   }
 
   update(_time: number, delta: number): void {

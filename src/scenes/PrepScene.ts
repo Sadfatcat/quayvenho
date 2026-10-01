@@ -17,6 +17,7 @@ import { GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
+import { showPendingTutorials } from './overlays/TutorialOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const ROW_HEIGHT = 230;
@@ -47,6 +48,7 @@ export class PrepScene extends BaseScene {
     this.unsubscribeEvents = sessionBridge.onEvents(() => this.renderAll());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribeEvents?.());
     this.renderAll();
+    showPendingTutorials(this, 'Prep');
     this.maybeShowSafetyNet();
   }
 
