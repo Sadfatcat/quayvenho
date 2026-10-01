@@ -1,3 +1,4 @@
+import { PERSONAL, type PersonalConfig } from '@data/personal';
 import { invariant } from './common/invariant';
 import { advanceTime, applyCommand, createNewGame, type Session } from './dayCycle';
 import type { Command, DomainEvent, GameState } from './models';
@@ -6,9 +7,9 @@ import type { Command, DomainEvent, GameState } from './models';
 export class GameSession {
   private readonly session: Session;
 
-  constructor(state: GameState) {
+  constructor(state: GameState, personal: PersonalConfig = PERSONAL) {
     invariant(state.phase !== 'OPEN' && state.phase !== 'CLOSING', 'cannot resume mid-shift');
-    this.session = { state, runtime: null };
+    this.session = { state, runtime: null, personal };
   }
 
   static newGame(seed: number): GameSession {

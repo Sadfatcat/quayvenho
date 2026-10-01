@@ -10,7 +10,7 @@ import {
 } from '@data/balance';
 import { matchesTimePref } from './clock';
 import { businessTip, clampPenalty, fareOf, ticketRevenue } from './economy';
-import type { CabinClass, Extra, Flight, MistakeCode, Order, Passport, ScoreOutcome, ScoreResult, SeatId } from './models';
+import type { CabinClass, Extra, Flight, MistakeCode, Order, Passport, ScoreOutcome, ScoreResult, SeatId, Stars } from './models';
 import { getRoute } from './routes';
 import { matchesSeatPref } from './seatMap';
 
@@ -71,7 +71,7 @@ const outcomeOf = (accuracy: number, speed: number): ScoreOutcome =>
         ? 'OK'
         : 'POOR';
 
-export const scoreCustomer = (input: ScoreInput): ScoreResult => {
+const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
   const { order, action } = input;
   const result = (outcome: ScoreOutcome, mistakes: MistakeCode[], revenue = 0, tip = 0): ScoreResult => ({
     customerId: order.customerId,
@@ -106,4 +106,23 @@ export const scoreCustomer = (input: ScoreInput): ScoreResult => {
       ? businessTip(fareOf(route, 'BUSINESS', input.rush), input.tipMult)
       : 0;
   return result(outcome, mistakes, revenue, tip);
+};
+
+const SPECIAL_MIN_STARS: Stars = 3;
+const SPECIAL_TIP_OUTCOME: ScoreOutcome = 'PERFECT';
+
+/**
+ * PLAN §16: khách đặc biệt không bao giờ bị phạt, tối thiểu 3 sao, và tip nhân `tipMultiplier` cả khi ECONOMY.
+ * Phần còn lại (đúng/sai đơn, doanh thu) chấm như khách thường.
+ */
+export const scoreCustomer = (input: ScoreInput): ScoreResult => {
+  const result = scoreRegularCustomer(input);
+  const { special } = input.order;
+  if (!special) return result;
+  const stars = Math.max(result.stars, SPECIAL_MIN_STARS) as Stars;
+  const tip =
+    result.outcome === SPECIAL_TIP_OUTCOME && input.action.type === 'DELIVER'
+      ? businessTip(fareOf(getRoute(input.order.routeId), input.order.cabin, input.rush), input.tipMult * special.tipMultiplier)
+      : result.tip;
+  return { ...result, stars, tip, penalty: 0, specialId: special.id };
 };

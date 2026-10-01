@@ -1,4 +1,4 @@
-import type { Order, RouteId } from '@domain/models';
+import type { Order, Route, RouteId } from '@domain/models';
 
 /**
  * Nội dung cá nhân hoá (PLAN §16). Chủ dự án tự điền; `enabled = false` thì game chạy đúng như không có tính năng này.
@@ -48,4 +48,13 @@ export const PERSONAL: PersonalConfig = {
   specialCustomers: [],
   scriptedMoments: [],
   customRoutes: [],
+};
+
+/** Thay tên hiển thị và gắn kỷ niệm cho tuyến có sẵn; `enabled = false` thì trả đúng danh sách gốc. */
+export const applyCustomRoutes = (routes: readonly Route[], config: PersonalConfig): readonly Route[] => {
+  if (!config.enabled) return routes;
+  return routes.map((route) => {
+    const custom = config.customRoutes.find((candidate) => candidate.replaceRouteId === route.id);
+    return custom ? { ...route, name: custom.name, flavorText: custom.flavorText } : route;
+  });
 };

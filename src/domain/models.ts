@@ -31,6 +31,8 @@ export interface Route {
   unlock: { cost: number; minTravelViet: number | null } | null;
   color: number;
   icon: string;
+  /** Kỷ niệm từ PersonalConfig.customRoutes, hiện khi chạm vào tuyến. */
+  flavorText?: string;
 }
 
 export interface Flight {
@@ -70,6 +72,8 @@ export interface Order {
   passport: Passport;
   complexity: number;
   patienceMaxMs: number;
+  /** Khách đặc biệt của PersonalConfig (PLAN §16): luật chấm riêng, không phạt. */
+  special?: { id: string; tipMultiplier: number };
 }
 
 export interface Customer {
@@ -120,6 +124,7 @@ export interface ScoreResult {
   tip: number;
   penalty: number;
   mistakes: MistakeCode[];
+  specialId?: string;
 }
 
 export type TxType =

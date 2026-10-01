@@ -123,7 +123,7 @@ export class ShopScene extends BaseScene {
       width,
       height: CARD_HEIGHT,
       title: item.route.name,
-      description: '',
+      description: item.route.flavorText ?? '',
       priceLabel: `${cost} ${STRINGS.common.currencySuffix}`,
       statusLabel: unlocked ? STRINGS.shop.unlocked : result.ok ? '' : this.routeStatusText(result.reason, item.route.unlock?.minTravelViet ?? null),
       buttonLabel: STRINGS.shop.buy,

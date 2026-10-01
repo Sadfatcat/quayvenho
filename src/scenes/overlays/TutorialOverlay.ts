@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
+import { PERSONAL, type ScriptedMoment } from '@data/personal';
 import { STRINGS } from '@data/strings';
+import { scriptedMomentsFor } from '@domain/personal';
 import { TUTORIAL_FLAG_PREFIX, TUTORIAL_STEPS, type TutorialScene } from '@data/tutorial';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
@@ -16,19 +18,18 @@ const AVATAR_Y = BUBBLE_Y - 270;
 const SPEAKER_SPRITE_ID = 'beo';
 const BUTTON_Y = BUBBLE_Y + 190;
 
-/** Một lời thoại của Béo (PLAN §10.11): bong bóng thoại + nút "Hiểu rồi". Đóng thì ghi cờ để không lặp lại. */
-class TutorialOverlay extends BaseOverlay {
-  constructor(scene: Phaser.Scene, stepId: string, onDone: () => void) {
+/** Một lời thoại của Béo (PLAN §10.11): bong bóng thoại + nút "Hiểu rồi". Đóng thì ghi cờ `flag` để không lặp lại. */
+class BeoMessageOverlay extends BaseOverlay {
+  constructor(scene: Phaser.Scene, message: string, flag: string | null, onDone: () => void) {
     super(scene, { closeOnBackdropTap: false });
     const speaker = new CustomerAvatar(scene, GAME_WIDTH / 2, AVATAR_Y, AVATAR_RADIUS, SPEAKER_SPRITE_ID);
     const name = scene.add.text(GAME_WIDTH / 2, AVATAR_Y + AVATAR_RADIUS + 20, STRINGS.tutorial.speaker, TEXT_STYLES.label).setOrigin(0.5);
-    const message = STRINGS.tutorial[stepId as keyof typeof STRINGS.tutorial] ?? '';
     const bubble = new SpeechBubble(scene, GAME_WIDTH / 2, BUBBLE_Y, { width: BUBBLE_WIDTH, text: message });
     const confirm = new Button(scene, GAME_WIDTH / 2, BUTTON_Y, {
       width: 280,
       label: STRINGS.tutorial.gotIt,
       onTap: () => {
-        sessionBridge.dispatch({ type: 'FLAG_SET', flag: `${TUTORIAL_FLAG_PREFIX}${stepId}` });
+        if (flag) sessionBridge.dispatch({ type: 'FLAG_SET', flag });
         this.close();
         onDone();
       },
@@ -53,7 +54,30 @@ export const showPendingTutorials = (scene: Phaser.Scene, sceneKey: TutorialScen
       releasePause();
       return;
     }
-    new TutorialOverlay(scene, step.id, () => showNext(index + 1));
+    const message = STRINGS.tutorial[step.id as keyof typeof STRINGS.tutorial] ?? '';
+    new BeoMessageOverlay(scene, message, `${TUTORIAL_FLAG_PREFIX}${step.id}`, () => showNext(index + 1));
+  };
+  showNext(0);
+};
+
+const SCRIPTED_FLAG_PREFIX = 'moment_';
+
+/** PLAN §16: lời thoại Béo theo ngày/thời điểm trong `PersonalConfig.scriptedMoments`, mỗi lời chỉ hiện một lần. */
+export const showScriptedMoments = (scene: Phaser.Scene, at: ScriptedMoment['at']): void => {
+  const { day, flags } = sessionBridge.current.state;
+  const lines = scriptedMomentsFor(PERSONAL, day, at)
+    .filter((moment) => !flags[`${SCRIPTED_FLAG_PREFIX}${moment.id}`])
+    .flatMap((moment) => moment.lines.map((line, index, all) => ({ line, flag: index === all.length - 1 ? `${SCRIPTED_FLAG_PREFIX}${moment.id}` : null })));
+  if (lines.length === 0) return;
+
+  const releasePause = sessionBridge.holdPause();
+  const showNext = (index: number): void => {
+    const entry = lines[index];
+    if (!entry) {
+      releasePause();
+      return;
+    }
+    new BeoMessageOverlay(scene, entry.line, entry.flag, () => showNext(index + 1));
   };
   showNext(0);
 };

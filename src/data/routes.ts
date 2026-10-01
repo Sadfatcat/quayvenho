@@ -1,6 +1,7 @@
 import type { Route } from '@domain/models';
+import { applyCustomRoutes, PERSONAL } from './personal';
 
-export const ROUTES: readonly Route[] = [
+const BASE_ROUTES: readonly Route[] = [
   { id: 'HAN-SGN', name: 'TP. Hồ Chí Minh', cost: { ECONOMY: 70, BUSINESS: 180 }, price: { ECONOMY: 100, BUSINESS: 260 }, weight: 3, unlock: null, color: 0xf2994a, icon: 'sgn' },
   { id: 'HAN-DAD', name: 'Đà Nẵng', cost: { ECONOMY: 50, BUSINESS: 130 }, price: { ECONOMY: 75, BUSINESS: 190 }, weight: 3, unlock: null, color: 0x56ccf2, icon: 'dad' },
   { id: 'HAN-CXR', name: 'Nha Trang', cost: { ECONOMY: 60, BUSINESS: 150 }, price: { ECONOMY: 90, BUSINESS: 220 }, weight: 2, unlock: { cost: 250, minTravelViet: null }, color: 0x6fcf97, icon: 'cxr' },
@@ -11,3 +12,5 @@ export const ROUTES: readonly Route[] = [
   { id: 'HAN-NRT', name: 'Tokyo', cost: { ECONOMY: 190, BUSINESS: 470 }, price: { ECONOMY: 280, BUSINESS: 690 }, weight: 1, unlock: { cost: 1600, minTravelViet: 4.2 }, color: 0xff8fab, icon: 'nrt' },
   { id: 'HAN-CDG', name: 'Paris', cost: { ECONOMY: 320, BUSINESS: 800 }, price: { ECONOMY: 470, BUSINESS: 1180 }, weight: 1, unlock: { cost: 2500, minTravelViet: 4.5 }, color: 0x9b51e0, icon: 'cdg' },
 ];
+
+export const ROUTES: readonly Route[] = applyCustomRoutes(BASE_ROUTES, PERSONAL);

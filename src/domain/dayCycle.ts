@@ -13,6 +13,7 @@ import {
   STARTING_MONEY,
 } from '@data/balance';
 import { TRAVELVIET_FROM_DAY, TRAVELVIET_WINDOW } from '@data/demand';
+import { PERSONAL, type PersonalConfig } from '@data/personal';
 import { WEATHER_LOSS_SHARE } from '@data/events';
 import { SHOP_CLOSE_MINUTE, SHOP_OPEN_MINUTE } from '@data/schedule';
 import { canServe } from './canServe';
@@ -23,6 +24,7 @@ import { getDayConfig, isMechanicOpen } from './dayConfig';
 import { customersForDay, isTravelVietOpen, travelVietScore } from './demand';
 import { makeTx, moneyBalances, refundFor, summarizeDay } from './economy';
 import { isRush, resolveWeather, rollDayEvent } from './events';
+import { buildSpecialOrder, dayHasPersonalContent, ensureServableForSpecial, specialCustomerForArrival } from './personal';
 import {
   expireAvailable,
   holdSeat,
@@ -67,6 +69,7 @@ export interface DayRuntime {
 export interface Session {
   state: GameState;
   runtime: DayRuntime | null;
+  personal: PersonalConfig;
 }
 
 export const TUTORIAL_FLAG = 'tutorialDone_1';
@@ -81,9 +84,10 @@ const createToday = (
   unlockedRoutes: readonly RouteId[],
   moneyStart: number,
   transactions: TodayState['transactions'],
+  personal: PersonalConfig,
 ): TodayState => ({
   moneyStart,
-  event: rollDayEvent(seed, day, unlockedRoutes),
+  event: dayHasPersonalContent(personal, day) ? { type: 'NONE' } : rollDayEvent(seed, day, unlockedRoutes),
   flights: generateFlights(seed, day, unlockedRoutes),
   seats: [],
   pendingPurchase: {},
@@ -110,7 +114,7 @@ const applySafetyNet = (state: GameState): DomainEvent[] => {
   return [{ type: 'SUPPORT_GIFT', flightId: gift.flight.id, seats: gift.seats.map((seat) => seat.seat) }];
 };
 
-export const createNewGame = (seed: number): GameState => {
+export const createNewGame = (seed: number, personal: PersonalConfig = PERSONAL): GameState => {
   const unlockedRoutes = startingRouteIds();
   const state: GameState = {
     version: SAVE_VERSION,
@@ -125,7 +129,7 @@ export const createNewGame = (seed: number): GameState => {
     upgrades: [],
     settings: { ...DEFAULT_SETTINGS },
     flags: {},
-    today: createToday(seed, 1, unlockedRoutes, STARTING_MONEY, []),
+    today: createToday(seed, 1, unlockedRoutes, STARTING_MONEY, [], personal),
     nextDayTransactions: [],
     lastSummary: null,
   };
@@ -386,7 +390,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       if (state.phase !== 'SHOP') return reject('WRONG_PHASE');
       invariant(state.lastSummary, 'SHOP without a summary');
       state.day += 1;
-      state.today = createToday(state.seed, state.day, state.unlockedRoutes, state.lastSummary.moneyEnd, state.nextDayTransactions);
+      state.today = createToday(state.seed, state.day, state.unlockedRoutes, state.lastSummary.moneyEnd, state.nextDayTransactions, session.personal);
       state.nextDayTransactions = [];
       state.phase = 'PREP';
       session.runtime = null;
@@ -463,7 +467,7 @@ export const advanceTime = (session: Session, deltaMs: number): DomainEvent[] =>
 
   tickCounter(state, delta, events);
   tickClock(state, delta, events);
-  spawnArrivals(state, runtime, events);
+  spawnArrivals(state, runtime, session.personal, events);
   if (state.phase === 'OPEN' && state.today.clock >= SHOP_CLOSE_MINUTE) {
     state.phase = 'CLOSING';
     events.push({ type: 'DAY_CLOSING' });
@@ -499,19 +503,20 @@ const tickClock = (state: GameState, delta: number, events: DomainEvent[]): void
   if (after !== before) events.push({ type: 'CLOCK_TICK', minute: after });
 };
 
-const spawnArrivals = (state: GameState, runtime: DayRuntime, events: DomainEvent[]): void => {
+const spawnArrivals = (state: GameState, runtime: DayRuntime, personal: PersonalConfig, events: DomainEvent[]): void => {
   const { today } = state;
   if (state.phase !== 'OPEN') return;
   const modifiers = computeModifiers(state.upgrades);
   while (today.nextArrivalIndex < today.arrivals.length && (today.arrivals[today.nextArrivalIndex] ?? Infinity) <= today.clock) {
     const index = today.nextArrivalIndex++;
+    const special = specialCustomerForArrival(personal, state.day, index, today.arrivals.length);
     const waiting = today.queue.filter((customer) => customer.position === 'QUEUE').length;
-    if (waiting >= modifiers.queueMax) {
+    if (!special && waiting >= modifiers.queueMax) {
       today.turnedAway++;
       events.push({ type: 'CUSTOMER_TURNED_AWAY', customerId: `d${state.day}-c${index}` });
       continue;
     }
-    const order = generateOrder({
+    const generated = generateOrder({
       rng: runtime.ordersRng,
       namesRng: runtime.namesRng,
       day: state.day,
@@ -523,6 +528,8 @@ const spawnArrivals = (state: GameState, runtime: DayRuntime, events: DomainEven
       modifiers,
       customerIndex: index,
     });
+    const order = special ? buildSpecialOrder(generated, special, state.day) : generated;
+    if (special) today.seats.push(...ensureServableForSpecial(order, today.flights, today.seats, rngFor(state.seed, state.day, `special:${special.id}`)));
     today.queue.push({
       order,
       patienceLeftMs: order.patienceMaxMs,

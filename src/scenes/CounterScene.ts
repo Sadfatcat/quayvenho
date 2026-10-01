@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { PERSONAL } from '@data/personal';
 import { STRINGS } from '@data/strings';
 import { canGoToStep, counterCustomer, patienceRatioOf } from '@domain/dayCycle';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
@@ -30,6 +31,7 @@ import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
 import { SpeechBubble } from '@ui/SpeechBubble';
 import { CustomerAvatar } from '@ui/CustomerAvatar';
+import { TEXT_STYLES } from '@ui/textStyles';
 import { MIN_TOUCH_SIZE } from '@ui/layout';
 import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
 import { TicketView } from '@ui/TicketView';
@@ -40,11 +42,16 @@ import { BACK_PRESSED_EVENT, BaseScene } from './BaseScene';
 import { PassportCard } from './overlays/PassportCard';
 import { PauseOverlay } from './overlays/PauseOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
-import { showPendingTutorials } from './overlays/TutorialOverlay';
+import { showPendingTutorials, showScriptedMoments } from './overlays/TutorialOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const COUNTER_SURFACE_Y = 650;
 const SHAKE_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['POOR', 'FAILED', 'SOLD_INVALID', 'REFUSED_WRONG']);
+const SPECIAL_LINE_WIDTH = 520;
+const SPECIAL_PATIENCE_BAR_Y = 570;
+const SPECIAL_TOAST_MS = 3000;
+const GOOD_SPECIAL_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['PERFECT', 'GOOD', 'OK']);
+const specialLinesOf = (specialId: string | undefined) => PERSONAL.specialCustomers.find((special) => special.id === specialId)?.lines;
 const SHAKE_DURATION_MS = 180;
 const SHAKE_INTENSITY = 0.006;
 const TICKET_SLIDE_FROM_PX = -160;
@@ -116,6 +123,7 @@ export class CounterScene extends BaseScene {
     });
     this.renderAll();
     showPendingTutorials(this, 'Counter');
+    showScriptedMoments(this, 'OPEN');
   }
 
   update(_time: number, delta: number): void {
@@ -215,7 +223,9 @@ export class CounterScene extends BaseScene {
     const centerX = GAME_WIDTH / 2;
     const bubble = new SpeechBubble(this, centerX, 320, { width: 480, text: formatOrderSummary(customer.order) });
     const avatar = new CustomerAvatar(this, centerX, 440, 55, customer.order.spriteId);
-    this.patienceBar = new PatienceBar(this, centerX - 100, 520, { width: 200, height: 16 });
+    const arriveLine = specialLinesOf(customer.order.special?.id)?.arrive;
+    if (arriveLine) this.customerArea.add(this.add.text(centerX, 500, arriveLine, { ...TEXT_STYLES.label, align: 'center', wordWrap: { width: SPECIAL_LINE_WIDTH } }).setOrigin(0.5, 0));
+    this.patienceBar = new PatienceBar(this, centerX - 100, arriveLine ? SPECIAL_PATIENCE_BAR_Y : 520, { width: 200, height: 16 });
     this.patienceBar.setProgress(patienceRatioOf(customer));
     this.patienceBar.setMood(customer.mood);
     this.customerArea.add([bubble, avatar, this.patienceBar]);
@@ -450,7 +460,9 @@ export class CounterScene extends BaseScene {
     }
     if (SHAKE_OUTCOMES.has(result.outcome)) this.cameras.main.shake(SHAKE_DURATION_MS, SHAKE_INTENSITY);
     if (result.tip > 0) showFloatingText(this, x, y - 44, { text: `+${result.tip} ${STRINGS.counter.tipSuffix}`, color: COLORS.accent });
-    if (result.mistakes.length) this.toasts.show(result.mistakes.map((code) => STRINGS.counter.mistakes[code]).join(', '), 2000);
+    const specialLines = specialLinesOf(result.specialId);
+    if (specialLines) this.toasts.show(GOOD_SPECIAL_OUTCOMES.has(result.outcome) ? specialLines.success : specialLines.fail, SPECIAL_TOAST_MS);
+    else if (result.mistakes.length) this.toasts.show(result.mistakes.map((code) => STRINGS.counter.mistakes[code]).join(', '), 2000);
   }
 
   private openPause(): void {
