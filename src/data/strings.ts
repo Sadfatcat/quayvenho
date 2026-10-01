@@ -92,6 +92,12 @@ export const STRINGS = {
     takenOverTitle: 'Game đã mở ở tab khác',
     takenOverMessage: 'Bạn đã chuyển sang chơi ở một tab khác. Tab này sẽ không lưu tiến trình nữa.',
   },
+  pwa: {
+    updateTitle: 'Có bản mới',
+    updateMessage: 'Có bản mới của game. Tải lại bây giờ?',
+    updateNow: 'Tải lại',
+    updateLater: 'Để sau',
+  },
   preload: {
     loading: 'Đang tải...',
     failed: 'Không tải được phông chữ.',

@@ -13,6 +13,7 @@ import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
+import { promptForPwaUpdate } from './overlays/UpdatePrompt';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { sessionBridge } from './sessionBridge';
 
@@ -40,6 +41,7 @@ export class ShopScene extends BaseScene {
   }
 
   protected onCreate(): void {
+    promptForPwaUpdate(this);
     this.buildLayout();
     this.unsubscribeEvents = sessionBridge.onEvents(() => this.renderAll());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribeEvents?.());

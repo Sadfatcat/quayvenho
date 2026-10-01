@@ -8,6 +8,7 @@ import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
+import { promptForPwaUpdate } from './overlays/UpdatePrompt';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { sessionBridge } from './sessionBridge';
 
@@ -42,6 +43,7 @@ export class SummaryScene extends BaseScene {
   }
 
   protected onCreate(): void {
+    promptForPwaUpdate(this);
     const state = sessionBridge.current.state;
     const summary = state.lastSummary;
     if (!summary) {

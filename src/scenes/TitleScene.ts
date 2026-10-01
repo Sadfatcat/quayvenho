@@ -8,6 +8,7 @@ import { COLORS, FONT_FAMILY, SPACING, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
 import { GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
+import { promptForPwaUpdate } from './overlays/UpdatePrompt';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { sessionBridge } from './sessionBridge';
 
@@ -21,6 +22,7 @@ export class TitleScene extends BaseScene {
   }
 
   protected onCreate(): void {
+    promptForPwaUpdate(this);
     const loadResult = this.registry.get('loadResult') as LoadSaveResult | undefined;
 
     this.add.text(GAME_WIDTH / 2, 280, STRINGS.gameTitle, TEXT_STYLES.title).setOrigin(0.5);

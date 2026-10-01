@@ -10,6 +10,7 @@ import { SECOND_TAB_LOCK_EVENT, TAKEN_OVER_EVENT } from '@scenes/BaseScene';
 import { sessionBridge } from '@scenes/sessionBridge';
 import { TitleScene } from '@scenes/TitleScene';
 import { devError } from '@platform/logger';
+import { registerPwa } from '@platform/pwa';
 import { bindAudioToSession } from '@scenes/audioBridge';
 import { watchTabLock } from '@save/tabLock';
 import { COLORS } from '@ui/theme';
@@ -54,4 +55,5 @@ async function bootstrap(): Promise<void> {
 }
 
 bindAudioToSession();
+registerPwa();
 void bootstrap();
