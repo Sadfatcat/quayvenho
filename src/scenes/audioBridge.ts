@@ -1,6 +1,7 @@
 import type { DomainEvent, ScoreOutcome } from '@domain/models';
 import { audio, type SfxName } from '@platform/audio';
 import { setHapticsEnabled, vibrate } from '@platform/haptics';
+import { registerVisibilityHandler } from '@platform/visibility';
 import { sessionBridge } from './sessionBridge';
 
 const GOOD_OUTCOMES: ReadonlySet<ScoreOutcome> = new Set(['PERFECT', 'GOOD', 'OK']);
@@ -13,7 +14,7 @@ const syncSettings = (): void => {
   setHapticsEnabled(haptics);
 };
 
-const sfxFor = (event: DomainEvent): SfxName | null => {
+export const sfxFor = (event: DomainEvent): SfxName | null => {
   switch (event.type) {
     case 'DAY_OPENED':
       return 'open';
@@ -48,6 +49,7 @@ export const bindAudioToSession = (): void => {
       else if (BAD_OUTCOMES.has(event.result.outcome)) vibrate('error');
     }
   });
+  registerVisibilityHandler({ onHidden: () => audio.suspend(), onVisible: () => audio.resume() });
   const unlockOnFirstTouch = (): void => {
     audio.unlock();
     syncSettings();

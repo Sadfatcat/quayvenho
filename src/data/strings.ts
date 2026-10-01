@@ -153,6 +153,7 @@ export const STRINGS = {
     select: 'Chọn',
   },
   counter: {
+    eventBadge: { rush: '🔥 Cao điểm lễ hội', weatherBad: 'thời tiết xấu', weatherSevere: 'thời tiết rất xấu, huỷ chuyến' },
     stepLabels: ['Chuyến', 'Ghế', 'Hành lý', 'Vé'],
     next: 'Tiếp',
     print: 'In vé',

@@ -114,3 +114,16 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 
 - Quyết định: sửa 2 P1 (ShopScene xử lý COMMAND_REJECTED; sim.ts đọc cờ SUPPORT_GIFT trước khi playDay) và P2 hard-code ngày TravelViet; hoãn chuyển chuỗi upgrades.ts sang strings.ts, bổ sung test dayCycle và gộp style lặp.
 - Lý do: P1 ảnh hưởng hành vi/số liệu; phần còn lại không đổi hành vi, để Giai đoạn 6 (văn bản, D11) xử lý cùng lúc.
+
+## 2026-10-02 — Chốt D2 (font) và D3 (phong cách hình ảnh)
+
+- Quyết định: font Be Vietnam Pro (tiêu đề) + Nunito Sans (nội dung), tự host; phong cách chibi "đất nung – gỗ óc chó" theo bộ mockup Stitch (`docs/STYLE.md`). Thay cho mặc định cũ Nunito + Baloo 2 và flat pastel.
+- Lý do: chủ dự án cung cấp bộ thiết kế Stitch và yêu cầu áp dụng.
+- Phương án đã loại: giữ bảng xanh trời flat pastel.
+- Ngoại lệ: chưa dùng mockup cho điều hướng 4 tab, hồ sơ khách, "Đổi ghế" (không có trong PLAN).
+
+## 2026-10-02 — Audio tổng hợp bằng Web Audio, avatar vẽ bằng code
+
+- Quyết định: SFX và nhạc lofi tạo bằng oscillator (`platform/audio.ts`); gương mặt khách vẽ bằng Graphics (`ui/CustomerAvatar.ts`).
+- Lý do: không có file âm thanh/tranh dùng được; không thêm dependency; vẫn hoạt động offline.
+- Phương án đã loại: Kenney/asset ngoài (cần chủ dự án chọn); atlas ảnh (cần tranh).

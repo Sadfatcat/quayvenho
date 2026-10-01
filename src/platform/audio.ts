@@ -2,7 +2,7 @@
  * Âm thanh tổng hợp bằng Web Audio (không cần file asset): SFX ngắn + nhạc nền lofi lặp (PLAN §11.3).
  * AudioContext chỉ tạo và resume sau lần chạm đầu tiên (`unlock`) để chạy trên Safari iOS; trước đó mọi lời gọi là no-op.
  */
-export type SfxName = 'click' | 'seat' | 'print' | 'success' | 'error' | 'walkAway' | 'thunder' | 'buy' | 'unlock' | 'open';
+export type SfxName = 'click' | 'seat' | 'print' | 'success' | 'error' | 'walkAway' | 'thunder' | 'buy' | 'unlock' | 'open' | 'tick';
 export type MusicTrack = 'calm' | 'busy';
 
 interface Tone {
@@ -15,6 +15,7 @@ interface Tone {
 }
 
 const SFX_TONES: Record<SfxName, readonly Tone[]> = {
+  tick: [{ freq: 900, start: 0, duration: 0.03, type: 'square', gain: 0.2 }],
   click: [{ freq: 520, start: 0, duration: 0.05, type: 'triangle', gain: 0.5 }],
   seat: [{ freq: 660, start: 0, duration: 0.07, type: 'sine' }],
   print: [
@@ -86,6 +87,14 @@ class AudioEngine {
     }
     if (this.context.state === 'suspended') void this.context.resume();
     if (this.track) this.startScheduler();
+  }
+
+  suspend(): void {
+    void this.context?.suspend();
+  }
+
+  resume(): void {
+    if (this.context?.state === 'suspended') void this.context.resume();
   }
 
   setVolumes(music: number, sfx: number): void {

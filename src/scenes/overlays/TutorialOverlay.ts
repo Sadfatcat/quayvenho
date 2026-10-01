@@ -46,12 +46,11 @@ export const showPendingTutorials = (scene: Phaser.Scene, sceneKey: TutorialScen
   const pending = TUTORIAL_STEPS.filter((step) => step.scene === sceneKey && step.appliesOn({ day, event: today.event }) && !flags[`${TUTORIAL_FLAG_PREFIX}${step.id}`]);
   if (pending.length === 0) return;
 
-  const wasPaused = sessionBridge.isPaused;
-  sessionBridge.setPaused(true);
+  const releasePause = sessionBridge.holdPause();
   const showNext = (index: number): void => {
     const step = pending[index];
     if (!step) {
-      sessionBridge.setPaused(wasPaused);
+      releasePause();
       return;
     }
     new TutorialOverlay(scene, step.id, () => showNext(index + 1));

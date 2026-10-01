@@ -1,3 +1,4 @@
+import { audio } from '@platform/audio';
 import Phaser from 'phaser';
 import { BAGGAGE_MARKS, BAGGAGE_MAX_KG } from '@data/balance';
 import { STRINGS } from '@data/strings';
@@ -47,7 +48,9 @@ export class BaggageSlider extends Phaser.GameObjects.Container {
     this.dragController = new DragController(this.handle, {
       onDragMove: (point) => {
         const local = this.getLocalPoint(point.x, point.y);
-        this.kg = clamp(Math.round((local.x / this.widthValue) * BAGGAGE_MAX_KG), 0, BAGGAGE_MAX_KG);
+        const nextKg = clamp(Math.round((local.x / this.widthValue) * BAGGAGE_MAX_KG), 0, BAGGAGE_MAX_KG);
+        if ((BAGGAGE_MARKS as readonly number[]).includes(nextKg) && nextKg !== this.kg) audio.playSfx('tick');
+        this.kg = nextKg;
         this.handle.setX(this.xFor(this.kg));
         this.valueText.setText(this.labelFor(this.kg));
       },

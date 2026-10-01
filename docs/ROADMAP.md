@@ -185,13 +185,13 @@ Ghi chú review: _(điền ở bước 4.R)_
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 6.1 | Chốt phong cách (D2, D3) | `docs/STYLE.md` | Chủ dự án duyệt |
-| [ ] 6.2 | Asset và atlas | `public/assets/*`, `CREDITS.md` | Không còn hình khối placeholder ở màn chính |
-| [ ] 6.3 | Juice | tween nút, ghế, vé, đồng xu, sao, rung màn | 60 fps trên máy Android |
-| [ ] 6.4 | Audio | `platform/audio.ts`, `platform/haptics.ts` | Âm thanh chạy trên Safari iOS sau lần chạm đầu |
-| [ ] 6.5 | Tutorial | `scenes/overlays/TutorialOverlay.ts` (dùng SpeechBubble cho Béo) | Đủ bảng §10.11 |
-| [ ] 6.6 | Văn bản | thoại Béo, cốt truyện, thoại khách trong `strings.ts` / `customers.ts` | Chủ dự án duyệt (D11) |
-| [ ] 6.R | Review giai đoạn 6 | — | Theo mẫu Review |
+| [x] 6.1 | Chốt phong cách (D2, D3) | `docs/STYLE.md` | Chủ dự án duyệt |
+| [~] 6.2 | Asset và atlas | `public/assets/*`, `CREDITS.md` | Không còn hình khối placeholder ở màn chính |
+| [~] 6.3 | Juice | tween nút, ghế, vé, đồng xu, sao, rung màn | 60 fps trên máy Android |
+| [~] 6.4 | Audio | `platform/audio.ts`, `platform/haptics.ts` | Âm thanh chạy trên Safari iOS sau lần chạm đầu |
+| [x] 6.5 | Tutorial | `scenes/overlays/TutorialOverlay.ts` (dùng SpeechBubble cho Béo) | Đủ bảng §10.11 |
+| [~] 6.6 | Văn bản | thoại Béo, cốt truyện, thoại khách trong `strings.ts` / `customers.ts` | Chủ dự án duyệt (D11) |
+| [~] 6.R | Review giai đoạn 6 | — | Theo mẫu Review |
 
 Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene bỏ qua COMMAND_REJECTED của NEXT_DAY; sim.ts đếm lưới an toàn lệch 1 ngày (sau sửa POOR median 6→5, vẫn > mục tiêu ≤3). Đã sửa P2 hard-code ngày 10 ở SummaryScene. Đã trả nợ P2/P3: chuỗi upgrades chuyển vào strings.ts, gộp confirmPurchase ở Shop, thêm 2 test lưới an toàn (thời tiết đã có test dayCycle từ trước, reviewer báo thiếu là nhầm); còn lặp style inline ở Summary/Card. Playwright 360×640 đã kiểm Onboarding→Kho→Quầy→Tổng kết→Shop (2 tab)→Kho ngày 2 (huy hiệu thời tiết, hộp thoại lưới an toàn)→Cài đặt, 0 lỗi console; đã sửa 2 lỗi bố cục (input tên tràn mép phải, panel Cài đặt đè nút "Về màn hình chính"). Chưa kiểm bằng UI: giới thiệu TravelViet cuối ngày 10, thời tiết SEVERE (chỉ có test domain). Số liệu sim lệch mục tiêu, chờ chủ dự án duyệt.
 
@@ -208,7 +208,7 @@ Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene
 | [ ] 7.5 | Deploy production | — | Link production chạy trên iPhone và Android |
 | [ ] 7.R | Review giai đoạn 7 | — | Theo mẫu Review |
 
-Ghi chú review: _(điền ở bước 6.R)_
+Ghi chú review (6.R): code-reviewer bắt 3 P1 (thiếu SFX tick hành lý; tutorial ghi đè trạng thái pause; nút Quầy cao 80/72 px < vùng chạm 88) — đã sửa cả 3, thêm `sessionBridge.holdPause()`. Sửa P2: chuỗi badge sự kiện vào strings.ts, tạm dừng âm khi tab ẩn, test tutorial. Chưa sửa: Math.random chọn seed ván mới ở TitleScene (có từ Giai đoạn 4), style chữ inline lặp. Dấu `[~]`: 6.2 chưa có atlas ảnh (cần tranh), 6.3 chưa đo 60fps Android, 6.4 chưa nghe thử Safari iOS, 6.6 bản nháp ở docs/STORY_DRAFT.md chờ duyệt D11b.
 
 ---
 

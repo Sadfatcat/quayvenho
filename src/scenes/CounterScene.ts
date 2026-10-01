@@ -30,6 +30,7 @@ import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
 import { SpeechBubble } from '@ui/SpeechBubble';
 import { CustomerAvatar } from '@ui/CustomerAvatar';
+import { MIN_TOUCH_SIZE } from '@ui/layout';
 import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
 import { TicketView } from '@ui/TicketView';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
@@ -145,11 +146,11 @@ export class CounterScene extends BaseScene {
 
     this.buildArea = this.add.container(BUILD_AREA_ORIGIN.x, BUILD_AREA_ORIGIN.y);
 
-    this.retryButton = new Button(this, 140, 1170, { width: 210, height: 80, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
-    this.refuseButton = new Button(this, 360, 1170, { width: 210, height: 80, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
-    this.mainButton = new Button(this, 590, 1170, { width: 220, height: 80, label: STRINGS.counter.next, variant: 'primary', onTap: () => this.onMainAction() });
+    this.retryButton = new Button(this, 140, 1170, { width: 210, height: MIN_TOUCH_SIZE, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
+    this.refuseButton = new Button(this, 360, 1170, { width: 210, height: MIN_TOUCH_SIZE, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
+    this.mainButton = new Button(this, 590, 1170, { width: 220, height: MIN_TOUCH_SIZE, label: STRINGS.counter.next, variant: 'primary', onTap: () => this.onMainAction() });
 
-    this.passportButton = new Button(this, GAME_WIDTH - 60, 250, { width: 72, height: 72, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
+    this.passportButton = new Button(this, GAME_WIDTH - 60, 250, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
     this.passportButton.setVisible(false);
   }
 
@@ -178,8 +179,11 @@ export class CounterScene extends BaseScene {
 
   private eventBadgeText(state: GameState): string {
     const event = state.today.event;
-    if (event.type === 'RUSH') return '🔥 Cao điểm lễ hội';
-    if (event.type === 'WEATHER' && event.outcome && event.outcome !== 'GOOD') return `⛈ ${getRoute(event.routeId).name}: ${event.outcome}`;
+    if (event.type === 'RUSH') return STRINGS.counter.eventBadge.rush;
+    if (event.type === 'WEATHER' && event.outcome && event.outcome !== 'GOOD') {
+      const outcomeLabel = event.outcome === 'SEVERE' ? STRINGS.counter.eventBadge.weatherSevere : STRINGS.counter.eventBadge.weatherBad;
+      return `⛈ ${getRoute(event.routeId).name}: ${outcomeLabel}`;
+    }
     return '';
   }
 

@@ -24,6 +24,7 @@ const CHECKPOINT_COMMANDS: ReadonlySet<Command['type']> = new Set([
 class SessionBridge {
   private session: GameSession | null = null;
   private paused = false;
+  private pauseHolds = 0;
   private takenOver = false;
   private readonly listeners = new Set<DomainEventListener>();
 
@@ -45,7 +46,18 @@ class SessionBridge {
   }
 
   get isPaused(): boolean {
-    return this.paused;
+    return this.paused || this.pauseHolds > 0;
+  }
+
+  /** Tạm dừng độc lập với PauseOverlay/takeover (vd tutorial); trả về hàm nhả. Gọi hàm nhả nhiều lần chỉ có tác dụng một lần. */
+  holdPause(): () => void {
+    this.pauseHolds++;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.pauseHolds--;
+    };
   }
 
   /** PLAN §9.5: called when another tab takes over — this tab must stop writing save. */
@@ -71,7 +83,7 @@ class SessionBridge {
   }
 
   tick(deltaMs: number): DomainEvent[] {
-    if (this.paused || !this.session) return [];
+    if (this.isPaused || !this.session) return [];
     const events = this.session.tick(deltaMs);
     this.notify(events);
     if (!this.takenOver && events.some((event) => event.type === 'DAY_ENDED')) writeSave(this.current.state);

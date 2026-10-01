@@ -4,7 +4,7 @@
 
 **Blocked by:** 15, 16, 17, 18
 
-**Status:** ready-for-agent
+**Status:** resolved (review code + Playwright một phần xong; mục chờ chủ dự án ghi ở ROADMAP 6.R)
 
 - [ ] `code-reviewer` subagent 1 lần
 - [ ] Playwright kiểm 1 lượt toàn bộ trải nghiệm mới (asset thật, juice, audio, tutorial, văn bản thật)
