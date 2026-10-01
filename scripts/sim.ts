@@ -29,17 +29,24 @@ interface DayRecord {
 interface BotProfile {
   name: string;
   reserve: number;
+  /** Upgrade ids bought first, in order; the rest follow cheapest-first. */
+  upgradeOrder: readonly string[];
   serveTimeMs: number;
   demandJitter: number;
   avoidWeather: boolean;
   makeDecide: (rng: Rng) => Decide;
 }
 
+const PERFECT_UPGRADE_ORDER = ['COMFY_CHAIRS', 'FAN', 'BIGGER_COUNTER', 'FAST_PRINTER', 'LOYALTY_BOARD'];
+/** AVERAGE keeps a bigger cash cushion, so it starts buying upgrades later than PERFECT. */
+const AVERAGE_RESERVE = 600;
+
 const PROFILES: BotProfile[] = [
-  { name: 'PERFECT', reserve: 250, serveTimeMs: 15000, demandJitter: 0, avoidWeather: true, makeDecide: () => perfectDecide },
+  { name: 'PERFECT', reserve: 250, upgradeOrder: PERFECT_UPGRADE_ORDER, serveTimeMs: 15000, demandJitter: 0, avoidWeather: true, makeDecide: () => perfectDecide },
   {
     name: 'AVERAGE',
-    reserve: 250,
+    reserve: AVERAGE_RESERVE,
+    upgradeOrder: [],
     serveTimeMs: 22000,
     demandJitter: 0.3,
     avoidWeather: false,
@@ -48,6 +55,7 @@ const PROFILES: BotProfile[] = [
   {
     name: 'POOR',
     reserve: 250,
+    upgradeOrder: [],
     serveTimeMs: 30000,
     demandJitter: 0.6,
     avoidWeather: false,
@@ -74,7 +82,7 @@ const runBot = (profile: BotProfile): DayRecord[][] => {
     for (let day = 1; day <= DAYS; day++) {
       const demandScale = 1 + (demandRng.next() * 2 - 1) * profile.demandJitter;
       const safetyNet = game.state.today.transactions.some((tx) => tx.type === 'SUPPORT_GIFT') ? 1 : 0;
-      playDay(game, decide, profile.reserve, demandScale, profile.avoidWeather, profile.serveTimeMs);
+      playDay(game, decide, profile.reserve, demandScale, profile.avoidWeather, profile.serveTimeMs, profile.upgradeOrder);
       const summary = game.state.lastSummary;
       if (!summary) break;
       byDay[day - 1]?.push({

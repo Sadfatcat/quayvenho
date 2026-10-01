@@ -47,3 +47,17 @@
 | Khách bỏ về vì đông | chỉ báo cáo | 8.1% | 2.1% | 3.3% |
 
 Kết luận: số liệu 200 seed khớp 20 seed, độ lệch không phải do nhiễu. Chờ chủ dự án duyệt hướng chỉnh cân bằng.
+
+## Phương án A (chỉnh bot, không đổi số game) — kết quả 200 seed
+
+Đổi: PERFECT ưu tiên nâng cấp tăng kiên nhẫn/hàng đợi (`upgradeOrder`); AVERAGE giữ quỹ dự phòng 600 thay vì 250.
+
+| Chỉ số | Mục tiêu | PERFECT | AVERAGE | POOR |
+|---|---|---|---|---|
+| Mua nâng cấp đầu tiên | AVERAGE ~ngày 3 | ngày 1 | ngày 4 ✅ | ngày 3 |
+| TravelViet ngày 20 | PERFECT ≥4.5; AVERAGE 3.6-4.4 | 3.7 ❌ (không đổi) | 3.2 ❌ | 2.7 |
+| Lợi nhuận âm | AVERAGE ≤20% | 42.3% | 43.1% ❌ | 48.5% |
+| Lưới an toàn POOR | ≤3 | 0 | 0 | 7 ❌ |
+| Ghế ế AVERAGE | 10-30% | 24.6% | 14.6% ✅ | 6.6% |
+
+Kết luận: A chỉ sửa được chỉ số "mua nâng cấp sớm" (do bot). TravelViet, tỉ lệ ngày lỗ và lưới an toàn không đổi dù bot đã tối ưu → nguyên nhân nằm ở số liệu game, cần phương án B (giá ghế/vé) hoặc C (hệ số TravelViet).

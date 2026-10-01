@@ -168,8 +168,8 @@ export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0): D
   return events;
 };
 
-/** Buys the cheapest route, then the cheapest upgrade, keeping a reserve. */
-export const shop = (game: GameSession, reserve: number): void => {
+/** Buys the cheapest route, then upgrades (listed ids first, then cheapest), keeping a reserve. */
+export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly string[] = []): void => {
   run(game, { type: 'GO_TO_SHOP' });
   for (;;) {
     const { state } = game;
@@ -179,7 +179,11 @@ export const shop = (game: GameSession, reserve: number): void => {
       run(game, { type: 'SHOP_UNLOCK_ROUTE', routeId: route.id });
       continue;
     }
-    const upgrade = UPGRADES.filter((u) => checkUpgrade(u.id, state.upgrades, ctx).ok).sort((a, b) => a.cost - b.cost)[0];
+    const rank = (id: string): number => {
+      const index = upgradeOrder.indexOf(id);
+      return index === -1 ? upgradeOrder.length : index;
+    };
+    const upgrade = UPGRADES.filter((u) => checkUpgrade(u.id, state.upgrades, ctx).ok).sort((a, b) => rank(a.id) - rank(b.id) || a.cost - b.cost)[0];
     if (!upgrade) break;
     run(game, { type: 'SHOP_BUY_UPGRADE', upgradeId: upgrade.id });
   }
@@ -193,12 +197,13 @@ export const playDay = (
   demandScale = 1,
   avoidWeather = true,
   serveTimeMs = 0,
+  upgradeOrder: readonly string[] = [],
 ): DomainEvent[] => {
   if (game.state.day === 1) run(game, { type: 'FLAG_SET', flag: 'tutorialDone_1' });
   buyForDay(game, 0.9, demandScale, avoidWeather);
   run(game, { type: 'OPEN_COUNTER' });
   const events = playShift(game, decide, serveTimeMs);
-  shop(game, reserve);
+  shop(game, reserve, upgradeOrder);
   return events;
 };
 
