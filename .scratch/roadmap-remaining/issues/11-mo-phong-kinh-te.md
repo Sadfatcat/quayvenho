@@ -61,3 +61,23 @@ Kết luận: số liệu 200 seed khớp 20 seed, độ lệch không phải do
 | Ghế ế AVERAGE | 10-30% | 24.6% | 14.6% ✅ | 6.6% |
 
 Kết luận: A chỉ sửa được chỉ số "mua nâng cấp sớm" (do bot). TravelViet, tỉ lệ ngày lỗ và lưới an toàn không đổi dù bot đã tối ưu → nguyên nhân nằm ở số liệu game, cần phương án B (giá ghế/vé) hoặc C (hệ số TravelViet).
+
+## Thử B+C (200 seed) — KHÔNG hiệu quả, đã hoàn tác
+
+Thử: giá vé mọi tuyến ×1,12; `DEMAND_FACTORS` ≤2.9: 0.3→0.5, ≤3.5: 0.45→0.7.
+
+| Chỉ số | Trước | Sau B+C |
+|---|---|---|
+| PERFECT TravelViet ngày 20 | 3.7 | 3.7 |
+| PERFECT ngày lỗ | 42.3% | 39.8% |
+| AVERAGE TravelViet ngày 20 | 3.2 | 2.9 (tệ hơn) |
+| AVERAGE ngày lỗ | 43.1% | 44.1% |
+| POOR lưới an toàn | 7 | 5 |
+
+Còn làm hỏng 7 test (doanh thu, tuyến). Đã `git checkout` hoàn tác, game giữ nguyên số liệu cũ.
+
+**Chẩn đoán (PERFECT, 100 seed × 30 ngày):** kết quả khách = PERFECT 13.4k, GOOD 13.6k, **REFUSED_NO_STOCK 23.6k (3 sao)**, REFUSED_CORRECT 8.6k (4 sao), LEFT 3.7k (1 sao). Số khách "hết ghế" nhiều hơn khách phục vụ được → điểm sao bị kéo xuống ~3.7 bất kể bot làm đúng. Mua nhiều ghế hơn (×1.3, ×1.6) cũng không giảm (24.1k, 25.7k) → nguyên nhân không phải số lượng mua. Quan sát ngày 3-20: tiền chỉ 300-500 xu mà khách 10-30/ngày, bot chia ghế đều theo tuyến/chuyến (không theo khung giờ khách chọn), nên thiếu đúng loại ghế; từ ngày ~21 tiền tăng vọt (952 → 5000) rồi lại ế ghế (exp 21-32).
+
+**Đề xuất tiếp (chờ chủ dự án):**
+1. Sửa bot mua ghế theo đơn có thể xảy ra (chuyến theo `timePref`, hạng) thay vì chia đều — sửa bot, không đổi số game.
+2. Hoặc xem lại luật PLAN §5.5: `REFUSED_NO_STOCK` = 3 sao có hợp lý không (đây là nguồn kéo TravelViet).
