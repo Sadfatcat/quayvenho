@@ -16,13 +16,15 @@ export interface SettingsOverlayOptions {
 }
 
 const PANEL_WIDTH = 600;
-const PANEL_HEIGHT = 480;
+const PANEL_HEIGHT_BASE = 480;
+const EXIT_BUTTON_EXTRA_HEIGHT = 120;
 const SLIDER_WIDTH = 440;
 
 /** PLAN §10.9-style settings overlay: đổi âm lượng/rung, lưu ngay (SETTINGS_UPDATE là mốc lưu). */
 export class SettingsOverlay extends BaseOverlay {
   constructor(scene: Phaser.Scene, options: SettingsOverlayOptions = {}) {
     super(scene, { closeOnBackdropTap: true });
+    const PANEL_HEIGHT = PANEL_HEIGHT_BASE + (options.onExitToTitle ? EXIT_BUTTON_EXTRA_HEIGHT : 0);
     const settings = sessionBridge.current.state.settings;
 
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });

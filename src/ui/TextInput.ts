@@ -41,6 +41,7 @@ export class TextInput {
       padding: '0 16px',
       boxSizing: 'border-box',
     });
+    this.dom.updateSize();
     if (options.onChange) {
       const handler = options.onChange;
       this.node.addEventListener('input', () => handler(this.value));

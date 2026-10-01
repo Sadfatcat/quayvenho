@@ -193,7 +193,7 @@ Ghi chú review: _(điền ở bước 4.R)_
 | [ ] 6.6 | Văn bản | thoại Béo, cốt truyện, thoại khách trong `strings.ts` / `customers.ts` | Chủ dự án duyệt (D11) |
 | [ ] 6.R | Review giai đoạn 6 | — | Theo mẫu Review |
 
-Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene bỏ qua COMMAND_REJECTED của NEXT_DAY; sim.ts đếm lưới an toàn lệch 1 ngày (sau sửa POOR median 6→5, vẫn > mục tiêu ≤3). Đã sửa P2 hard-code ngày 10 ở SummaryScene. Còn tồn (P2/P3, chưa sửa): chuỗi upgrades.ts nằm ngoài strings.ts, thiếu test hành vi thời tiết/lưới an toàn cấp dayCycle, lặp style/confirm ở Shop/Settings. Playwright chỉ kiểm được Title→Onboarding; thấy input tên tràn mép phải ở 360px (x=137, rộng 250). Số liệu sim lệch mục tiêu, chờ chủ dự án duyệt.
+Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene bỏ qua COMMAND_REJECTED của NEXT_DAY; sim.ts đếm lưới an toàn lệch 1 ngày (sau sửa POOR median 6→5, vẫn > mục tiêu ≤3). Đã sửa P2 hard-code ngày 10 ở SummaryScene. Còn tồn (P2/P3, chưa sửa): chuỗi upgrades.ts nằm ngoài strings.ts, thiếu test hành vi thời tiết/lưới an toàn cấp dayCycle, lặp style/confirm ở Shop/Settings. Playwright 360×640 đã kiểm Onboarding→Kho→Quầy→Tổng kết→Shop (2 tab)→Kho ngày 2 (huy hiệu thời tiết, hộp thoại lưới an toàn)→Cài đặt, 0 lỗi console; đã sửa 2 lỗi bố cục (input tên tràn mép phải, panel Cài đặt đè nút "Về màn hình chính"). Chưa kiểm bằng UI: giới thiệu TravelViet cuối ngày 10, thời tiết SEVERE (chỉ có test domain). Số liệu sim lệch mục tiêu, chờ chủ dự án duyệt.
 
 ---
 
