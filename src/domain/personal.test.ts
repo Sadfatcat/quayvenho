@@ -14,7 +14,7 @@ import {
   specialCustomerForArrival,
 } from './personal';
 import { createRng } from './rng';
-import { scoreCustomer } from './scoring';
+import { scoreCustomer, type CustomerAction } from './scoring';
 
 const special = (patch: Partial<SpecialCustomer> = {}): SpecialCustomer => ({
   id: 'VIP_TEST',
@@ -47,6 +47,12 @@ describe('specialCustomerForArrival', () => {
     const late = config({ specialCustomers: [special({ atCustomerIndex: 50 })] });
     expect(specialCustomerForArrival(late, 3, 9, 10)?.id).toBe('VIP_TEST');
     expect(specialCustomerForArrival(late, 3, 8, 10)).toBeUndefined();
+  });
+
+  it('spreads several specials clamped to the last slot backwards so each one still appears', () => {
+    const crowded = config({ specialCustomers: [special({ id: 'A', atCustomerIndex: 50 }), special({ id: 'B', atCustomerIndex: 60 })] });
+    const seen = [7, 8, 9].map((index) => specialCustomerForArrival(crowded, 3, index, 10)?.id);
+    expect(seen).toEqual([undefined, 'A', 'B']);
   });
 
   it('ignores everything when disabled', () => {
@@ -115,6 +121,15 @@ describe('scoreCustomer for special customers', () => {
     expect(result.stars).toBeGreaterThanOrEqual(3);
   });
 
+  it.each<[string, CustomerAction]>([
+    ['FAILED (wrong route)', { type: 'DELIVER', ticket: { flight: makeFlight({ routeId: 'HAN-SGN' }), cabin: 'ECONOMY', seat: '1A', baggageKg: 0, extras: [] } }],
+    ['REFUSED_WRONG', { type: 'REFUSE', canServe: true }],
+  ])('never penalises or gives a tip on %s, and keeps 3 stars', (_label, action) => {
+    const result = scoreCustomer({ ...baseInput, order: specialOrder(), action });
+    expect(result).toMatchObject({ penalty: 0, tip: 0, specialId: 'VIP_TEST' });
+    expect(result.stars).toBeGreaterThanOrEqual(3);
+  });
+
   it('applies the special tip multiplier even for an ECONOMY PERFECT ticket', () => {
     const order = specialOrder();
     const flight = makeFlight({ routeId: order.routeId });
@@ -167,6 +182,18 @@ describe('session with personal config', () => {
     expect(customer?.order.special?.id).toBe('VIP_TEST');
     expect(game.state.today.seats.some((seat) => seat.unitCost === 0)).toBe(true);
     expect(game.state.today.transactions.every((tx) => tx.type !== 'SEAT_PURCHASE')).toBe(true);
+  });
+
+  it('is never turned away when the queue is full', () => {
+    const cfg = config({ specialCustomers: [special({ day: 1, atCustomerIndex: 4 })] });
+    const state = createNewGame(7, cfg);
+    const game = new GameSession(state, cfg);
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const events: DomainEvent[] = [];
+    for (let i = 0; i < 20_000 && game.state.today.nextArrivalIndex < 5; i++) events.push(...game.tick(100));
+    const seen = [...game.state.today.queue.map((customer) => customer.order.special?.id), ...events.filter((e) => e.type === 'CUSTOMER_LEFT').map(() => 'left')];
+    expect(seen).toContain('VIP_TEST');
   });
 
   it('plays exactly like the default game when disabled', () => {

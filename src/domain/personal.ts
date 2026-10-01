@@ -9,9 +9,24 @@ import type { Rng } from './rng';
 const SPECIAL_PASSPORT_VALID_DAYS = 30;
 
 /**
- * Khách đặc biệt của ngày `day` ở lượt đến thứ `arrivalIndex` (PLAN §16). Nếu `atCustomerIndex` vượt số khách
- * trong ngày thì khách đó thành khách cuối cùng.
+ * Slot (chỉ số lượt đến) thật của từng khách đặc biệt trong ngày. `atCustomerIndex` vượt số khách thì thành khách cuối
+ * cùng; nhiều khách trùng slot thì khách đến sau lùi về slot trống gần nhất phía trước (PLAN §16).
  */
+const slotsOfDay = (config: PersonalConfig, day: number, arrivalCount: number): Map<number, SpecialCustomer> => {
+  const lastIndex = arrivalCount - 1;
+  const todays = config.specialCustomers
+    .filter((special) => special.day === day)
+    .sort((a, b) => b.atCustomerIndex - a.atCustomerIndex);
+  const slots = new Map<number, SpecialCustomer>();
+  for (const special of todays) {
+    let slot = Math.min(special.atCustomerIndex, lastIndex);
+    while (slots.has(slot) && slot > 0) slot--;
+    if (!slots.has(slot)) slots.set(slot, special);
+  }
+  return slots;
+};
+
+/** Khách đặc biệt của ngày `day` ở lượt đến thứ `arrivalIndex` trong tổng `arrivalCount` lượt (PLAN §16). */
 export const specialCustomerForArrival = (
   config: PersonalConfig,
   day: number,
@@ -19,8 +34,7 @@ export const specialCustomerForArrival = (
   arrivalCount: number,
 ): SpecialCustomer | undefined => {
   if (!config.enabled || arrivalCount === 0) return undefined;
-  const lastIndex = arrivalCount - 1;
-  return config.specialCustomers.find((special) => special.day === day && Math.min(special.atCustomerIndex, lastIndex) === arrivalIndex);
+  return slotsOfDay(config, day, arrivalCount).get(arrivalIndex);
 };
 
 /** Ngày có khách đặc biệt hoặc scripted moment thì không có sự kiện ngẫu nhiên (PLAN §16). */

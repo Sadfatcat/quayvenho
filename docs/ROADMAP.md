@@ -216,12 +216,14 @@ Ghi chú review (6.R): code-reviewer bắt 3 P1 (thiếu SFX tick hành lý; tut
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 8.1 | Cấu trúc dữ liệu | `data/personal.ts` (placeholder, không bịa nội dung) | `enabled = false` chạy như mặc định |
-| [ ] 8.2 | Khách đặc biệt và scripted moment | `domain/orderGen.ts`, `dayCycle.ts` | Xuất hiện đúng ngày, luôn phục vụ được |
+| [x] 8.1 | Cấu trúc dữ liệu | `data/personal.ts` (placeholder, không bịa nội dung) | `enabled = false` chạy như mặc định |
+| [x] 8.2 | Khách đặc biệt và scripted moment | `domain/orderGen.ts`, `dayCycle.ts` | Xuất hiện đúng ngày, luôn phục vụ được |
 | [ ] 8.3 | Chạy với dữ liệu thật | chủ dự án điền | Chơi lại các ngày đặc biệt không lỗi |
-| [ ] 8.R | Review giai đoạn 8 | — | Theo mẫu Review |
+| [~] 8.R | Review giai đoạn 8 | — | Theo mẫu Review |
 
 Ghi chú review (7.R): code-reviewer không có P1. Đã sửa P2: import tách khoảng trắng/xuống dòng khi dán, báo riêng FUTURE_VERSION, thêm test (prefix, số phần, bản mới hơn, mã bị ngắt dòng), chuyển luồng nhập/xuất ra `platform/saveTransfer.ts`, bỏ `immutable` cho `/assets/*` (font không có hash). Chưa sửa: overlay khoá tab biến mất khi đổi scene sau takeover (có từ Giai đoạn 4), nút Back chỉ xử lý ở Quầy (đúng PLAN §11.1), nút xuất/nhập chỉ hiện ở Kho, lặp cấu trúc overlay. Chờ chủ dự án: 7.2 xoay ngang/bàn phím ảo, 7.4 kiểm máy thật, 7.5 deploy (cần tài khoản Cloudflare).
+
+Ghi chú review (8.R): code-reviewer báo 1 P1 thật (nhiều khách đặc biệt cùng bị clamp về slot cuối thì chỉ hiện một) — đã sửa bằng `slotsOfDay` (lùi về slot trống gần nhất) + test; thêm test chấm điểm FAILED/REFUSED_WRONG, khách đặc biệt không bị `turned away` khi hàng đầy. Chưa sửa (ghi nhận): cấu hình `order` ghi đè tuyến/hạng không khớp chuyến thì khách không phục vụ được — chủ dự án nên điền đơn hợp lệ ở 8.3, cân nhắc thêm kiểm tra cấu hình lúc load; scene đọc `PERSONAL` toàn cục thay vì `session.personal` (chỉ lệch khi test). 8.3 chờ chủ dự án điền nội dung thật (`src/data/personal.ts`).
 
 ---
 

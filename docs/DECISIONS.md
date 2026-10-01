@@ -133,3 +133,9 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Quyết định: giữ mặc định PLAN §15 D1 — chỉ `localStorage` + xuất/nhập mã (`QVN1.<base64>.<checksum>`, `save/exportImport.ts`). Nút "Xuất mã save"/"Nhập mã save" nằm trong Cài đặt ở Kho (không hiện giữa ca).
 - Lý do: CLAUDE.md "Không có backend"; chủ dự án chưa đề nghị cloud save.
 - Phương án đã loại: cloud save (cần backend). Nhập mã dùng hộp thoại gốc của trình duyệt (`prompt`/`confirm`) cho gọn; có thể đổi sang ô nhập trong canvas nếu thấy xấu trên máy thật.
+
+## 2026-10-02 — Cá nhân hoá: nhiều khách đặc biệt trùng slot
+
+- Quyết định: khi nhiều khách đặc biệt cùng ngày cùng bị `atCustomerIndex` đẩy về slot cuối (hoặc trùng slot), khách đến sau lùi về slot trống gần nhất phía trước (`domain/personal.ts`, `slotsOfDay`).
+- Lý do: PLAN §16 chỉ nói "thành khách cuối cùng", không nói khi có nhiều khách; cách này giữ mọi khách đặc biệt xuất hiện.
+- Phương án đã loại: bỏ qua khách thứ hai.
