@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { audio, type MusicTrack } from '@platform/audio';
 import { BaseOverlay } from '@ui/BaseOverlay';
+import { RotateOverlay } from './overlays/RotateOverlay';
+import { sessionBridge } from './sessionBridge';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
 import { TEXT_STYLES } from '@ui/textStyles';
@@ -11,6 +13,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 /** Payload: the requestTakeover callback to call if the player picks "Chơi ở đây". */
 export const SECOND_TAB_LOCK_EVENT = 'secondTabLock';
 export const TAKEN_OVER_EVENT = 'takenOver';
+export const BACK_PRESSED_EVENT = 'backPressed';
 
 const PANEL_WIDTH = 560;
 
@@ -48,7 +51,34 @@ export abstract class BaseScene extends Phaser.Scene {
     });
 
     audio.playMusic(this.musicTrack);
+    this.watchOrientation();
     this.onCreate();
+  }
+
+  /** PLAN §11.2: trên điện thoại (pointer thô), xoay ngang → RotateOverlay + tạm dừng đồng hồ cho tới khi xoay dọc lại. */
+  private watchOrientation(): void {
+    const isPhone = window.matchMedia('(pointer: coarse)').matches;
+    if (!isPhone) return;
+    let overlay: RotateOverlay | null = null;
+    let releasePause: (() => void) | null = null;
+    const apply = (orientation: Phaser.Scale.Orientation): void => {
+      const landscape = orientation === Phaser.Scale.Orientation.LANDSCAPE;
+      if (landscape && !overlay) {
+        overlay = new RotateOverlay(this);
+        releasePause = sessionBridge.holdPause();
+      } else if (!landscape && overlay) {
+        overlay.close();
+        overlay = null;
+        releasePause?.();
+        releasePause = null;
+      }
+    };
+    apply(this.scale.orientation);
+    this.scale.on(Phaser.Scale.Events.ORIENTATION_CHANGE, apply);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off(Phaser.Scale.Events.ORIENTATION_CHANGE, apply);
+      releasePause?.();
+    });
   }
 
   /** PLAN §9.5 blocking screens: "Game đang mở ở tab khác" (có nút Chơi ở đây) / "Game đã mở ở tab khác" (không nút). */

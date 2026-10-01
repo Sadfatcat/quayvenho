@@ -6,10 +6,11 @@ import { PreloadScene } from '@scenes/PreloadScene';
 import { PrepScene } from '@scenes/PrepScene';
 import { ShopScene } from '@scenes/ShopScene';
 import { SummaryScene } from '@scenes/SummaryScene';
-import { SECOND_TAB_LOCK_EVENT, TAKEN_OVER_EVENT } from '@scenes/BaseScene';
+import { BACK_PRESSED_EVENT, SECOND_TAB_LOCK_EVENT, TAKEN_OVER_EVENT } from '@scenes/BaseScene';
 import { sessionBridge } from '@scenes/sessionBridge';
 import { TitleScene } from '@scenes/TitleScene';
 import { devError } from '@platform/logger';
+import { registerBackButton } from '@platform/backButton';
 import { registerPwa } from '@platform/pwa';
 import { bindAudioToSession } from '@scenes/audioBridge';
 import { watchTabLock } from '@save/tabLock';
@@ -44,6 +45,8 @@ async function bootstrap(): Promise<void> {
     dom: { createContainer: true },
     scene: scenes,
   });
+
+  registerBackButton(() => game.events.emit(BACK_PRESSED_EVENT));
 
   const tabLock = watchTabLock({
     onSecondTabDetected: () => game.events.emit(SECOND_TAB_LOCK_EVENT, () => tabLock.requestTakeover()),

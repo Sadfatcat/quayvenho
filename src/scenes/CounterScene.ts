@@ -36,7 +36,7 @@ import { TicketView } from '@ui/TicketView';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
 import { TopBar } from '@ui/TopBar';
-import { BaseScene } from './BaseScene';
+import { BACK_PRESSED_EVENT, BaseScene } from './BaseScene';
 import { PassportCard } from './overlays/PassportCard';
 import { PauseOverlay } from './overlays/PauseOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
@@ -107,9 +107,12 @@ export class CounterScene extends BaseScene {
       onHidden: () => sessionBridge.setPaused(true),
       onVisible: () => this.openPause(),
     });
+    const onBack = (): void => this.openPause();
+    this.game.events.on(BACK_PRESSED_EVENT, onBack);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.unsubscribeEvents?.();
       this.unsubscribeVisibility?.();
+      this.game.events.off(BACK_PRESSED_EVENT, onBack);
     });
     this.renderAll();
     showPendingTutorials(this, 'Counter');

@@ -92,6 +92,10 @@ export const STRINGS = {
     takenOverTitle: 'Game đã mở ở tab khác',
     takenOverMessage: 'Bạn đã chuyển sang chơi ở một tab khác. Tab này sẽ không lưu tiến trình nữa.',
   },
+  rotate: {
+    title: 'Xoay dọc nhé',
+    message: 'Game chơi ở chế độ màn dọc. Xoay điện thoại lại để tiếp tục.',
+  },
   pwa: {
     updateTitle: 'Có bản mới',
     updateMessage: 'Có bản mới của game. Tải lại bây giờ?',
