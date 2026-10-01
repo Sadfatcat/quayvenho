@@ -3,6 +3,7 @@ import { GameSession } from '@domain/game';
 import type { DayPhase, GameState } from '@domain/models';
 import { clearSave, type LoadSaveResult } from '@save/storage';
 import { Button } from '@ui/Button';
+import { createGameSeed } from '@platform/seed';
 import { formatMoney } from '@ui/format';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, SPACING, toCssColor } from '@ui/theme';
@@ -84,7 +85,7 @@ export class TitleScene extends BaseScene {
 
   private startNewGame(): void {
     clearSave();
-    sessionBridge.start(GameSession.newGame(Math.floor(Math.random() * 0x7fffffff)));
+    sessionBridge.start(GameSession.newGame(createGameSeed()));
     this.scene.start('Onboarding');
   }
 
