@@ -23,6 +23,7 @@ import { Button } from '@ui/Button';
 import { DragController } from '@ui/DragController';
 import { ExtrasToggles } from '@ui/ExtrasToggles';
 import { FlightList } from '@ui/FlightList';
+import { audio } from '@platform/audio';
 import { burstCoins } from '@ui/CoinBurst';
 import { showFloatingText } from '@ui/FloatingText';
 import { PatienceBar } from '@ui/PatienceBar';
@@ -93,6 +94,7 @@ export class CounterScene extends BaseScene {
 
   constructor() {
     super('Counter');
+    this.musicTrack = 'busy';
   }
 
   protected onCreate(): void {
@@ -289,7 +291,10 @@ export class CounterScene extends BaseScene {
       flight,
       seats: state.today.seats,
       selectedSeat: draft.seat,
-      onSelect: (seat) => this.dispatch({ type: 'BUILD_SELECT_SEAT', seat }),
+      onSelect: (seat) => {
+        audio.playSfx('seat');
+        this.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
+      },
     });
     this.buildArea.add(seatMap);
   }

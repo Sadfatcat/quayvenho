@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
+import { audio, type MusicTrack } from '@platform/audio';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
@@ -16,6 +17,8 @@ const PANEL_WIDTH = 560;
 /** Every scene extends this: paints the sky background, watches for tab-lock events, then calls onCreate(). */
 export abstract class BaseScene extends Phaser.Scene {
   private tabLockOverlay: BaseOverlay | null = null;
+  /** Nhạc nền của scene (PLAN §11.3): Kho/Shop 'calm', Quầy 'busy'; null = giữ nhạc hiện tại. */
+  protected musicTrack: MusicTrack | null = null;
 
   constructor(key: string) {
     super(key);
@@ -44,6 +47,7 @@ export abstract class BaseScene extends Phaser.Scene {
       this.game.events.off(TAKEN_OVER_EVENT, onTakenOver);
     });
 
+    audio.playMusic(this.musicTrack);
     this.onCreate();
   }
 

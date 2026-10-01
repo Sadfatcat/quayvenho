@@ -36,6 +36,7 @@ export class ShopScene extends BaseScene {
 
   constructor() {
     super('Shop');
+    this.musicTrack = 'calm';
   }
 
   protected onCreate(): void {

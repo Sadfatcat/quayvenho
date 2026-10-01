@@ -39,6 +39,7 @@ export class PrepScene extends BaseScene {
 
   constructor() {
     super('Prep');
+    this.musicTrack = 'calm';
   }
 
   protected onCreate(): void {

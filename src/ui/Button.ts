@@ -1,3 +1,4 @@
+import { audio } from '@platform/audio';
 import Phaser from 'phaser';
 import { DRAG_TAP_THRESHOLD_PX, MIN_TOUCH_SIZE } from './layout';
 import { COLORS, EXTRUSION, HEADING_FONT_FAMILY, toCssColor } from './theme';
@@ -119,7 +120,10 @@ export class Button extends Phaser.GameObjects.Container {
     this.pressed = false;
     this.redraw();
     const moved = Math.hypot(pointer.x - this.downX, pointer.y - this.downY);
-    if (moved <= DRAG_TAP_THRESHOLD_PX && !this.disabledFlag && !this.lockedFlag) this.onTap();
+    if (moved <= DRAG_TAP_THRESHOLD_PX && !this.disabledFlag && !this.lockedFlag) {
+      audio.playSfx('click');
+      this.onTap();
+    }
   }
 
   private handlePointerCancel(): void {
