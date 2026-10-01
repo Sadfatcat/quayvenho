@@ -34,3 +34,16 @@
 **Việc còn lại thuộc quyết định chủ dự án, không tự làm**: xem xét 3 nhận xét ở trên, quyết định có đổi số liệu cân bằng game hay không trước khi coi bước 5.7 là xong.
 
 **Sửa ở 5.R (Review Giai đoạn 5)**: code-reviewer bắt 1 lỗi P1 thật — công thức "tỉ lệ ghế ế" thiếu `weatherLostSeats` ở mẫu số (ghế mất do thời tiết cũng là ghế đã mua). Đã sửa, số liệu AVERAGE đổi rất nhẹ (10% → 9.9%, không đổi kết luận).
+
+## Chạy lại 200 seed × 30 ngày (đúng PLAN §13.3, ~1 phút 40 giây)
+
+| Chỉ số | Mục tiêu | PERFECT | AVERAGE | POOR |
+|---|---|---|---|---|
+| Mua nâng cấp đầu tiên | PERFECT ≤ ngày 2; AVERAGE ~ngày 3 | ngày 1 ✅ | ngày 1 ❌ | ngày 3 |
+| TravelViet ngày 20 | PERFECT ≥4.5; AVERAGE 3.6-4.4 | 3.7 ❌ | 3.2 ❌ | 2.7 |
+| Lưới an toàn / 30 ngày | POOR ≤ 3 | 0 | 0 | 7 ❌ |
+| Lợi nhuận âm | AVERAGE ≤ 20% ngày | 40.7% | 45.4% ❌ | 48.5% |
+| Ghế ế | AVERAGE 10-30% | 24.9% | 10.0% ✅ (sát biên) | 6.6% |
+| Khách bỏ về vì đông | chỉ báo cáo | 8.1% | 2.1% | 3.3% |
+
+Kết luận: số liệu 200 seed khớp 20 seed, độ lệch không phải do nhiễu. Chờ chủ dự án duyệt hướng chỉnh cân bằng.

@@ -9,7 +9,7 @@ import { GameSession } from '@domain/game';
 import { makeErrorProneDecide, perfectDecide, playDay, type Decide } from '@domain/__integration__/bots';
 import { createRng, type Rng } from '@domain/rng';
 
-const SEEDS_PER_BOT = 20;
+const SEEDS_PER_BOT = 200;
 const DAYS = 30;
 
 interface DayRecord {
