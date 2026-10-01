@@ -4,7 +4,7 @@
 
 **Blocked by:** 25
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] `data/personal.ts` mới, đúng shape `PersonalConfig` trong PLAN §16
 - [ ] `enabled = false` mặc định — game chạy y hệt như không có tính năng này khi tắt
