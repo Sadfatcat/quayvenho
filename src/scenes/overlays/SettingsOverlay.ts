@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
-import { exportSaveCode, importSaveCode } from '@save/exportImport';
-import { writeSave } from '@save/storage';
+import { importSaveCodeFromPlayer, showSaveCodeToPlayer } from '@platform/saveTransfer';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
@@ -11,24 +10,6 @@ import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { Toggle } from '@ui/Toggle';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { sessionBridge } from '../sessionBridge';
-
-/** Hộp thoại gốc của trình duyệt: đơn giản, chạy được trên Safari iOS và Android, không cần dựng thêm ô nhập trong canvas. */
-const exportSaveCodeToPlayer = (): void => {
-  window.prompt(STRINGS.settings.exportPrompt, exportSaveCode(sessionBridge.current.state));
-};
-
-const importSaveCodeFromPlayer = (): void => {
-  const code = window.prompt(STRINGS.settings.importPrompt);
-  if (code === null || code.trim() === '') return;
-  const result = importSaveCode(code);
-  if (!result.ok) {
-    window.alert(STRINGS.settings.importFailed);
-    return;
-  }
-  if (!window.confirm(STRINGS.settings.importConfirm)) return;
-  writeSave(result.value);
-  window.location.reload();
-};
 
 export interface SettingsOverlayOptions {
   /** Only PrepScene needs this — CounterScene already has "Về màn hình chính" in PauseOverlay. */
@@ -93,7 +74,7 @@ export class SettingsOverlay extends BaseOverlay {
         height: SAVE_CODE_BUTTON_HEIGHT,
         label: STRINGS.settings.exportCode,
         variant: 'ghost',
-        onTap: exportSaveCodeToPlayer,
+        onTap: () => showSaveCodeToPlayer(sessionBridge.current.state),
       });
       const importButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60 - SAVE_CODE_EXTRA_HEIGHT / 2, {
         width: PANEL_WIDTH - 80,

@@ -6,7 +6,7 @@ const CODE_SEPARATOR = '.';
 const FNV_OFFSET = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 
-export type ImportSaveError = 'BAD_FORMAT' | 'BAD_CHECKSUM' | 'INVALID_SAVE';
+export type ImportSaveError = 'BAD_FORMAT' | 'BAD_CHECKSUM' | 'INVALID_SAVE' | 'FUTURE_VERSION';
 export type ImportSaveResult = { ok: true; value: GameState } | { ok: false; reason: ImportSaveError };
 
 /** Checksum FNV-1a 32-bit (hex 8 ký tự) — chỉ để phát hiện chép sai/cắt cụt mã, không phải bảo mật. */
@@ -41,12 +41,13 @@ export const exportSaveCode = (state: GameState): string => {
 
 /** Không ghi gì vào localStorage: người gọi chỉ ghi đè save hiện tại khi `ok`. */
 export const importSaveCode = (code: string): ImportSaveResult => {
-  const parts = code.trim().split(CODE_SEPARATOR);
+  const parts = code.replace(/\s+/g, '').split(CODE_SEPARATOR);
   const [prefix, payload, checksum] = parts;
   if (parts.length !== 3 || prefix !== CODE_PREFIX || !payload || !checksum) return { ok: false, reason: 'BAD_FORMAT' };
   if (checksumOf(payload) !== checksum) return { ok: false, reason: 'BAD_CHECKSUM' };
   const json = fromBase64(payload);
   if (json === null) return { ok: false, reason: 'BAD_FORMAT' };
   const parsed = parseSaveJson(json);
-  return parsed.ok ? { ok: true, value: parsed.value } : { ok: false, reason: 'INVALID_SAVE' };
+  if (parsed.ok) return { ok: true, value: parsed.value };
+  return { ok: false, reason: parsed.reason === 'FUTURE_VERSION' ? 'FUTURE_VERSION' : 'INVALID_SAVE' };
 };

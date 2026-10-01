@@ -201,12 +201,12 @@ Ghi chú review (5.R): code-reviewer bắt 2 P1 thật, đã sửa — ShopScene
 
 | # | Bước | File chính | Xong khi |
 |---|---|---|---|
-| [ ] 7.1 | PWA | `vite.config.ts` (vite-plugin-pwa), `platform/pwa.ts` | Installable, chơi offline |
-| [ ] 7.2 | Thiết bị | `scenes/overlays/RotateOverlay.ts`, nút Back Android, bàn phím ảo | Mục [TAY] tương ứng trong §14 |
-| [ ] 7.3 | Xuất/nhập save, persist | `save/exportImport.ts` | Test round-trip, checksum sai bị từ chối |
-| [ ] 7.4 | Test tay trên máy thật | `tests/e2e-manual.md` | Toàn bộ §14 tick hoặc có lý do |
+| [x] 7.1 | PWA | `vite.config.ts` (vite-plugin-pwa), `platform/pwa.ts` | Installable, chơi offline |
+| [~] 7.2 | Thiết bị | `scenes/overlays/RotateOverlay.ts`, nút Back Android, bàn phím ảo | Mục [TAY] tương ứng trong §14 |
+| [x] 7.3 | Xuất/nhập save, persist | `save/exportImport.ts` | Test round-trip, checksum sai bị từ chối |
+| [~] 7.4 | Test tay trên máy thật | `tests/e2e-manual.md` | Toàn bộ §14 tick hoặc có lý do |
 | [ ] 7.5 | Deploy production | — | Link production chạy trên iPhone và Android |
-| [ ] 7.R | Review giai đoạn 7 | — | Theo mẫu Review |
+| [~] 7.R | Review giai đoạn 7 | — | Theo mẫu Review |
 
 Ghi chú review (6.R): code-reviewer bắt 3 P1 (thiếu SFX tick hành lý; tutorial ghi đè trạng thái pause; nút Quầy cao 80/72 px < vùng chạm 88) — đã sửa cả 3, thêm `sessionBridge.holdPause()`. Sửa P2: chuỗi badge sự kiện vào strings.ts, tạm dừng âm khi tab ẩn, test tutorial. Chưa sửa: Math.random chọn seed ván mới ở TitleScene (có từ Giai đoạn 4), style chữ inline lặp. Dấu `[~]`: 6.2 chưa có atlas ảnh (cần tranh), 6.3 chưa đo 60fps Android, 6.4 chưa nghe thử Safari iOS, 6.6 bản nháp ở docs/STORY_DRAFT.md chờ duyệt D11b.
 
@@ -221,7 +221,7 @@ Ghi chú review (6.R): code-reviewer bắt 3 P1 (thiếu SFX tick hành lý; tut
 | [ ] 8.3 | Chạy với dữ liệu thật | chủ dự án điền | Chơi lại các ngày đặc biệt không lỗi |
 | [ ] 8.R | Review giai đoạn 8 | — | Theo mẫu Review |
 
-Ghi chú review: _(điền ở bước 7.R)_
+Ghi chú review (7.R): code-reviewer không có P1. Đã sửa P2: import tách khoảng trắng/xuống dòng khi dán, báo riêng FUTURE_VERSION, thêm test (prefix, số phần, bản mới hơn, mã bị ngắt dòng), chuyển luồng nhập/xuất ra `platform/saveTransfer.ts`, bỏ `immutable` cho `/assets/*` (font không có hash). Chưa sửa: overlay khoá tab biến mất khi đổi scene sau takeover (có từ Giai đoạn 4), nút Back chỉ xử lý ở Quầy (đúng PLAN §11.1), nút xuất/nhập chỉ hiện ở Kho, lặp cấu trúc overlay. Chờ chủ dự án: 7.2 xoay ngang/bàn phím ảo, 7.4 kiểm máy thật, 7.5 deploy (cần tài khoản Cloudflare).
 
 ---
 

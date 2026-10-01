@@ -36,6 +36,30 @@ describe('exportSaveCode / importSaveCode', () => {
     expect(importSaveCode(code)).toEqual({ ok: false, reason: 'INVALID_SAVE' });
   });
 
+  it('rejects a wrong prefix and a wrong number of parts', () => {
+    const code = exportSaveCode(buildState());
+    expect(importSaveCode(code.replace('QVN1', 'XXXX'))).toEqual({ ok: false, reason: 'BAD_FORMAT' });
+    expect(importSaveCode(`${code}.extra`)).toEqual({ ok: false, reason: 'BAD_FORMAT' });
+  });
+
+  it('rejects a save written by a newer game version with FUTURE_VERSION', () => {
+    const newer = { ...createNewGame(42), version: 999 };
+    const payload = btoa(JSON.stringify(newer));
+    let hash = 0x811c9dc5;
+    for (const char of payload) hash = Math.imul(hash ^ char.charCodeAt(0), 0x01000193) >>> 0;
+    const code = `QVN1.${payload}.${hash.toString(16).padStart(8, '0')}`;
+    expect(importSaveCode(code)).toEqual({ ok: false, reason: 'FUTURE_VERSION' });
+  });
+
+  it('accepts a code that was split across lines when pasted', () => {
+    const state = buildState();
+    const code = exportSaveCode(state);
+    const wrapped = `${code.slice(0, 40)}
+ ${code.slice(40, 90)}
+${code.slice(90)}`;
+    expect(importSaveCode(wrapped)).toEqual({ ok: true, value: state });
+  });
+
   it('ignores surrounding whitespace when importing', () => {
     const state = buildState();
     expect(importSaveCode(`  ${exportSaveCode(state)}\n`)).toEqual({ ok: true, value: state });

@@ -39,6 +39,7 @@ export const STRINGS = {
     exportPrompt: 'Sao chép mã này để chuyển sang máy khác:',
     importPrompt: 'Dán mã save vào đây:',
     importConfirm: 'Nhập mã sẽ ghi đè tiến trình hiện tại trên máy này. Tiếp tục?',
+    importFutureVersion: 'Mã này tạo bởi bản game mới hơn. Hãy tải lại game để cập nhật rồi nhập lại.',
     importFailed: 'Mã không hợp lệ hoặc bị chép thiếu. Tiến trình hiện tại không bị đổi.',
   },
   tutorial: {
