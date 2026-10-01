@@ -1,6 +1,6 @@
 import { ROUTES } from '@data/routes';
 import { UPGRADES } from '@data/upgrades';
-import { counterCustomer } from '../dayCycle';
+import { counterCustomer, patienceRatioOf } from '../dayCycle';
 import { getDayConfig, isMechanicOpen } from '../dayConfig';
 import { customersForDay, travelVietScore } from '../demand';
 import { matchesTimePref } from '../clock';
@@ -79,7 +79,7 @@ const run = (game: GameSession, command: Command): DomainEvent[] => {
 };
 
 /** Buys about the expected demand, spread over routes (by weight) and flights, within budget. */
-export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1, avoidWeather = true): void => {
+export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1, avoidWeather = true, stockMargin = 1): void => {
   const { state } = game;
   const { today } = state;
   const avoid = avoidWeather && today.event.type === 'WEATHER' ? today.event.routeId : null;
@@ -87,20 +87,31 @@ export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1,
   if (!routes.length) return;
   const profile = dayDemandProfile(state.unlockedRoutes, today.priceAdjustPct, today.event);
   const expected = customersForDay({ seed: state.seed, day: state.day, rating: travelVietScore(state.starHistory), rush: today.event.type === 'RUSH' }) * demandScale * profile.averagePriceFactor;
+  const badPassportShare = isMechanicOpen('badPassport', state.day) ? getDayConfig(state.day).pBadPassport : 0;
   const pBiz = isMechanicOpen('business', state.day) ? getDayConfig(state.day).pBusiness : 0;
   const weightOf = (route: (typeof routes)[number]): number => route.weight * (profile.routeWeightMultiplier[route.id] ?? 1);
   const totalWeight = routes.reduce((total, route) => total + weightOf(route), 0);
 
-  const units: { flightId: string; cabin: CabinClass }[] = [];
-  for (const route of routes) {
-    const demand = (expected * weightOf(route)) / totalWeight;
+  // Mỗi tuyến một danh sách "đơn vị ghế" cần mua; ghép xen kẽ giữa các tuyến để khi hết ngân sách
+  // không tuyến nào bị bỏ đói (trước đây mua lần lượt theo tuyến nên các tuyến cuối không có ghế).
+  const perRoute: { flightId: string; cabin: CabinClass }[][] = routes.map((route) => {
+    const demand = (expected * weightOf(route) * stockMargin * (1 - badPassportShare)) / totalWeight;
     const flights = today.flights.filter((flight) => flight.routeId === route.id);
-    const wanted: [CabinClass, number][] = [['ECONOMY', Math.ceil(demand * (1 - pBiz))], ['BUSINESS', Math.round(demand * pBiz)]];
+    const wanted: [CabinClass, number][] = [['ECONOMY', Math.round(demand * (1 - pBiz))], ['BUSINESS', Math.round(demand * pBiz)]];
+    const routeUnits: { flightId: string; cabin: CabinClass }[] = [];
     for (const [cabin, count] of wanted) {
       for (let i = 0; i < count; i++) {
         const flight = flights[i % flights.length];
-        if (flight) units.push({ flightId: flight.id, cabin });
+        if (flight) routeUnits.push({ flightId: flight.id, cabin });
       }
+    }
+    return routeUnits;
+  });
+  const units: { flightId: string; cabin: CabinClass }[] = [];
+  for (let round = 0; perRoute.some((list) => round < list.length); round++) {
+    for (const list of perRoute) {
+      const unit = list[round];
+      if (unit) units.push(unit);
     }
   }
 
@@ -142,12 +153,24 @@ const tickExtra = (game: GameSession, events: DomainEvent[], ms: number): void =
   for (let elapsed = 0; elapsed < ms; elapsed += 100) events.push(...game.tick(100));
 };
 
+/** Chờ tới khi kiên nhẫn khách còn `ratio` (PLAN §13.3: bot giao ở patienceRatio 0.8/0.5/0.25) — hoặc khách đã rời đi. */
+const tickUntilRatio = (game: GameSession, events: DomainEvent[], ratio: number): void => {
+  for (let guard = 0; guard < MAX_RATIO_WAIT_TICKS; guard++) {
+    const customer = counterCustomer(game.state.today);
+    if (!customer || game.state.today.counter.state !== 'READY_TO_DELIVER' || patienceRatioOf(customer) <= ratio + RATIO_MARGIN) return;
+    events.push(...game.tick(100));
+  }
+};
+const MAX_RATIO_WAIT_TICKS = 2000;
+/** Dừng chờ ngay trên ngưỡng để ratio 0.5 vẫn đủ điều kiện PERFECT (speed ≥ 0.5). */
+const RATIO_MARGIN = 0.01;
+
 /**
  * Runs the shift until SUMMARY. Returns every event emitted.
  * `serveTimeMs` (§13.3): extra real-time delay inserted once a ticket is ready, before delivering —
  * models a bot that takes longer per customer, backing up the queue behind them.
  */
-export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0): DomainEvent[] => {
+export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0, deliverRatio: number | null = null): DomainEvent[] => {
   const events: DomainEvent[] = [];
   const decided = new Set<string>();
   let servedIndex = 0;
@@ -156,7 +179,8 @@ export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0): D
     const { today } = game.state;
     const customer = counterCustomer(today);
     if (today.counter.state === 'READY_TO_DELIVER') {
-      if (serveTimeMs > 0) tickExtra(game, events, serveTimeMs);
+      if (deliverRatio !== null) tickUntilRatio(game, events, deliverRatio);
+      else if (serveTimeMs > 0) tickExtra(game, events, serveTimeMs);
       // A slow bot can let the customer's patience run out while the ticket sits printed —
       // the domain already fires CUSTOMER_LEFT and resets the counter in that case.
       if (game.state.today.counter.state === 'READY_TO_DELIVER') events.push(...run(game, { type: 'DELIVER_TICKET' }));
@@ -174,12 +198,19 @@ export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0): D
 /** Tiền giữ lại không dùng để mua nâng cấp/tuyến (đơn vị k). */
 const DEFAULT_RESERVE = 3750;
 
+/** Ước lượng tiền cần để nhập đủ ghế cho ngày mai (giữ lại, không đem đi mua nâng cấp). */
+const AVERAGE_SEAT_COST = 950;
+const nextDayStockBudget = (state: Readonly<GameState>): number =>
+  Math.ceil(customersForDay({ seed: state.seed, day: state.day + 1, rating: travelVietScore(state.starHistory), rush: false }) * AVERAGE_SEAT_COST * STOCK_RESERVE_MARGIN);
+const STOCK_RESERVE_MARGIN = 1.1;
+
 /** Buys the cheapest route, then upgrades (listed ids first, then cheapest), keeping a reserve. */
 export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly string[] = []): void => {
   run(game, { type: 'GO_TO_SHOP' });
+  const keepForStock = Math.max(reserve, nextDayStockBudget(game.state));
   for (;;) {
     const { state } = game;
-    const ctx = { day: state.day + 1, money: state.money - reserve, travelViet: travelVietScore(state.starHistory) };
+    const ctx = { day: state.day + 1, money: state.money - keepForStock, travelViet: travelVietScore(state.starHistory) };
     const route = ROUTES.filter((r) => checkRouteUnlock(r.id, state.unlockedRoutes, ctx).ok).sort((a, b) => (a.unlock?.cost ?? 0) - (b.unlock?.cost ?? 0))[0];
     if (route) {
       run(game, { type: 'SHOP_UNLOCK_ROUTE', routeId: route.id });
@@ -215,12 +246,13 @@ export const playDay = (
   serveTimeMs = 0,
   upgradeOrder: readonly string[] = [],
   pricing: PricingStrategy = FLAT_PRICING,
+  deliverRatio: number | null = null,
 ): DomainEvent[] => {
   if (game.state.day === 1) run(game, { type: 'FLAG_SET', flag: 'tutorialDone_1' });
   setPrices(game, pricing);
   buyForDay(game, 0.9, demandScale, avoidWeather);
   run(game, { type: 'OPEN_COUNTER' });
-  const events = playShift(game, decide, serveTimeMs);
+  const events = playShift(game, decide, serveTimeMs, deliverRatio);
   shop(game, reserve, upgradeOrder);
   return events;
 };

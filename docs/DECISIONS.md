@@ -148,3 +148,20 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Cân hành lý: bấm giữ, số kg chạy qua lại 0⇄30 kg (7 kg/giây), thả tay để chốt (không kéo).
 - Lý do: yêu cầu của chủ dự án; cầu giảm dần để việc chọn giá là quyết định thật chứ không luôn đặt sát trần.
 - Phương án đã loại: trần khác nhau ngày lễ/ngày thường (trái "không vượt 30%"); huỷ vé ngay lúc giao.
+
+## 2026-10-02 — Cân bằng game bằng sim (tự chỉnh theo PLAN §13.3, chủ dự án đã giao quyền)
+
+Kết quả `SEEDS=200 QUIET=1 npm run sim` sau khi chỉnh (mục tiêu PLAN §13.3 → kết quả):
+- PERFECT: nâng cấp đầu tiên ngày 2 (✓ ≤2); mở BKK ngày 11 (✓ 11–13); TravelViet ngày 20 = 4.6 (✓ ≥4.5).
+- AVERAGE: nâng cấp đầu tiên ngày 3 (✓); mở BKK ngày 13 (✓ 13–18); TravelViet ngày 20 = 4.0 (✓ 3.6–4.4); ngày lợi nhuận âm (kinh doanh) 15.9% (✓ ≤20%); ghế ế 27.1% (✓ 10–30%).
+- POOR: lưới an toàn p50 = 1 lần/30 ngày (✓ ≤3).
+
+Đã đổi số liệu game:
+- `SEAT_COST_FACTOR` = 0.8 (giá vốn ghế ×0.8 so với bảng giá thật × tỉ lệ vốn cũ) — biên lợi nhuận mỏng quá khiến bot trung bình lỗ liên tục.
+- `OUTCOME_STARS`: `REFUSED_NO_STOCK` 3→4, `REFUSED_CORRECT` 4→5 (hết ghế hoặc từ chối đúng hộ chiếu lỗi không đáng bị trừ điểm uy tín; trước đó trung bình sao của cả bot hoàn hảo chỉ ~3.7).
+- `PATIENCE_SCALE` = 1.25 (kiên nhẫn khách ×1.25 mọi ngày).
+
+Đã sửa bot (không phải số liệu game, nhưng ảnh hưởng kết luận): mua ghế xen kẽ giữa các tuyến (trước đây tuyến cuối bị bỏ đói), giữ lại tiền nhập ghế ngày mai trước khi mua nâng cấp, trừ phần khách hộ chiếu lỗi khỏi nhu cầu, giao vé ở đúng patienceRatio 0.8/0.5/0.25 theo PLAN (trước đó dùng thời gian cố định nên PERFECT toàn nhận 4★), làm tròn ghế ECO theo nhu cầu kỳ vọng. Metric "lợi nhuận âm" tính theo lợi nhuận kinh doanh (không tính tiền chi Shop vì đó là đầu tư); ngày mở tuyến = ngày ghi nhận + 1 (mua cuối ngày N dùng từ ngày N+1).
+
+Thí nghiệm giá (40–100 seed): bot hoàn hảo lời nhất ở giá −10%…+15%, +30% kém hơn một chút vì khách đông hơn mà bot phục vụ không xuể; +45% (vượt trần) sụp đổ (tiền ngày 30 giảm từ ~2,2M xuống ~65k). Bot trung bình lời nhất ở +15%…+30% (ít khách → ít quá tải). Ngày lễ: ROI nâng giá +30% ở tuyến nóng = 130.9% so với 112.8% khi chỉ +15% — nâng giá ngày lễ có lợi thật.
+Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 triệu k) — chưa có khoản chi lớn để tiêu ở cuối game (cần backlog PLAN §17: mua máy bay, thuê nhân viên).

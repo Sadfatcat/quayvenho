@@ -7,6 +7,8 @@ export const PROFILE_LIMITS = { playerName: 16, brandName: 20 } as const;
 export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.7, sfxVolume: 0.8, haptics: true };
 
 // Kho
+/** Hệ số nhân giá vốn ghế của mọi tuyến (1 = bảng gốc theo giá vé thật × tỉ lệ vốn cũ). */
+export const SEAT_COST_FACTOR = 0.8;
 export const PURCHASE_LIMIT_PER_FLIGHT: Record<CabinClass, number> = { ECONOMY: 12, BUSINESS: 4 };
 /** Checked in order; first match wins. */
 export const BULK_DISCOUNT_TIERS: readonly { minQty: number; rate: number }[] = [
@@ -44,8 +46,8 @@ export const OUTCOME_STARS: Record<ScoreOutcome, Stars> = {
   POOR: 2,
   FAILED: 1,
   SOLD_INVALID: 1,
-  REFUSED_CORRECT: 4,
-  REFUSED_NO_STOCK: 3,
+  REFUSED_CORRECT: 5,
+  REFUSED_NO_STOCK: 4,
   REFUSED_WRONG: 1,
   LEFT: 1,
 };

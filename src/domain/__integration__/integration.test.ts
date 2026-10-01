@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { seedWithDay1Event } from './fixtures';
 import { GameSession } from '../game';
+import { getRoute } from '../routes';
 import type { Decision, Decide } from './bots';
 import { playDay, playShift, randomBotRng, randomDecide } from './bots';
+
+const SEAT_COST = 3 * getRoute('HAN-DAD').cost.ECONOMY + getRoute('HAN-DAD').cost.BUSINESS;
 
 describe('full day (Phase 1 acceptance)', () => {
   it('3 correct, 1 wrong, 1 correct refusal, 2 left → expected DaySummary', () => {
@@ -24,10 +27,10 @@ describe('full day (Phase 1 acceptance)', () => {
     expect(game.state.lastSummary).toMatchObject({
       day: 1,
       moneyStart: 6000,
-      moneyEnd: 6000 - 4040 + 3300 - 680,
+      moneyEnd: 6000 - SEAT_COST + 3300 - 680,
       ticketRevenue: 3300,
       tips: 0,
-      seatCost: 4040,
+      seatCost: SEAT_COST,
       shopCost: 0,
       penalties: 680,
       expiredSeats: 0,

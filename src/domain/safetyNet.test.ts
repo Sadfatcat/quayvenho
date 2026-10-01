@@ -1,19 +1,22 @@
 import { describe, expect, it } from 'vitest';
+import { getRoute } from './routes';
 import { makeFlight } from './__integration__/fixtures';
 import { needsSupport, supportGift } from './safetyNet';
 
 describe('needsSupport', () => {
   it('is true when money is below 3x the cheapest unlocked route ECONOMY cost', () => {
-    // HAN-DAD ECONOMY cost = 730, threshold = 2190
-    expect(needsSupport(2189, ['HAN-SGN', 'HAN-DAD'])).toBe(true);
-    expect(needsSupport(2190, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
-    expect(needsSupport(2191, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
+    // HAN-DAD là tuyến ECONOMY rẻ nhất: ngưỡng = 3 × giá vốn
+    const threshold = 3 * getRoute('HAN-DAD').cost.ECONOMY;
+    expect(needsSupport(threshold - 1, ['HAN-SGN', 'HAN-DAD'])).toBe(true);
+    expect(needsSupport(threshold, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
+    expect(needsSupport(threshold + 1, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
   });
 
   it('picks the cheapest of the unlocked routes for the threshold', () => {
-    // Only HAN-SGN unlocked, ECONOMY cost = 1050, threshold = 3150
-    expect(needsSupport(3100, ['HAN-SGN'])).toBe(true);
-    expect(needsSupport(3150, ['HAN-SGN'])).toBe(false);
+    // Chỉ mở HAN-SGN: ngưỡng = 3 × giá vốn ECONOMY của SGN
+    const threshold = 3 * getRoute('HAN-SGN').cost.ECONOMY;
+    expect(needsSupport(threshold - 1, ['HAN-SGN'])).toBe(true);
+    expect(needsSupport(threshold, ['HAN-SGN'])).toBe(false);
   });
 });
 

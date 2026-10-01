@@ -174,7 +174,7 @@ Ghi chú review (từ 4.R):
 | [x] 5.4 | TravelViet | hiển thị điểm, màn giới thiệu cuối ngày 10 | Số khách thay đổi theo điểm |
 | [x] 5.5 | Lưới an toàn | hộp thoại khi kích hoạt | Ép hết tiền: được tặng ghế |
 | [x] 5.6 | Cài đặt | `ui/Toggle.ts`, `ui/Slider.ts`, `scenes/overlays/SettingsOverlay.ts` | Đổi âm lượng/rung, lưu ngay |
-| [~] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
+| [x] 5.7 | Mô phỏng kinh tế | `scripts/sim.ts` (cần D10) | In bảng §13.3, báo cáo, chờ duyệt con số |
 | [x] 5.R | Review giai đoạn 5 | — | Theo mẫu Review |
 
 Ghi chú review: _(điền ở bước 4.R)_

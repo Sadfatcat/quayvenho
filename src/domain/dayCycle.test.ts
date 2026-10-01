@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { invariant } from './common/invariant';
+import { purchaseCost } from './economy';
+import { getRoute } from './routes';
 import { canGoToStep, createNewGame, snapBaggage } from './dayCycle';
 import { rollDayEvent } from './events';
 import { GameSession } from './game';
 import type { Command, DomainEvent, GameState } from './models';
 import { seedWithDay1Event, seedWithWeatherOutcome } from './__integration__/fixtures';
+
+const DAD_ECO_COST = getRoute('HAN-DAD').cost.ECONOMY;
+const FIVE_ECO_COST = purchaseCost(DAD_ECO_COST, 5);
+const SAFETY_THRESHOLD = 3 * DAD_ECO_COST;
 
 const rejected = (events: DomainEvent[]) => events.find((e) => e.type === 'COMMAND_REJECTED');
 
@@ -83,10 +89,10 @@ describe('commands outside the shift', () => {
     expect(rejected(game.dispatch({ type: 'PREP_SET_QTY', flightId: 'QV999', cabin: 'ECONOMY', qty: 1 }))).toBeTruthy();
     game.dispatch({ type: 'PREP_SET_QTY', flightId, cabin: 'ECONOMY', qty: 5 });
     const events = game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
-    expect(events[0]).toMatchObject({ type: 'SEATS_PURCHASED', cost: 3468 });
-    expect(game.state.money).toBe(6000 - 3468);
+    expect(events[0]).toMatchObject({ type: 'SEATS_PURCHASED', cost: FIVE_ECO_COST });
+    expect(game.state.money).toBe(6000 - FIVE_ECO_COST);
     expect(rejected(game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' }))).toMatchObject({ reason: 'NOTHING_PENDING' });
-    expect(game.state.money).toBe(6000 - 3468);
+    expect(game.state.money).toBe(6000 - FIVE_ECO_COST);
   });
 
   it('cannot buy more than money allows', () => {
@@ -123,9 +129,9 @@ describe('commands outside the shift', () => {
 
   it('safety net gives nothing when money is at or above the threshold', () => {
     const state = createNewGame(seedWithDay1Event('NONE'));
-    state.money = 2190;
+    state.money = SAFETY_THRESHOLD;
     state.phase = 'SHOP';
-    state.lastSummary = { day: 1, moneyStart: 6000, moneyEnd: 2190 } as GameState['lastSummary'];
+    state.lastSummary = { day: 1, moneyStart: 6000, moneyEnd: SAFETY_THRESHOLD } as GameState['lastSummary'];
     const game = new GameSession(state);
     const events = game.dispatch({ type: 'NEXT_DAY' });
     expect(events.some((e) => e.type === 'SUPPORT_GIFT')).toBe(false);
@@ -190,7 +196,7 @@ describe('shift', () => {
     const scored = game.dispatch({ type: 'DELIVER_TICKET' });
     expect(scored[0]).toMatchObject({ type: 'TICKET_SCORED', result: { outcome: 'PERFECT', revenue: 1100 } });
     expect(rejected(game.dispatch({ type: 'DELIVER_TICKET' }))).toBeTruthy();
-    expect(game.state.money).toBe(6000 - 2190 + 1100);
+    expect(game.state.money).toBe(6000 - 3 * DAD_ECO_COST + 1100);
     expect(game.state.today.seats.find((s) => s.seat === seat)?.state).toBe('SOLD');
   });
 

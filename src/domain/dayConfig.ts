@@ -4,6 +4,7 @@ import {
   PATIENCE_DECAY_FROM_DAY,
   PATIENCE_DECAY_PER_DAY,
   PATIENCE_MIN_MS,
+  PATIENCE_SCALE,
 } from '@data/days';
 import { invariant } from './common/invariant';
 import type { DayConfig, Mechanic } from './models';
@@ -16,7 +17,7 @@ export const getDayConfig = (day: number): DayConfig => {
   const decayDays = Math.max(0, day - PATIENCE_DECAY_FROM_DAY + 1);
   const patienceBaseMs = Math.max(
     PATIENCE_MIN_MS,
-    Math.round(row.patienceBaseMs * PATIENCE_DECAY_PER_DAY ** decayDays),
+    Math.round(row.patienceBaseMs * PATIENCE_DECAY_PER_DAY ** decayDays * PATIENCE_SCALE),
   );
   return { ...row, day, patienceBaseMs };
 };

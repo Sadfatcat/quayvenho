@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { rollDayEvent, resolveWeather } from './events';
+import { getRoute } from './routes';
 import { needsSupport, supportGift } from './safetyNet';
 import { generateFlights } from './schedule';
 import { checkRouteUnlock, checkUpgrade, computeModifiers } from './upgrades';
@@ -71,8 +72,9 @@ describe('safety net', () => {
   const routes = ['HAN-SGN', 'HAN-DAD'];
 
   it('triggers below 3 × cheapest ECO cost', () => {
-    expect(needsSupport(2189, routes)).toBe(true);
-    expect(needsSupport(2190, routes)).toBe(false);
+    const threshold = 3 * getRoute('HAN-DAD').cost.ECONOMY;
+    expect(needsSupport(threshold - 1, routes)).toBe(true);
+    expect(needsSupport(threshold, routes)).toBe(false);
   });
 
   it('gifts 3 free ECO seats on the earliest cheapest-route flight', () => {

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canServe, routeHasAvailableSeat } from './canServe';
+import { purchaseCost } from './economy';
+import { getRoute } from './routes';
 import {
   expireAvailable,
   freeSeatsFor,
@@ -18,6 +20,8 @@ import { makeFlight } from './__integration__/fixtures';
 import type { Flight, OwnedSeat } from './models';
 import { createRng } from './rng';
 import { isWindow, seatsOfCabin } from './seatMap';
+
+const DAD_ECONOMY_COST = getRoute('HAN-DAD').cost.ECONOMY;
 
 const flight = (patch: Partial<Flight> = {}): Flight => makeFlight({ takenByOthers: ['3A', '3B', '1A'], ...patch });
 
@@ -54,10 +58,10 @@ describe('inventory: purchase', () => {
     const result = buy({ [pendingKey('QV201', 'ECONOMY')]: 5 });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.totalCost).toBe(3468);
+    expect(result.value.totalCost).toBe(purchaseCost(DAD_ECONOMY_COST, 5));
     expect(result.value.seats).toHaveLength(5);
-    expect(result.value.seats.every((s) => s.state === 'AVAILABLE' && s.unitCost === 730)).toBe(true);
-    expect(pendingTotalCost({ [pendingKey('QV201', 'ECONOMY')]: 5 }, [flight()])).toBe(3468);
+    expect(result.value.seats.every((s) => s.state === 'AVAILABLE' && s.unitCost === DAD_ECONOMY_COST)).toBe(true);
+    expect(pendingTotalCost({ [pendingKey('QV201', 'ECONOMY')]: 5 }, [flight()])).toBe(purchaseCost(DAD_ECONOMY_COST, 5));
   });
 
   it('rejects nothing pending, over limit, not enough money, unknown flight', () => {

@@ -1,4 +1,5 @@
 import type { Route } from '@domain/models';
+import { SEAT_COST_FACTOR } from './balance';
 import { applyCustomRoutes, PERSONAL } from './personal';
 
 const BASE_ROUTES: readonly Route[] = [
@@ -13,4 +14,14 @@ const BASE_ROUTES: readonly Route[] = [
   { id: 'HAN-CDG', name: 'Paris', cost: { ECONOMY: 8170, BUSINESS: 47460 }, price: { ECONOMY: 12000, BUSINESS: 70000 }, weight: 1, unlock: { cost: 37500, minTravelViet: 4.5 }, color: 0x9b51e0, icon: 'cdg' },
 ];
 
-export const ROUTES: readonly Route[] = applyCustomRoutes(BASE_ROUTES, PERSONAL);
+/** Giá vốn ghế tinh chỉnh bằng một hệ số (cân bằng game, xem docs/DECISIONS.md); làm tròn 10k. */
+const withSeatCostFactor = (routes: readonly Route[]): readonly Route[] =>
+  routes.map((route) => ({
+    ...route,
+    cost: {
+      ECONOMY: Math.round((route.cost.ECONOMY * SEAT_COST_FACTOR) / 10) * 10,
+      BUSINESS: Math.round((route.cost.BUSINESS * SEAT_COST_FACTOR) / 10) * 10,
+    },
+  }));
+
+export const ROUTES: readonly Route[] = applyCustomRoutes(withSeatCostFactor(BASE_ROUTES), PERSONAL);

@@ -84,8 +84,8 @@ describe('scoreCustomer', () => {
   it('refusals: correct, no stock, wrong', () => {
     const refuse = (canServe: boolean, orderPatch: Partial<Order> = {}) =>
       scoreCustomer({ order: order(orderPatch), action: { type: 'REFUSE', canServe }, patienceRatio: 1, day: 6, pricePct: 0, tipMult: 1, money: 10000 });
-    expect(refuse(true, { passport: { name: 'A', bookedName: 'B', expiresDay: 9 } })).toMatchObject({ outcome: 'REFUSED_CORRECT', stars: 4, tip: 0 });
-    expect(refuse(false)).toMatchObject({ outcome: 'REFUSED_NO_STOCK', stars: 3, penalty: 0 });
+    expect(refuse(true, { passport: { name: 'A', bookedName: 'B', expiresDay: 9 } })).toMatchObject({ outcome: 'REFUSED_CORRECT', stars: 5, tip: 0 });
+    expect(refuse(false)).toMatchObject({ outcome: 'REFUSED_NO_STOCK', stars: 4, penalty: 0 });
     expect(refuse(true)).toMatchObject({ outcome: 'REFUSED_WRONG', stars: 1, penalty: 300 });
   });
 
