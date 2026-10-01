@@ -23,6 +23,7 @@ import { Button } from '@ui/Button';
 import { DragController } from '@ui/DragController';
 import { ExtrasToggles } from '@ui/ExtrasToggles';
 import { FlightList } from '@ui/FlightList';
+import { burstCoins } from '@ui/CoinBurst';
 import { showFloatingText } from '@ui/FloatingText';
 import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
@@ -40,6 +41,11 @@ import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const COUNTER_SURFACE_Y = 650;
+const SHAKE_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['POOR', 'FAILED', 'SOLD_INVALID', 'REFUSED_WRONG']);
+const SHAKE_DURATION_MS = 180;
+const SHAKE_INTENSITY = 0.006;
+const TICKET_SLIDE_FROM_PX = -160;
+const TICKET_SLIDE_MS = 350;
 const BUILD_AREA_ORIGIN = { x: 40, y: 775 };
 const BUILD_AREA_WIDTH = GAME_WIDTH - 80;
 
@@ -335,6 +341,8 @@ export class CounterScene extends BaseScene {
     if (!ticket) return;
     ticket.setSize(560, 440);
     ticket.setInteractive();
+    ticket.setY(originY + TICKET_SLIDE_FROM_PX).setAlpha(0);
+    this.tweens.add({ targets: ticket, y: originY, alpha: 1, duration: TICKET_SLIDE_MS, ease: 'Back.easeOut' });
     const dragController = new DragController(ticket, {
       onDragMove: (point) => {
         const local = this.buildArea.getLocalPoint(point.x, point.y);
@@ -422,7 +430,11 @@ export class CounterScene extends BaseScene {
   private showScoreFeedback(result: ScoreResult): void {
     const x = GAME_WIDTH / 2;
     const y = 480;
-    if (result.revenue > 0) showFloatingText(this, x, y, { text: `+${result.revenue}`, color: COLORS.success });
+    if (result.revenue > 0) {
+      showFloatingText(this, x, y, { text: `+${result.revenue}`, color: COLORS.success });
+      burstCoins(this, x, y, result.revenue);
+    }
+    if (SHAKE_OUTCOMES.has(result.outcome)) this.cameras.main.shake(SHAKE_DURATION_MS, SHAKE_INTENSITY);
     if (result.tip > 0) showFloatingText(this, x, y - 44, { text: `+${result.tip} ${STRINGS.counter.tipSuffix}`, color: COLORS.accent });
     if (result.mistakes.length) this.toasts.show(result.mistakes.map((code) => STRINGS.counter.mistakes[code]).join(', '), 2000);
   }

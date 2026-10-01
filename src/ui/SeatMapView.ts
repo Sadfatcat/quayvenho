@@ -41,6 +41,9 @@ const columnX = (cabin: CabinClass): Record<SeatColumnKey, number> => {
 };
 
 /** Bước B: seatsOfCabin đã sinh sẵn theo hàng/cột, chỉ ghế AVAILABLE của mình mới bấm được (PLAN §3.1, §10.6). */
+const SELECT_POP_SCALE = 1.2;
+const SELECT_POP_MS = 120;
+
 export class SeatMapView extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number, options: SeatMapViewOptions) {
     super(scene, x, y);
@@ -63,6 +66,7 @@ export class SeatMapView extends Phaser.GameObjects.Container {
         rect.on('pointerup', () => options.onSelect(seatId));
       }
       this.add(rect);
+      if (state === 'SELECTED') scene.tweens.add({ targets: rect, scale: SELECT_POP_SCALE, duration: SELECT_POP_MS, yoyo: true, ease: 'Quad.easeOut' });
       if (state === 'SOLD') {
         this.add(scene.add.text(seatX, seatY, '✓', { fontFamily: 'sans-serif', fontSize: '22px', color: '#ffffff' }).setOrigin(0.5));
       }

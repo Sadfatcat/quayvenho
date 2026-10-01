@@ -19,6 +19,11 @@ interface SummaryLine {
 
 const LINES_TOP = 320;
 const LINE_HEIGHT = 40;
+const STAR_COUNT = 5;
+const STAR_Y = 250;
+const STAR_GAP = 70;
+const STAR_REVEAL_DELAY_MS = 180;
+const STAR_POP_MS = 260;
 const TOTAL_REVEAL_MS = 3000;
 const BUTTON_HEIGHT = 96;
 const BUTTON_Y = GAME_HEIGHT - 140;
@@ -46,6 +51,7 @@ export class SummaryScene extends BaseScene {
 
     this.add.text(GAME_WIDTH / 2, 180, `${state.profile?.brandName ?? ''} — ${STRINGS.title.dayLabel} ${summary.day}`, TEXT_STYLES.heading).setOrigin(0.5);
 
+    this.showStars(summary.avgStars);
     const lines = this.buildLines(summary);
     this.revealLines(lines);
 
@@ -71,6 +77,18 @@ export class SummaryScene extends BaseScene {
     this.add
       .text(GAME_WIDTH / 2, BUTTON_Y + BUTTON_HEIGHT / 2 + 24, STRINGS.summary.tapToSkip, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(0.5);
+  }
+
+  /** Sao trung bình trong ngày hiện lần lượt từng ngôi (PLAN §10.8, ROADMAP 6.3). */
+  private showStars(avgStars: number): void {
+    const filled = Math.round(avgStars);
+    for (let index = 0; index < STAR_COUNT; index++) {
+      const star = this.add
+        .text(GAME_WIDTH / 2 + (index - (STAR_COUNT - 1) / 2) * STAR_GAP, STAR_Y, '★', { fontFamily: FONT_FAMILY, fontSize: '56px', color: toCssColor(index < filled ? COLORS.accent : COLORS.disabled) })
+        .setOrigin(0.5)
+        .setScale(0);
+      this.tweens.add({ targets: star, scale: 1, delay: index * STAR_REVEAL_DELAY_MS, duration: STAR_POP_MS, ease: 'Back.easeOut' });
+    }
   }
 
   private buildLines(summary: DaySummary): SummaryLine[] {
