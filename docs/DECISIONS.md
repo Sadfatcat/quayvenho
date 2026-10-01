@@ -139,3 +139,12 @@ Append-only. Mỗi mục: ngày, quyết định, lý do, phương án đã lo�
 - Quyết định: khi nhiều khách đặc biệt cùng ngày cùng bị `atCustomerIndex` đẩy về slot cuối (hoặc trùng slot), khách đến sau lùi về slot trống gần nhất phía trước (`domain/personal.ts`, `slotsOfDay`).
 - Lý do: PLAN §16 chỉ nói "thành khách cuối cùng", không nói khi có nhiều khách; cách này giữ mọi khách đặc biệt xuất hiện.
 - Phương án đã loại: bỏ qua khách thứ hai.
+
+## 2026-10-02 — Chỉnh giá vé, tiền tệ "k", cân hành lý bấm giữ
+
+- Quyết định: người chơi chỉnh giá vé từng tuyến ở Kho (−30%…+60%, bước 5%), luôn mở từ ngày 2 (có tutorial). Trần +30% so với giá gốc: vượt trần thì lượng khách tuyến đó nhân 1/2, và ~35% vé bán vượt trần bị huỷ lúc tổng kết (hoàn tiền vé + tip, ghế vẫn mất; hoàn tối đa bằng tiền còn trong quỹ). Dưới trần: cầu giảm dần theo giá (mỗi +1% giá → −1,5% khách ngày thường, −0,5% ngày lễ), giá rẻ thì đông khách. Bỏ hệ số tự động ×1.2 của ngày lễ.
+- Ngày lễ (RUSH) có tên (Tết, Giỗ Tổ, 30/4–1/5, Quốc khánh, Trung thu, Giáng sinh) và 2 tuyến "nhu cầu cao" (ưu tiên ×3); báo trước ở Shop (ngày mai) và ở Kho (ngày hôm đó).
+- Tiền đổi sang "k" (nghìn đồng), nhân 15 mọi số tiền cũ; giá vé theo mặt bằng Việt Nam (tra Vietnam Airlines/BestPrice/Traveloka), giá vốn giữ nguyên tỉ lệ cũ so với giá bán. Save nâng lên v2, migration v1→v2 nhân tiền ×15 và thêm trường mới (có test).
+- Cân hành lý: bấm giữ, số kg chạy qua lại 0⇄30 kg (7 kg/giây), thả tay để chốt (không kéo).
+- Lý do: yêu cầu của chủ dự án; cầu giảm dần để việc chọn giá là quyết định thật chứ không luôn đặt sát trần.
+- Phương án đã loại: trần khác nhau ngày lễ/ngày thường (trái "không vượt 30%"); huỷ vé ngay lúc giao.

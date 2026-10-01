@@ -6,7 +6,7 @@
  * chậm (POOR, 30s/khách) tốn khá nhiều tick giả lập. Tăng hằng số này để chạy đầy đủ hơn.
  */
 import { GameSession } from '@domain/game';
-import { makeErrorProneDecide, perfectDecide, playDay, type Decide } from '@domain/__integration__/bots';
+import { makeErrorProneDecide, perfectDecide, playDay, type Decide, type PricingStrategy } from '@domain/__integration__/bots';
 import { createRng, type Rng } from '@domain/rng';
 
 const SEEDS_PER_BOT = 200;
@@ -34,6 +34,7 @@ interface BotProfile {
   serveTimeMs: number;
   demandJitter: number;
   avoidWeather: boolean;
+  pricing: PricingStrategy;
   makeDecide: (rng: Rng) => Decide;
 }
 
@@ -42,8 +43,23 @@ const PERFECT_UPGRADE_ORDER = ['COMFY_CHAIRS', 'FAN', 'BIGGER_COUNTER', 'FAST_PR
 const AVERAGE_RESERVE = 9000;
 const DEFAULT_RESERVE = 3750;
 
+/** PERFECT: ngày thường +15%, ngày lễ nâng sát trần (+30%) ở tuyến nóng và +20% các tuyến còn lại. */
+const SAVVY_NORMAL_PCT = 15;
+const SAVVY_HOLIDAY_HOT_PCT = 30;
+const SAVVY_HOLIDAY_OTHER_PCT = 20;
+const savvyPricing: PricingStrategy = ({ event, routeId }) => {
+  if (event.type !== 'RUSH') return SAVVY_NORMAL_PCT;
+  return event.hotRoutes.includes(routeId) ? SAVVY_HOLIDAY_HOT_PCT : SAVVY_HOLIDAY_OTHER_PCT;
+};
+/** AVERAGE: một mức giá cố định, không để ý ngày lễ. */
+const AVERAGE_FLAT_PCT = 10;
+const averagePricing: PricingStrategy = () => AVERAGE_FLAT_PCT;
+/** POOR: giá gốc, hay "hét" quá trần vào ngày lễ. */
+const POOR_OVER_CAP_PCT = 45;
+const poorPricing: PricingStrategy = ({ event }) => (event.type === 'RUSH' ? POOR_OVER_CAP_PCT : 0);
+
 const PROFILES: BotProfile[] = [
-  { name: 'PERFECT', reserve: DEFAULT_RESERVE, upgradeOrder: PERFECT_UPGRADE_ORDER, serveTimeMs: 15000, demandJitter: 0, avoidWeather: true, makeDecide: () => perfectDecide },
+  { name: 'PERFECT', reserve: DEFAULT_RESERVE, upgradeOrder: PERFECT_UPGRADE_ORDER, serveTimeMs: 15000, demandJitter: 0, avoidWeather: true, pricing: savvyPricing, makeDecide: () => perfectDecide },
   {
     name: 'AVERAGE',
     reserve: AVERAGE_RESERVE,
@@ -51,6 +67,7 @@ const PROFILES: BotProfile[] = [
     serveTimeMs: 22000,
     demandJitter: 0.3,
     avoidWeather: false,
+    pricing: averagePricing,
     makeDecide: (rng) => makeErrorProneDecide(rng, { walkAwayRate: 0.03, minorErrorRate: 0.2, majorErrorRate: 0.05, neverRefuse: false }),
   },
   {
@@ -60,6 +77,7 @@ const PROFILES: BotProfile[] = [
     serveTimeMs: 30000,
     demandJitter: 0.6,
     avoidWeather: false,
+    pricing: poorPricing,
     makeDecide: (rng) => makeErrorProneDecide(rng, { walkAwayRate: 0.12, minorErrorRate: 0.35, majorErrorRate: 0.15, neverRefuse: true }),
   },
 ];
@@ -83,7 +101,7 @@ const runBot = (profile: BotProfile): DayRecord[][] => {
     for (let day = 1; day <= DAYS; day++) {
       const demandScale = 1 + (demandRng.next() * 2 - 1) * profile.demandJitter;
       const safetyNet = game.state.today.transactions.some((tx) => tx.type === 'SUPPORT_GIFT') ? 1 : 0;
-      playDay(game, decide, profile.reserve, demandScale, profile.avoidWeather, profile.serveTimeMs, profile.upgradeOrder);
+      playDay(game, decide, profile.reserve, demandScale, profile.avoidWeather, profile.serveTimeMs, profile.upgradeOrder, profile.pricing);
       const summary = game.state.lastSummary;
       if (!summary) break;
       byDay[day - 1]?.push({

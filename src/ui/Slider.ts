@@ -9,6 +9,8 @@ export interface SliderOptions {
   initialValue: number;
   /** Fired once per drag, on release — avoids spamming a dispatch/save per pixel. */
   onCommit: (value: number) => void;
+  /** Gọi mỗi lần kéo (không lưu/dispatch) để cập nhật nhãn trực tiếp. */
+  onChange?: (value: number) => void;
 }
 
 const HANDLE_RADIUS = 24;
@@ -41,6 +43,7 @@ export class Slider extends Phaser.GameObjects.Container {
         this.value = clamp(local.x / this.widthValue, 0, 1);
         this.handle.setX(this.xFor(this.value));
         this.fill.setSize(this.widthValue * this.value, TRACK_HEIGHT);
+        options.onChange?.(this.value);
       },
       onDragEnd: () => options.onCommit(this.value),
     });

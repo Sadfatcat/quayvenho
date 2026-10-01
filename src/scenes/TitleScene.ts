@@ -3,6 +3,7 @@ import { GameSession } from '@domain/game';
 import type { DayPhase, GameState } from '@domain/models';
 import { clearSave, type LoadSaveResult } from '@save/storage';
 import { Button } from '@ui/Button';
+import { formatMoney } from '@ui/format';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, SPACING, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
@@ -34,7 +35,7 @@ export class TitleScene extends BaseScene {
         .text(
           GAME_WIDTH / 2,
           y - 90,
-          `${profile.brandName} · ${STRINGS.title.dayLabel} ${day} · ${money} ${STRINGS.common.currencySuffix}`,
+          `${profile.brandName} · ${STRINGS.title.dayLabel} ${day} · ${formatMoney(money)}`,
           { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.textMuted) },
         )
         .setOrigin(0.5);

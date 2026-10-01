@@ -31,3 +31,9 @@ export const resolveWeather = (seed: number, day: number): WeatherOutcome =>
   );
 
 export const isRush = (event: DayEvent): boolean => event.type === 'RUSH';
+
+/** Ngày lễ của ngày mai (nếu có) để báo trước ở Shop; tuyến nóng tính theo các tuyến đang mở. */
+export const previewNextDayHoliday = (seed: number, day: number, unlockedRoutes: readonly RouteId[]): Extract<DayEvent, { type: 'RUSH' }> | null => {
+  const event = rollDayEvent(seed, day + 1, unlockedRoutes);
+  return event.type === 'RUSH' ? event : null;
+};

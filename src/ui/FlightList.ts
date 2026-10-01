@@ -22,6 +22,7 @@ export interface FlightListOptions {
 
 const ROW_HEIGHT = 110;
 const ROW_INSET = 8;
+const CARD_INNER_PADDING = 16;
 const CABIN_BUTTON_WIDTH = 140;
 const CABIN_BUTTON_HEIGHT = 60;
 
@@ -86,7 +87,7 @@ export class FlightList extends ScrollList<Flight> {
       return row;
     }
 
-    const ecoButton = new Button(scene, panelWidth + ROW_INSET - CABIN_BUTTON_WIDTH * 1.5 - 10, ROW_HEIGHT / 2 - 6, {
+    const ecoButton = new Button(scene, panelWidth + ROW_INSET - CARD_INNER_PADDING - CABIN_BUTTON_WIDTH * 1.5 - 10, ROW_HEIGHT / 2 - 6, {
       width: CABIN_BUTTON_WIDTH,
       height: CABIN_BUTTON_HEIGHT,
       label: `${STRINGS.counter.ecoShort} ${eco}`,
@@ -94,7 +95,7 @@ export class FlightList extends ScrollList<Flight> {
       onTap: () => options.onSelect(flight.id, 'ECONOMY'),
     });
     ecoButton.setEnabled(!options.readOnly && eco > 0);
-    const bizButton = new Button(scene, panelWidth + ROW_INSET - CABIN_BUTTON_WIDTH / 2, ROW_HEIGHT / 2 - 6, {
+    const bizButton = new Button(scene, panelWidth + ROW_INSET - CARD_INNER_PADDING - CABIN_BUTTON_WIDTH / 2, ROW_HEIGHT / 2 - 6, {
       width: CABIN_BUTTON_WIDTH,
       height: CABIN_BUTTON_HEIGHT,
       label: `${STRINGS.counter.bizShort} ${biz}`,

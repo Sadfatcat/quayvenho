@@ -26,13 +26,14 @@ import { ExtrasToggles } from '@ui/ExtrasToggles';
 import { FlightList } from '@ui/FlightList';
 import { audio } from '@platform/audio';
 import { burstCoins } from '@ui/CoinBurst';
+import { formatMoney } from '@ui/format';
 import { showFloatingText } from '@ui/FloatingText';
 import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
 import { SpeechBubble } from '@ui/SpeechBubble';
 import { CustomerAvatar } from '@ui/CustomerAvatar';
 import { TEXT_STYLES } from '@ui/textStyles';
-import { MIN_TOUCH_SIZE } from '@ui/layout';
+import { buttonRow, MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
 import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
 import { TicketView } from '@ui/TicketView';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
@@ -157,11 +158,12 @@ export class CounterScene extends BaseScene {
 
     this.buildArea = this.add.container(BUILD_AREA_ORIGIN.x, BUILD_AREA_ORIGIN.y);
 
-    this.retryButton = new Button(this, 140, 1170, { width: 210, height: MIN_TOUCH_SIZE, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
-    this.refuseButton = new Button(this, 360, 1170, { width: 210, height: MIN_TOUCH_SIZE, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
-    this.mainButton = new Button(this, 590, 1170, { width: 220, height: MIN_TOUCH_SIZE, label: STRINGS.counter.next, variant: 'primary', onTap: () => this.onMainAction() });
+    const dock = buttonRow(GAME_WIDTH, 3);
+    this.retryButton = new Button(this, dock.centers[0] ?? 0, 1170, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
+    this.refuseButton = new Button(this, dock.centers[1] ?? 0, 1170, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
+    this.mainButton = new Button(this, dock.centers[2] ?? 0, 1170, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.next, variant: 'primary', onTap: () => this.onMainAction() });
 
-    this.passportButton = new Button(this, GAME_WIDTH - 60, 250, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
+    this.passportButton = new Button(this, GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, 250, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
     this.passportButton.setVisible(false);
   }
 
@@ -455,11 +457,11 @@ export class CounterScene extends BaseScene {
     const x = GAME_WIDTH / 2;
     const y = 480;
     if (result.revenue > 0) {
-      showFloatingText(this, x, y, { text: `+${result.revenue}`, color: COLORS.success });
+      showFloatingText(this, x, y, { text: `+${formatMoney(result.revenue)}`, color: COLORS.success });
       burstCoins(this, x, y, result.revenue);
     }
     if (SHAKE_OUTCOMES.has(result.outcome)) this.cameras.main.shake(SHAKE_DURATION_MS, SHAKE_INTENSITY);
-    if (result.tip > 0) showFloatingText(this, x, y - 44, { text: `+${result.tip} ${STRINGS.counter.tipSuffix}`, color: COLORS.accent });
+    if (result.tip > 0) showFloatingText(this, x, y - 44, { text: `+${formatMoney(result.tip)} ${STRINGS.counter.tipSuffix}`, color: COLORS.accent });
     const specialLines = specialLinesOf(result.specialId);
     if (specialLines) this.toasts.show(GOOD_SPECIAL_OUTCOMES.has(result.outcome) ? specialLines.success : specialLines.fail, SPECIAL_TOAST_MS);
     else if (result.mistakes.length) this.toasts.show(result.mistakes.map((code) => STRINGS.counter.mistakes[code]).join(', '), 2000);

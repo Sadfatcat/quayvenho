@@ -183,9 +183,8 @@ does not match request (amber warning "Khách muốn cửa sổ, ghế này là 
 ## 12. Bước C — hành lý & dịch vụ thêm (item extra)
 
 ```
-Counter step C. Top: BAGGAGE SLIDER — a wooden suitcase handle thumb on a track with tick marks at 15, 20,
-30 kg, big value label "20 kg", the customer's requested mark outlined by a dashed ring, a fee chip
-"+380k". Below: EXTRAS as three large toggle cards in a row, each with an icon and carved-wood switch:
+Counter step C. Top: HOLD-TO-WEIGH BAGGAGE SCALE (press and hold, NOT drag) — a wooden suitcase handle on a track with tick marks at 15, 20,
+30 kg and a round chunky "hold" target zone over the whole track; while the finger is held the weight number swings back and forth 0⇄30 kg and the handle follows, release to lock; big value label "20 kg", hint "Bấm giữ để cân, thả tay khi đúng số kg", the customer's requested mark outlined by a dashed ring, a fee chip "+380k". Design idle, holding (pressed ring glowing) and locked states. Below: EXTRAS as three large toggle cards in a row, each with an icon and carved-wood switch:
 "Suất ăn chay +80k" (leaf bowl), "Xe lăn hỗ trợ +0k" (wheelchair), "Bảo hiểm +230k" (shield). Selected =
 spruce check badge, requested-by-customer = small speech-dot. Summary strip "Phụ phí: +460k". States:
 none selected, correct, extra not requested (amber note "Khách không yêu cầu").

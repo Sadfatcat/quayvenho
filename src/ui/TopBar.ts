@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
-import { STRINGS } from '@data/strings';
 import { Button } from './Button';
+import { formatMoney } from './format';
+import { SCREEN_MARGIN } from './layout';
 import { COLORS, FONT_FAMILY, toCssColor } from './theme';
 
-const EDGE_PADDING = 24;
+const EDGE_PADDING = SCREEN_MARGIN;
+const ICON_BUTTON_SIZE = 72;
 
 export interface TopBarOptions {
   width: number;
@@ -31,9 +33,9 @@ export class TopBar extends Phaser.GameObjects.Container {
     this.travelVietText = scene.add
       .text(options.width * 0.68, 0, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.warning) })
       .setOrigin(0.5);
-    const iconButton = new Button(scene, options.width - 44, 0, {
-      width: 72,
-      height: 72,
+    const iconButton = new Button(scene, options.width - SCREEN_MARGIN - ICON_BUTTON_SIZE / 2, 0, {
+      width: ICON_BUTTON_SIZE,
+      height: ICON_BUTTON_SIZE,
       label: options.icon,
       variant: 'ghost',
       onTap: options.onIconTap,
@@ -49,7 +51,7 @@ export class TopBar extends Phaser.GameObjects.Container {
   }
 
   setMoney(amount: number): void {
-    this.moneyText.setText(`${amount} ${STRINGS.common.currencySuffix}`);
+    this.moneyText.setText(formatMoney(amount));
   }
 
   setTravelViet(value: number | null): void {

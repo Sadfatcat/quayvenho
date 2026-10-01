@@ -10,20 +10,28 @@ import { routeOfFlight } from '@domain/schedule';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
+import { SCREEN_MARGIN, buttonRow } from '@ui/layout';
 import { Stepper } from '@ui/Stepper';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
+import { HOLIDAYS } from '@data/holidays';
+import { formatMoney } from '@ui/format';
 import { TopBar } from '@ui/TopBar';
 import { GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
 import { DialogOverlay } from './overlays/DialogOverlay';
+import { PriceOverlay } from './overlays/PriceOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { showPendingTutorials, showScriptedMoments } from './overlays/TutorialOverlay';
 import { sessionBridge } from './sessionBridge';
 
 const ROW_HEIGHT = 230;
+const STEPPER_RIGHT_INSET = 120;
 const ECONOMY_ROW_Y = 112;
 const BUSINESS_ROW_Y = 184;
-const LIST_Y = 230;
+const LIST_Y = 320;
+const PRICE_BUTTON_Y = 272;
+const PRICE_BUTTON_HEIGHT = 72;
+const BANNER_Y = 182;
 const LIST_HEIGHT = 1060 - LIST_Y;
 const TOTAL_Y = 1095;
 const BUTTON_ROW_Y = 1180;
@@ -36,6 +44,7 @@ export class PrepScene extends BaseScene {
   private flightList!: ScrollList<Flight>;
   private totalText!: Phaser.GameObjects.Text;
   private confirmButton!: Button;
+  private priceButton!: Button;
   private unsubscribeEvents: (() => void) | null = null;
 
   constructor() {
@@ -78,8 +87,16 @@ export class PrepScene extends BaseScene {
     });
 
     this.bannerText = this.add
-      .text(GAME_WIDTH / 2, 190, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })
+      .text(GAME_WIDTH / 2, BANNER_Y, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })
       .setOrigin(0.5);
+
+    this.priceButton = new Button(this, GAME_WIDTH / 2, PRICE_BUTTON_Y, {
+      width: GAME_WIDTH - 2 * SCREEN_MARGIN,
+      height: PRICE_BUTTON_HEIGHT,
+      label: STRINGS.prep.priceBoardButton,
+      variant: 'ghost',
+      onTap: () => new PriceOverlay(this, () => this.renderAll()),
+    });
 
     this.flightList = new ScrollList<Flight>(this, {
       x: 20,
@@ -95,15 +112,16 @@ export class PrepScene extends BaseScene {
       .text(GAME_WIDTH / 2, TOTAL_Y, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.text) })
       .setOrigin(0.5);
 
-    this.confirmButton = new Button(this, GAME_WIDTH / 2 - 185, BUTTON_ROW_Y, {
-      width: 340,
+    const bottomRow = buttonRow(GAME_WIDTH, 2);
+    this.confirmButton = new Button(this, bottomRow.centers[0] ?? 0, BUTTON_ROW_Y, {
+      width: bottomRow.width,
       height: BUTTON_HEIGHT,
       label: STRINGS.prep.confirmPurchase,
       variant: 'primary',
       onTap: () => this.dispatch({ type: 'PREP_CONFIRM_PURCHASE' }),
     });
-    new Button(this, GAME_WIDTH / 2 + 185, BUTTON_ROW_Y, {
-      width: 340,
+    new Button(this, bottomRow.centers[1] ?? 0, BUTTON_ROW_Y, {
+      width: bottomRow.width,
       height: BUTTON_HEIGHT,
       label: STRINGS.prep.openCounter,
       variant: 'success',
@@ -117,18 +135,31 @@ export class PrepScene extends BaseScene {
     this.topBar.setMoney(state.money);
     this.topBar.setTravelViet(isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null);
     this.bannerText.setText(this.bannerFor(state));
+    this.priceButton.setLabel(this.priceButtonLabel(state));
     this.flightList.setItems([...state.today.flights]);
 
     const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights);
-    this.totalText.setText(`${STRINGS.prep.estimateLabel}: −${total} ${STRINGS.common.currencySuffix} · ${STRINGS.prep.moneyAfterLabel}: ${state.money - total} ${STRINGS.common.currencySuffix}`);
+    this.totalText.setText(`${STRINGS.prep.estimateLabel}: ${total > 0 ? '−' : ''}${formatMoney(total)} · ${STRINGS.prep.moneyAfterLabel}: ${formatMoney(state.money - total)}`);
 
     const hasPending = Object.keys(state.today.pendingPurchase).length > 0;
     this.confirmButton.setEnabled(hasPending);
   }
 
+  private priceButtonLabel(state: GameState): string {
+    const changed = Object.values(state.today.priceAdjustPct).filter((pct) => pct !== 0).length;
+    const summary = changed === 0 ? STRINGS.prep.priceBoardSummaryBase : STRINGS.prep.priceBoardSummaryChanged.replace('{count}', String(changed));
+    return `${STRINGS.prep.priceBoardButton}: ${summary}`;
+  }
+
+  private holidayBanner(holidayId: string, hotRoutes: readonly string[]): string {
+    const holiday = HOLIDAYS.find((candidate) => candidate.id === holidayId)?.name ?? '';
+    const routes = hotRoutes.map((routeId) => getRoute(routeId).name).join(', ');
+    return STRINGS.prep.bannerHoliday.replace('{holiday}', holiday).replace('{routes}', routes);
+  }
+
   private bannerFor(state: GameState): string {
     const event = state.today.event;
-    if (event.type === 'RUSH') return STRINGS.prep.bannerRush;
+    if (event.type === 'RUSH') return this.holidayBanner(event.holidayId, event.hotRoutes);
     if (event.type === 'WEATHER') return STRINGS.prep.bannerWeather;
     return '';
   }
@@ -164,14 +195,14 @@ export class PrepScene extends BaseScene {
     const ownedLabel = cabin === 'ECONOMY' ? STRINGS.prep.ownedEco : STRINGS.prep.ownedBiz;
 
     const text = this.add
-      .text(28, y, `${label} ${unitCost} ${STRINGS.common.currencySuffix} · ${ownedLabel} ${owned}${discount > 0 ? ` · −${Math.round(discount * 100)}%` : ''}`, {
+      .text(28, y, `${label} ${formatMoney(unitCost)} · ${ownedLabel} ${owned}${discount > 0 ? ` · −${Math.round(discount * 100)}%` : ''}`, {
         fontFamily: FONT_FAMILY,
         fontSize: '18px',
         color: toCssColor(COLORS.textMuted),
       })
       .setOrigin(0, 0.5);
 
-    const stepper = new Stepper(this, GAME_WIDTH - 40 - 16 - 90, y, {
+    const stepper = new Stepper(this, GAME_WIDTH - 40 - 16 - STEPPER_RIGHT_INSET, y, {
       value: qty,
       max: this.maxAffordableQty(flight, cabin, today, sessionBridge.current.state.money),
       onChange: (next) => this.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin, qty: next }),

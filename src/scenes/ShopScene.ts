@@ -3,10 +3,14 @@ import { STRINGS } from '@data/strings';
 import { ROUTES } from '@data/routes';
 import { UPGRADES } from '@data/upgrades';
 import { shopContext } from '@domain/dayCycle';
-import type { Command, Route, UpgradeDef } from '@domain/models';
+import type { Command, GameState, Route, UpgradeDef } from '@domain/models';
 import { checkRouteUnlock, checkUpgrade, type RouteUnlockError, type UpgradeError } from '@domain/upgrades';
 import { Button } from '@ui/Button';
 import { Card } from '@ui/Card';
+import { HOLIDAYS } from '@data/holidays';
+import { previewNextDayHoliday } from '@domain/events';
+import { getRoute } from '@domain/routes';
+import { formatMoney } from '@ui/format';
 import { ScrollList } from '@ui/ScrollList';
 import { SegmentedControl } from '@ui/SegmentedControl';
 import { TEXT_STYLES } from '@ui/textStyles';
@@ -20,7 +24,8 @@ import { sessionBridge } from './sessionBridge';
 type ShopItem = { kind: 'upgrade'; upgrade: UpgradeDef } | { kind: 'route'; route: Route };
 type Tab = 'upgrades' | 'routes';
 
-const LIST_Y = 260;
+const LIST_Y = 330;
+const TEASER_Y = 250;
 const CARD_HEIGHT = 190;
 const CARD_GAP = 16;
 const ROW_HEIGHT = CARD_HEIGHT + CARD_GAP;
@@ -33,6 +38,7 @@ export class ShopScene extends BaseScene {
   private list!: ScrollList<ShopItem>;
   private moneyText!: Phaser.GameObjects.Text;
   private nextDayButton!: Button;
+  private teaserText!: Phaser.GameObjects.Text;
   private unsubscribeEvents: (() => void) | null = null;
 
   constructor() {
@@ -63,6 +69,10 @@ export class ShopScene extends BaseScene {
       },
     });
 
+    this.teaserText = this.add
+      .text(GAME_WIDTH / 2, TEASER_Y, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })
+      .setOrigin(0.5, 0);
+
     this.list = new ScrollList<ShopItem>(this, {
       x: 20,
       y: LIST_Y,
@@ -90,8 +100,17 @@ export class ShopScene extends BaseScene {
 
   private renderAll(): void {
     const state = sessionBridge.current.state;
-    this.moneyText.setText(`${state.money} ${STRINGS.common.currencySuffix}`);
+    this.moneyText.setText(formatMoney(state.money));
+    this.teaserText.setText(this.tomorrowHolidayTeaser(state));
     this.list.setItems(this.itemsForTab());
+  }
+
+  private tomorrowHolidayTeaser(state: GameState): string {
+    const holiday = previewNextDayHoliday(state.seed, state.day, state.unlockedRoutes);
+    if (!holiday) return '';
+    const name = HOLIDAYS.find((candidate) => candidate.id === holiday.holidayId)?.name ?? '';
+    const routes = holiday.hotRoutes.map((routeId) => getRoute(routeId).name).join(', ');
+    return STRINGS.shop.holidayTeaser.replace('{holiday}', name).replace('{routes}', routes);
   }
 
   private renderItem(item: ShopItem): Phaser.GameObjects.Container {
@@ -108,7 +127,7 @@ export class ShopScene extends BaseScene {
         height: CARD_HEIGHT,
         title: upgradeText.name,
         description: upgradeText.description.replace('{minTravelViet}', String(item.upgrade.minTravelViet ?? '')),
-        priceLabel: `${item.upgrade.cost} ${STRINGS.common.currencySuffix}`,
+        priceLabel: formatMoney(item.upgrade.cost),
         statusLabel: owned ? STRINGS.shop.owned : result.ok ? '' : this.upgradeStatusText(result.reason, item.upgrade.minDay),
         buttonLabel: STRINGS.shop.buy,
         buttonEnabled: result.ok,
@@ -124,7 +143,7 @@ export class ShopScene extends BaseScene {
       height: CARD_HEIGHT,
       title: item.route.name,
       description: item.route.flavorText ?? '',
-      priceLabel: `${cost} ${STRINGS.common.currencySuffix}`,
+      priceLabel: formatMoney(cost),
       statusLabel: unlocked ? STRINGS.shop.unlocked : result.ok ? '' : this.routeStatusText(result.reason, item.route.unlock?.minTravelViet ?? null),
       buttonLabel: STRINGS.shop.buy,
       buttonEnabled: result.ok,

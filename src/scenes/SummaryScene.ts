@@ -3,6 +3,7 @@ import { TRAVELVIET_FROM_DAY } from '@data/demand';
 import { STRINGS } from '@data/strings';
 import type { DaySummary } from '@domain/models';
 import { Button } from '@ui/Button';
+import { formatMoney } from '@ui/format';
 import { CountUpText } from '@ui/CountUpText';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
@@ -30,7 +31,7 @@ const TOTAL_REVEAL_MS = 3000;
 const BUTTON_HEIGHT = 96;
 const BUTTON_Y = GAME_HEIGHT - 140;
 
-const money = (value: number): string => `${Math.round(value)} ${STRINGS.common.currencySuffix}`;
+const money = formatMoney;
 const count = (value: number): string => String(Math.round(value));
 
 /** PLAN §10.8/§5.6. Thay overlay tạm trong CounterScene (Giai đoạn 3) bằng scene thật. */
@@ -111,6 +112,10 @@ export class SummaryScene extends BaseScene {
     if (summary.weatherLostSeats > 0) {
       lines.push({ label: STRINGS.summary.weatherLostSeats, to: summary.weatherLostSeats, format: count });
       lines.push({ label: STRINGS.summary.weatherLostCost, to: summary.weatherLostCost, format: money });
+    }
+    if (summary.cancelledTickets > 0) {
+      lines.push({ label: STRINGS.summary.cancelledTickets, to: summary.cancelledTickets, format: count });
+      lines.push({ label: STRINGS.summary.cancelRefunds, to: summary.cancelRefunds, format: money });
     }
     if (summary.penalties > 0) lines.push({ label: STRINGS.summary.penalties, to: summary.penalties, format: money });
     lines.push({ label: STRINGS.summary.profit, to: summary.moneyEnd - summary.moneyStart, format: money });

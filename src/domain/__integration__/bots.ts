@@ -7,7 +7,8 @@ import { matchesTimePref } from '../clock';
 import { invariant } from '../common/invariant';
 import type { GameSession } from '../game';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '../inventory';
-import type { CabinClass, Command, DomainEvent, GameState, Order, SeatId } from '../models';
+import type { CabinClass, Command, DayEvent, DomainEvent, GameState, Order, RouteId, SeatId } from '../models';
+import { dayDemandProfile } from '../pricing';
 import { createRng, type Rng } from '../rng';
 import { matchesSeatPref } from '../seatMap';
 import { isPassportValid } from '../scoring';
@@ -84,13 +85,15 @@ export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1,
   const avoid = avoidWeather && today.event.type === 'WEATHER' ? today.event.routeId : null;
   const routes = ROUTES.filter((route) => state.unlockedRoutes.includes(route.id) && route.id !== avoid);
   if (!routes.length) return;
-  const expected = customersForDay({ seed: state.seed, day: state.day, rating: travelVietScore(state.starHistory), rush: today.event.type === 'RUSH' }) * demandScale;
+  const profile = dayDemandProfile(state.unlockedRoutes, today.priceAdjustPct, today.event);
+  const expected = customersForDay({ seed: state.seed, day: state.day, rating: travelVietScore(state.starHistory), rush: today.event.type === 'RUSH' }) * demandScale * profile.averagePriceFactor;
   const pBiz = isMechanicOpen('business', state.day) ? getDayConfig(state.day).pBusiness : 0;
-  const totalWeight = routes.reduce((total, route) => total + route.weight, 0);
+  const weightOf = (route: (typeof routes)[number]): number => route.weight * (profile.routeWeightMultiplier[route.id] ?? 1);
+  const totalWeight = routes.reduce((total, route) => total + weightOf(route), 0);
 
   const units: { flightId: string; cabin: CabinClass }[] = [];
   for (const route of routes) {
-    const demand = (expected * route.weight) / totalWeight;
+    const demand = (expected * weightOf(route)) / totalWeight;
     const flights = today.flights.filter((flight) => flight.routeId === route.id);
     const wanted: [CabinClass, number][] = [['ECONOMY', Math.ceil(demand * (1 - pBiz))], ['BUSINESS', Math.round(demand * pBiz)]];
     for (const [cabin, count] of wanted) {
@@ -193,6 +196,16 @@ export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly 
   run(game, { type: 'NEXT_DAY' });
 };
 
+/** % chỉnh giá vé mà bot đặt cho một tuyến trong ngày (0 = giá gốc). */
+export type PricingStrategy = (context: { event: DayEvent; routeId: RouteId }) => number;
+
+export const FLAT_PRICING: PricingStrategy = () => 0;
+
+const setPrices = (game: GameSession, pricing: PricingStrategy): void => {
+  const { state } = game;
+  for (const routeId of state.unlockedRoutes) run(game, { type: 'SET_ROUTE_PRICE', routeId, pct: pricing({ event: state.today.event, routeId }) });
+};
+
 export const playDay = (
   game: GameSession,
   decide: Decide = perfectDecide,
@@ -201,8 +214,10 @@ export const playDay = (
   avoidWeather = true,
   serveTimeMs = 0,
   upgradeOrder: readonly string[] = [],
+  pricing: PricingStrategy = FLAT_PRICING,
 ): DomainEvent[] => {
   if (game.state.day === 1) run(game, { type: 'FLAG_SET', flag: 'tutorialDone_1' });
+  setPrices(game, pricing);
   buyForDay(game, 0.9, demandScale, avoidWeather);
   run(game, { type: 'OPEN_COUNTER' });
   const events = playShift(game, decide, serveTimeMs);

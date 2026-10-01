@@ -599,7 +599,9 @@ const cancelOverCapTickets = (state: GameState): void => {
   const minute = Math.floor(today.clock);
   for (const result of today.results) {
     if (!result.overCap || result.revenue === 0 || !rng.chance(OVER_CAP_CANCEL_RATE)) continue;
-    const refund = result.revenue + result.tip;
+    // Tiền không bao giờ âm: nếu phạt trong ngày đã làm quỹ nhỏ hơn số hoàn thì chỉ hoàn phần còn có.
+    const refund = Math.min(result.revenue + result.tip, state.money);
+    if (refund === 0) continue;
     state.money -= refund;
     today.transactions.push(makeTx('TICKET_REFUND', -refund, state.day, minute, result.customerId));
   }

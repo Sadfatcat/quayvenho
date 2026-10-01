@@ -174,3 +174,23 @@ describe('cancellations refund the ticket, keep the money invariant', () => {
     expect(game.state.money).toBe((summary?.moneyEnd ?? -1));
   });
 });
+
+describe('cancellations never push money below zero', () => {
+  it('refunds only what the till still holds', () => {
+    const game = new GameSession(createNewGame(9));
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const state = game.state as import('./models').GameState;
+    for (let index = 0; index < 30; index++) {
+      state.today.results.push({ customerId: `y${index}`, outcome: 'PERFECT', stars: 5, revenue: 1000, tip: 0, penalty: 0, mistakes: [], overCap: true });
+    }
+    state.today.transactions.push({ type: 'TICKET_REVENUE', amount: 30000, day: 1, minute: 500 });
+    state.today.transactions.push({ type: 'PENALTY', amount: -29500, day: 1, minute: 600 });
+    state.money = state.today.moneyStart + 500;
+    state.today.queue = [];
+    state.phase = 'CLOSING';
+    game.tick(100);
+    expect(game.state.money).toBeGreaterThanOrEqual(0);
+    expect(game.state.phase).toBe('SUMMARY');
+  });
+});

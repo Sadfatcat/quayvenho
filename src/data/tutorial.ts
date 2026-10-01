@@ -20,6 +20,7 @@ export const TUTORIAL_STEPS: readonly TutorialStepDef[] = [
   { id: 'businessDay4', scene: 'Counter', appliesOn: ({ day }) => day >= 4 },
   { id: 'timeAndExtrasDay5', scene: 'Counter', appliesOn: ({ day }) => day >= 5 },
   { id: 'passportDay6', scene: 'Counter', appliesOn: ({ day }) => day >= 6 },
+  { id: 'priceDay2', scene: 'Prep', appliesOn: ({ day }) => day >= 2 },
   { id: 'rushFirst', scene: 'Prep', appliesOn: ({ event }) => event.type === 'RUSH' },
   { id: 'weatherFirst', scene: 'Prep', appliesOn: ({ event }) => event.type === 'WEATHER' },
 ];
