@@ -4,7 +4,6 @@ import {
   BUSINESS_TIP_RATIO,
   EXTRA_FEES,
 } from '@data/balance';
-import { RUSH_PRICE_MULT } from '@data/events';
 import { sum } from './common/math';
 import type {
   CabinClass,
@@ -26,13 +25,13 @@ export const bulkDiscountRate = (qty: number): number =>
 export const purchaseCost = (unitCost: number, qty: number): number =>
   roundMoney(unitCost * qty * (1 - bulkDiscountRate(qty)));
 
-/** Unrounded; only feeds revenue and tip, which round. */
-export const fareOf = (route: Route, cabin: CabinClass, rush: boolean): number =>
-  route.price[cabin] * (rush ? RUSH_PRICE_MULT : 1);
+/** Giá bán thực tế = giá gốc × (1 + % người chơi chỉnh), làm tròn một chỗ duy nhất (đơn vị k). */
+export const fareOf = (route: Route, cabin: CabinClass, pricePct: number): number =>
+  roundMoney(route.price[cabin] * (1 + pricePct / 100));
 
-export const ticketRevenue = (order: Order, route: Route, rush: boolean): number =>
+export const ticketRevenue = (order: Order, route: Route, pricePct: number): number =>
   roundMoney(
-    fareOf(route, order.cabin, rush) +
+    fareOf(route, order.cabin, pricePct) +
       BAGGAGE_FEES[order.baggageKg] +
       sum(order.extras.map((extra) => EXTRA_FEES[extra])),
   );
@@ -94,6 +93,8 @@ export const summarizeDay = (input: DaySummaryInput): DaySummary => {
     weatherLostSeats: lost.length,
     weatherLostCost: unitCostSum(lost),
     penalties: 0 - totalOf(txs, ['PENALTY']),
+    cancelledTickets: txs.filter((tx) => tx.type === 'TICKET_REFUND').length,
+    cancelRefunds: 0 - totalOf(txs, ['TICKET_REFUND']),
     served: results.length - left,
     left,
     turnedAway: input.turnedAway,

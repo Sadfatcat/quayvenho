@@ -23,13 +23,13 @@ describe('full day (Phase 1 acceptance)', () => {
     expect(outcomes).toEqual(['FAILED', 'LEFT', 'LEFT', 'PERFECT', 'PERFECT', 'PERFECT', 'REFUSED_NO_STOCK']);
     expect(game.state.lastSummary).toMatchObject({
       day: 1,
-      moneyStart: 400,
-      moneyEnd: 400 - 280 + 270 - 45,
-      ticketRevenue: 270,
+      moneyStart: 6000,
+      moneyEnd: 6000 - 4040 + 3300 - 680,
+      ticketRevenue: 3300,
       tips: 0,
-      seatCost: 280,
+      seatCost: 4040,
       shopCost: 0,
-      penalties: 45,
+      penalties: 680,
       expiredSeats: 0,
       served: 5,
       left: 2,
@@ -51,7 +51,7 @@ describe('30 days with the perfect bot', () => {
     expect(game.state.phase).toBe('PREP');
     expect(travelVietUnlocked).toBe(true);
     expect(game.state.lastSummary?.travelVietAfter).not.toBeNull();
-    expect(game.state.money + game.state.upgrades.length).toBeGreaterThan(400);
+    expect(game.state.money + game.state.upgrades.length).toBeGreaterThan(6000);
     expect(game.state.unlockedRoutes.length).toBeGreaterThanOrEqual(4);
   });
 });
@@ -63,7 +63,7 @@ describe('money invariant', () => {
       const game = GameSession.newGame(seed);
       const decide = randomDecide(randomBotRng(seed));
       for (let day = 1; day <= 25; day++) {
-        playDay(game, decide, 100);
+        playDay(game, decide, 1500);
         days++;
         expect(game.state.money).toBeGreaterThanOrEqual(0);
         expect(Number.isInteger(game.state.money)).toBe(true);

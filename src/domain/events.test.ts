@@ -56,7 +56,7 @@ describe('resolveWeather', () => {
 
 describe('isRush', () => {
   it('is true only for a RUSH event', () => {
-    expect(isRush({ type: 'RUSH' })).toBe(true);
+    expect(isRush({ type: 'RUSH', holidayId: 'TET', hotRoutes: [] })).toBe(true);
     expect(isRush({ type: 'NONE' })).toBe(false);
     expect(isRush({ type: 'WEATHER', routeId: 'HAN-DAD', outcome: null })).toBe(false);
   });

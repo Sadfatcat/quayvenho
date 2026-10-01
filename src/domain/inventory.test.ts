@@ -30,7 +30,7 @@ const owned = (seat: OwnedSeat['seat'], state: OwnedSeat['state'] = 'AVAILABLE',
   ...patch,
 });
 
-const buy = (pending: Record<string, number>, money = 1000, seats: OwnedSeat[] = [], flights = [flight()]) =>
+const buy = (pending: Record<string, number>, money = 100000, seats: OwnedSeat[] = [], flights = [flight()]) =>
   purchasePending({ pending, flights, seats, money, bias: 'BALANCED', rng: createRng(1) });
 
 describe('inventory: purchase', () => {
@@ -54,10 +54,10 @@ describe('inventory: purchase', () => {
     const result = buy({ [pendingKey('QV201', 'ECONOMY')]: 5 });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.totalCost).toBe(238);
+    expect(result.value.totalCost).toBe(3468);
     expect(result.value.seats).toHaveLength(5);
-    expect(result.value.seats.every((s) => s.state === 'AVAILABLE' && s.unitCost === 50)).toBe(true);
-    expect(pendingTotalCost({ [pendingKey('QV201', 'ECONOMY')]: 5 }, [flight()])).toBe(238);
+    expect(result.value.seats.every((s) => s.state === 'AVAILABLE' && s.unitCost === 730)).toBe(true);
+    expect(pendingTotalCost({ [pendingKey('QV201', 'ECONOMY')]: 5 }, [flight()])).toBe(3468);
   });
 
   it('rejects nothing pending, over limit, not enough money, unknown flight', () => {

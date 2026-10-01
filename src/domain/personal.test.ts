@@ -112,7 +112,7 @@ describe('ensureServableForSpecial', () => {
 });
 
 describe('scoreCustomer for special customers', () => {
-  const baseInput = { patienceRatio: 1, day: 3, rush: false, tipMult: 1, money: 500 };
+  const baseInput = { patienceRatio: 1, day: 3, pricePct: 0, tipMult: 1, money: 500 };
   const specialOrder = () => makeOrder({ special: { id: 'VIP_TEST', tipMultiplier: 3 }, passport: { name: 'K', bookedName: 'K', expiresDay: 20 } });
 
   it('gives a failed ticket no penalty, at least 3 stars and carries the special id', () => {

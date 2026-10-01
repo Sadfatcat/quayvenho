@@ -17,7 +17,7 @@ describe('computeModifiers', () => {
 });
 
 describe('shop checks', () => {
-  const ctx = { day: 5, money: 1000, travelViet: 4.5 };
+  const ctx = { day: 5, money: 100000, travelViet: 4.5 };
 
   it('upgrade: owned once, day and TravelViet conditions, money', () => {
     expect(checkUpgrade('FAN', [], ctx).ok).toBe(true);
@@ -26,17 +26,17 @@ describe('shop checks', () => {
     expect(checkUpgrade('LOYALTY_BOARD', [], ctx)).toEqual({ ok: false, reason: 'TRAVELVIET_LOCKED' });
     expect(checkUpgrade('LOYALTY_BOARD', [], { ...ctx, day: 11, travelViet: 4.2 })).toEqual({ ok: false, reason: 'TRAVELVIET_TOO_LOW' });
     expect(checkUpgrade('LOYALTY_BOARD', [], { ...ctx, day: 11 }).ok).toBe(true);
-    expect(checkUpgrade('FAN', [], { ...ctx, money: 149 })).toEqual({ ok: false, reason: 'NOT_ENOUGH_MONEY' });
+    expect(checkUpgrade('FAN', [], { ...ctx, money: 2249 })).toEqual({ ok: false, reason: 'NOT_ENOUGH_MONEY' });
     expect(checkUpgrade('NOPE', [], ctx)).toEqual({ ok: false, reason: 'UNKNOWN_UPGRADE' });
   });
 
   it('route: TravelViet routes locked before day 11', () => {
     const unlocked = ['HAN-SGN', 'HAN-DAD'];
-    expect(checkRouteUnlock('HAN-CXR', unlocked, ctx)).toEqual({ ok: true, value: 250 });
+    expect(checkRouteUnlock('HAN-CXR', unlocked, ctx)).toEqual({ ok: true, value: 3750 });
     expect(checkRouteUnlock('HAN-SGN', unlocked, ctx)).toEqual({ ok: false, reason: 'ALREADY_UNLOCKED' });
     expect(checkRouteUnlock('HAN-BKK', unlocked, ctx)).toEqual({ ok: false, reason: 'TRAVELVIET_LOCKED' });
     expect(checkRouteUnlock('HAN-BKK', unlocked, { ...ctx, day: 11, travelViet: 3.7 })).toEqual({ ok: false, reason: 'TRAVELVIET_TOO_LOW' });
-    expect(checkRouteUnlock('HAN-BKK', unlocked, { ...ctx, day: 11 })).toEqual({ ok: true, value: 800 });
+    expect(checkRouteUnlock('HAN-BKK', unlocked, { ...ctx, day: 11 })).toEqual({ ok: true, value: 12000 });
     expect(checkRouteUnlock('HAN-PQC', unlocked, { ...ctx, money: 10 })).toEqual({ ok: false, reason: 'NOT_ENOUGH_MONEY' });
     expect(checkRouteUnlock('XXX', unlocked, ctx)).toEqual({ ok: false, reason: 'UNKNOWN_ROUTE' });
   });
@@ -71,8 +71,8 @@ describe('safety net', () => {
   const routes = ['HAN-SGN', 'HAN-DAD'];
 
   it('triggers below 3 × cheapest ECO cost', () => {
-    expect(needsSupport(149, routes)).toBe(true);
-    expect(needsSupport(150, routes)).toBe(false);
+    expect(needsSupport(2189, routes)).toBe(true);
+    expect(needsSupport(2190, routes)).toBe(false);
   });
 
   it('gifts 3 free ECO seats on the earliest cheapest-route flight', () => {

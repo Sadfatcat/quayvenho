@@ -168,6 +168,9 @@ export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0): D
   return events;
 };
 
+/** Tiền giữ lại không dùng để mua nâng cấp/tuyến (đơn vị k). */
+const DEFAULT_RESERVE = 3750;
+
 /** Buys the cheapest route, then upgrades (listed ids first, then cheapest), keeping a reserve. */
 export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly string[] = []): void => {
   run(game, { type: 'GO_TO_SHOP' });
@@ -193,7 +196,7 @@ export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly 
 export const playDay = (
   game: GameSession,
   decide: Decide = perfectDecide,
-  reserve = 250,
+  reserve = DEFAULT_RESERVE,
   demandScale = 1,
   avoidWeather = true,
   serveTimeMs = 0,

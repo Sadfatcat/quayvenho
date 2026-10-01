@@ -12,8 +12,9 @@ import {
   SAVE_VERSION,
   STARTING_MONEY,
 } from '@data/balance';
-import { TRAVELVIET_FROM_DAY, TRAVELVIET_WINDOW } from '@data/demand';
+import { MAX_CUSTOMERS, MIN_CUSTOMERS, TRAVELVIET_FROM_DAY, TRAVELVIET_WINDOW } from '@data/demand';
 import { PERSONAL, type PersonalConfig } from '@data/personal';
+import { OVER_CAP_CANCEL_RATE } from '@data/pricing';
 import { WEATHER_LOSS_SHARE } from '@data/events';
 import { SHOP_CLOSE_MINUTE, SHOP_OPEN_MINUTE } from '@data/schedule';
 import { canServe } from './canServe';
@@ -24,6 +25,7 @@ import { getDayConfig, isMechanicOpen } from './dayConfig';
 import { customersForDay, isTravelVietOpen, travelVietScore } from './demand';
 import { makeTx, moneyBalances, refundFor, summarizeDay } from './economy';
 import { isRush, resolveWeather, rollDayEvent } from './events';
+import { clampPricePct, dayDemandProfile } from './pricing';
 import { buildSpecialOrder, dayHasPersonalContent, ensureServableForSpecial, specialCustomerForArrival } from './personal';
 import {
   expireAvailable,
@@ -88,6 +90,7 @@ const createToday = (
 ): TodayState => ({
   moneyStart,
   event: dayHasPersonalContent(personal, day) ? { type: 'NONE' } : rollDayEvent(seed, day, unlockedRoutes),
+  priceAdjustPct: {},
   flights: generateFlights(seed, day, unlockedRoutes),
   seats: [],
   pendingPurchase: {},
@@ -179,7 +182,7 @@ const scoreAction = (state: GameState, customer: Customer, action: CustomerActio
     action,
     patienceRatio: patienceRatioOf(customer),
     day: state.day,
-    rush: isRush(state.today.event),
+    pricePct: state.today.priceAdjustPct[customer.order.routeId] ?? 0,
     tipMult: computeModifiers(state.upgrades).tipMult,
     money: state.money,
   });
@@ -253,6 +256,14 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
         today.transactions.push(makeTx('SEAT_PURCHASE', -purchase.cost, state.day, null, pendingKey(purchase.flightId, purchase.cabin)));
         return { type: 'SEATS_PURCHASED', ...purchase };
       });
+    }
+
+    case 'SET_ROUTE_PRICE': {
+      if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      if (!state.unlockedRoutes.includes(command.routeId)) return reject('ROUTE_LOCKED');
+      if (!Number.isFinite(command.pct)) return reject('BAD_PRICE');
+      today.priceAdjustPct = { ...today.priceAdjustPct, [command.routeId]: clampPricePct(command.pct) };
+      return [];
     }
 
     case 'PREP_CLEAR_PENDING': {
@@ -436,17 +447,19 @@ const openCounter = (session: Session): DomainEvent[] => {
     events.push({ type: 'WEATHER_RESOLVED', routeId, outcome, lostSeats: lost.length });
   }
 
-  today.targetCustomers = customersForDay({
+  const demandProfile = dayDemandProfile(state.unlockedRoutes, today.priceAdjustPct, today.event);
+  const baseTarget = customersForDay({
     seed,
     day,
     rating: travelVietScore(state.starHistory),
     rush: isRush(today.event),
   });
+  today.targetCustomers = clamp(Math.round(baseTarget * demandProfile.averagePriceFactor), MIN_CUSTOMERS, MAX_CUSTOMERS);
   today.arrivals = generateArrivals(rngFor(seed, day, 'spawn'), today.targetCustomers);
   today.nextArrivalIndex = 0;
   today.clock = SHOP_OPEN_MINUTE;
   session.runtime = {
-    routeBag: buildRouteBag(rngFor(seed, day, 'routes'), state.unlockedRoutes, state.routeUnlockedDay, day),
+    routeBag: buildRouteBag(rngFor(seed, day, 'routes'), state.unlockedRoutes, state.routeUnlockedDay, day, demandProfile.routeWeightMultiplier),
     ordersRng: rngFor(seed, day, 'orders'),
     namesRng: rngFor(seed, day, 'names'),
   };
@@ -579,6 +592,20 @@ const tickPatience = (state: GameState, delta: number, events: DomainEvent[]): v
   }
 };
 
+/** Vé bán vượt trần giá: một phần bị huỷ lúc tổng kết — hoàn tiền vé + tip, ghế vẫn đã dùng (không bán lại được). */
+const cancelOverCapTickets = (state: GameState): void => {
+  const { today } = state;
+  const rng = rngFor(state.seed, state.day, 'cancel');
+  const minute = Math.floor(today.clock);
+  for (const result of today.results) {
+    if (!result.overCap || result.revenue === 0 || !rng.chance(OVER_CAP_CANCEL_RATE)) continue;
+    const refund = result.revenue + result.tip;
+    state.money -= refund;
+    today.transactions.push(makeTx('TICKET_REFUND', -refund, state.day, minute, result.customerId));
+  }
+  invariant(state.money >= 0, 'money went negative after cancellations');
+};
+
 const endDayIfDone = (session: Session, events: DomainEvent[]): void => {
   const { state } = session;
   const { today } = state;
@@ -593,6 +620,7 @@ const endDayIfDone = (session: Session, events: DomainEvent[]): void => {
     state.money += refund;
     today.transactions.push(makeTx('REFUND_EXPIRED', refund, state.day, Math.floor(today.clock)));
   }
+  cancelOverCapTickets(state);
   invariant(moneyBalances(today.moneyStart, today.transactions, state.money), `money invariant broken on day ${state.day}`);
 
   const summary = summarizeDay({

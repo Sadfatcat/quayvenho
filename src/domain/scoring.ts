@@ -11,6 +11,7 @@ import {
 import { matchesTimePref } from './clock';
 import { businessTip, clampPenalty, fareOf, ticketRevenue } from './economy';
 import type { CabinClass, Extra, Flight, MistakeCode, Order, Passport, ScoreOutcome, ScoreResult, SeatId, Stars } from './models';
+import { isOverCap } from './pricing';
 import { getRoute } from './routes';
 import { matchesSeatPref } from './seatMap';
 
@@ -32,7 +33,8 @@ export interface ScoreInput {
   action: CustomerAction;
   patienceRatio: number;
   day: number;
-  rush: boolean;
+  /** % chỉnh giá vé của tuyến trong đơn (0 = giá gốc). */
+  pricePct: number;
   tipMult: number;
   money: number;
 }
@@ -81,6 +83,7 @@ const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
     tip,
     penalty: clampPenalty(OUTCOME_PENALTY[outcome], input.money),
     mistakes,
+    overCap: isOverCap(input.pricePct),
   });
 
   if (action.type === 'LEFT') return result('LEFT', []);
@@ -100,10 +103,10 @@ const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
   if (outcome === 'POOR') return result('POOR', mistakes);
 
   const route = getRoute(order.routeId);
-  const revenue = ticketRevenue(order, route, input.rush);
+  const revenue = ticketRevenue(order, route, input.pricePct);
   const tip =
     outcome === 'PERFECT' && order.cabin === 'BUSINESS'
-      ? businessTip(fareOf(route, 'BUSINESS', input.rush), input.tipMult)
+      ? businessTip(fareOf(route, 'BUSINESS', input.pricePct), input.tipMult)
       : 0;
   return result(outcome, mistakes, revenue, tip);
 };
@@ -122,7 +125,7 @@ export const scoreCustomer = (input: ScoreInput): ScoreResult => {
   const stars = Math.max(result.stars, SPECIAL_MIN_STARS) as Stars;
   const tip =
     result.outcome === SPECIAL_TIP_OUTCOME && input.action.type === 'DELIVER'
-      ? businessTip(fareOf(getRoute(input.order.routeId), input.order.cabin, input.rush), input.tipMult * special.tipMultiplier)
+      ? businessTip(fareOf(getRoute(input.order.routeId), input.order.cabin, input.pricePct), input.tipMult * special.tipMultiplier)
       : result.tip;
   return { ...result, stars, tip, penalty: 0, specialId: special.id };
 };

@@ -3,7 +3,7 @@ import type { DayEvent } from '@domain/models';
 import { TUTORIAL_STEPS } from './tutorial';
 
 const NO_EVENT: DayEvent = { type: 'NONE' };
-const RUSH_EVENT: DayEvent = { type: 'RUSH' };
+const RUSH_EVENT: DayEvent = { type: 'RUSH', holidayId: 'TET', hotRoutes: ['HAN-DAD'] };
 
 const idsOn = (scene: 'Prep' | 'Counter', day: number, event: DayEvent): string[] =>
   TUTORIAL_STEPS.filter((step) => step.scene === scene && step.appliesOn({ day, event })).map((step) => step.id);

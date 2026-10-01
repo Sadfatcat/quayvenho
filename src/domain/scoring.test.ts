@@ -16,9 +16,9 @@ const score = (patch: Partial<ScoreInput> = {}, orderPatch: Partial<Order> = {},
     action: { type: 'DELIVER', ticket: ticket(ticketPatch) },
     patienceRatio: 0.8,
     day: 6,
-    rush: false,
+    pricePct: 0,
     tipMult: 1,
-    money: 1000,
+    money: 100000,
     ...patch,
   });
 
@@ -33,7 +33,7 @@ describe('passport', () => {
 
 describe('scoreCustomer', () => {
   it('PERFECT: 5★, full revenue, no tip for economy', () => {
-    expect(score()).toMatchObject({ outcome: 'PERFECT', stars: 5, revenue: 75 + 25 + 5, tip: 0, penalty: 0, mistakes: [] });
+    expect(score()).toMatchObject({ outcome: 'PERFECT', stars: 5, revenue: 1100 + 380 + 80, tip: 0, penalty: 0, mistakes: [], overCap: false });
   });
 
   it('accurate but slow is GOOD (4★)', () => {
@@ -63,14 +63,14 @@ describe('scoreCustomer', () => {
 
   it('BUSINESS deductions double; PERFECT BUSINESS tips 0.8 × fare', () => {
     const biz = { cabin: 'BUSINESS' as const };
-    expect(score({}, biz, biz)).toMatchObject({ outcome: 'PERFECT', revenue: 190 + 25 + 5, tip: 152 });
+    expect(score({}, biz, biz)).toMatchObject({ outcome: 'PERFECT', revenue: 2700 + 380 + 80, tip: 2160 });
     expect(score({}, biz, { ...biz, seat: '1B' })).toMatchObject({ outcome: 'OK', tip: 0 });
-    expect(score({ tipMult: 1.15, rush: true }, biz, biz).tip).toBe(Math.round(0.8 * 190 * 1.2 * 1.15));
+    expect(score({ tipMult: 1.15, pricePct: 20 }, biz, biz).tip).toBe(Math.round(0.8 * 2700 * 1.2 * 1.15));
   });
 
-  it('FAILED on wrong route / cabin / time window: 1★, penalty 25', () => {
+  it('FAILED on wrong route / cabin / time window: 1★, penalty 380', () => {
     expect(score({}, {}, { flight: flight({ routeId: 'HAN-SGN' }) })).toMatchObject({
-      outcome: 'FAILED', stars: 1, revenue: 0, penalty: 25, mistakes: ['WRONG_ROUTE'],
+      outcome: 'FAILED', stars: 1, revenue: 0, penalty: 380, mistakes: ['WRONG_ROUTE'],
     });
     expect(score({}, {}, { cabin: 'BUSINESS' }).mistakes).toEqual(['WRONG_CABIN']);
     expect(score({}, {}, { flight: flight({ departAt: 1470 }) }).mistakes).toEqual(['WRONG_TIME']);
@@ -78,22 +78,31 @@ describe('scoreCustomer', () => {
 
   it('SOLD_INVALID when selling to a bad passport', () => {
     const expired = { passport: { name: 'A', bookedName: 'A', expiresDay: 5 } };
-    expect(score({}, expired)).toMatchObject({ outcome: 'SOLD_INVALID', stars: 1, penalty: 40, revenue: 0 });
+    expect(score({}, expired)).toMatchObject({ outcome: 'SOLD_INVALID', stars: 1, penalty: 600, revenue: 0 });
   });
 
   it('refusals: correct, no stock, wrong', () => {
     const refuse = (canServe: boolean, orderPatch: Partial<Order> = {}) =>
-      scoreCustomer({ order: order(orderPatch), action: { type: 'REFUSE', canServe }, patienceRatio: 1, day: 6, rush: false, tipMult: 1, money: 100 });
+      scoreCustomer({ order: order(orderPatch), action: { type: 'REFUSE', canServe }, patienceRatio: 1, day: 6, pricePct: 0, tipMult: 1, money: 10000 });
     expect(refuse(true, { passport: { name: 'A', bookedName: 'B', expiresDay: 9 } })).toMatchObject({ outcome: 'REFUSED_CORRECT', stars: 4, tip: 0 });
     expect(refuse(false)).toMatchObject({ outcome: 'REFUSED_NO_STOCK', stars: 3, penalty: 0 });
-    expect(refuse(true)).toMatchObject({ outcome: 'REFUSED_WRONG', stars: 1, penalty: 20 });
+    expect(refuse(true)).toMatchObject({ outcome: 'REFUSED_WRONG', stars: 1, penalty: 300 });
   });
 
-  it('LEFT: 1★, penalty 10 clamped to money', () => {
+  it('LEFT: 1★, penalty 150 clamped to money', () => {
     const left = (money: number) =>
-      scoreCustomer({ order: order(), action: { type: 'LEFT' }, patienceRatio: 0, day: 6, rush: false, tipMult: 1, money });
-    expect(left(100)).toMatchObject({ outcome: 'LEFT', stars: 1, penalty: 10 });
-    expect(left(4).penalty).toBe(4);
+      scoreCustomer({ order: order(), action: { type: 'LEFT' }, patienceRatio: 0, day: 6, pricePct: 0, tipMult: 1, money });
+    expect(left(1000)).toMatchObject({ outcome: 'LEFT', stars: 1, penalty: 150 });
+    expect(left(40).penalty).toBe(40);
     expect(left(0).penalty).toBe(0);
+  });
+});
+
+describe('over-cap pricing', () => {
+  it('marks tickets sold above +30% as overCap, still charging the higher fare', () => {
+    expect(score({ pricePct: 30 }).overCap).toBe(false);
+    const over = score({ pricePct: 40 });
+    expect(over.overCap).toBe(true);
+    expect(over.revenue).toBe(1540 + 380 + 80);
   });
 });

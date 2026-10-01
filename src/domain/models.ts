@@ -19,7 +19,7 @@ export type Mechanic = 'baggage' | 'seatPref' | 'business' | 'timePref' | 'extra
 
 export type DayEvent =
   | { type: 'NONE' }
-  | { type: 'RUSH' }
+  | { type: 'RUSH'; holidayId: string; hotRoutes: RouteId[] }
   | { type: 'WEATHER'; routeId: RouteId; outcome: WeatherOutcome | null };
 
 export interface Route {
@@ -124,6 +124,8 @@ export interface ScoreResult {
   tip: number;
   penalty: number;
   mistakes: MistakeCode[];
+  /** Vé bán với giá vượt trần (có thể bị huỷ lúc tổng kết). */
+  overCap: boolean;
   specialId?: string;
 }
 
@@ -133,6 +135,7 @@ export type TxType =
   | 'TIP'
   | 'PENALTY'
   | 'REFUND_EXPIRED'
+  | 'TICKET_REFUND'
   | 'SUPPORT_GIFT'
   | 'WEATHER_LOSS'
   | 'UPGRADE_PURCHASE'
@@ -161,6 +164,8 @@ export interface DaySummary {
   weatherLostSeats: number;
   weatherLostCost: number;
   penalties: number;
+  cancelledTickets: number;
+  cancelRefunds: number;
   served: number;
   left: number;
   turnedAway: number;
@@ -219,6 +224,8 @@ export interface CounterSlot {
 export interface TodayState {
   moneyStart: number;
   event: DayEvent;
+  /** % chỉnh giá vé theo tuyến, người chơi đặt ở Kho (mặc định 0 = giá gốc). */
+  priceAdjustPct: Partial<Record<RouteId, number>>;
   flights: Flight[];
   seats: OwnedSeat[];
   /** key `${flightId}:${cabin}` */
@@ -262,6 +269,7 @@ export type Command =
   | { type: 'PREP_SET_QTY'; flightId: string; cabin: CabinClass; qty: number }
   | { type: 'PREP_SET_SEAT_BIAS'; bias: SeatBias }
   | { type: 'PREP_CONFIRM_PURCHASE' }
+  | { type: 'SET_ROUTE_PRICE'; routeId: RouteId; pct: number }
   | { type: 'PREP_CLEAR_PENDING' }
   | { type: 'OPEN_COUNTER' }
   | { type: 'BUILD_SELECT_FLIGHT'; flightId: string; cabin: CabinClass }

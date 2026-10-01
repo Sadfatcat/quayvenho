@@ -39,21 +39,28 @@ const BAGGAGE_CHOICES: readonly { value: BaggageKg; weight: number }[] = [
 ];
 const EXTRAS: readonly Extra[] = ['VEG_MEAL', 'WHEELCHAIR', 'INSURANCE'];
 
+const FRACTIONAL_WEIGHT_SCALE = 4;
+
 /** Routes bought in the shop within the last 2 days get double weight. */
 export const buildRouteBag = (
   rng: Rng,
   unlockedRoutes: readonly RouteId[],
   routeUnlockedDay: Readonly<Record<RouteId, number>>,
   day: number,
-): ShuffleBag<RouteId> =>
-  new ShuffleBag(
+  weightMultiplier: Readonly<Record<RouteId, number>> = {},
+): ShuffleBag<RouteId> => {
+  const neutral = Object.values(weightMultiplier).every((multiplier) => multiplier === 1);
+  return new ShuffleBag(
     rng,
     ROUTES.filter((route) => unlockedRoutes.includes(route.id)).map((route) => {
       const unlockedOn = routeUnlockedDay[route.id];
       const recent = unlockedOn !== undefined && day > unlockedOn && day - unlockedOn <= RECENT_UNLOCK_DAYS;
-      return { value: route.id, weight: route.weight * (recent ? 2 : 1) };
+      const weight = route.weight * (recent ? 2 : 1);
+      // Hệ số lẻ cần trọng số nguyên cho ShuffleBag: nhân tỉ lệ rồi làm tròn, giữ tối thiểu 1 để tuyến nào cũng còn cơ hội.
+      return { value: route.id, weight: neutral ? weight : Math.max(1, Math.round(weight * (weightMultiplier[route.id] ?? 1) * FRACTIONAL_WEIGHT_SCALE)) };
     }),
   );
+};
 
 export interface OrderContext {
   rng: Rng;

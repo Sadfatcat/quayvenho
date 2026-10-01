@@ -39,10 +39,11 @@ interface BotProfile {
 
 const PERFECT_UPGRADE_ORDER = ['COMFY_CHAIRS', 'FAN', 'BIGGER_COUNTER', 'FAST_PRINTER', 'LOYALTY_BOARD'];
 /** AVERAGE keeps a bigger cash cushion, so it starts buying upgrades later than PERFECT. */
-const AVERAGE_RESERVE = 600;
+const AVERAGE_RESERVE = 9000;
+const DEFAULT_RESERVE = 3750;
 
 const PROFILES: BotProfile[] = [
-  { name: 'PERFECT', reserve: 250, upgradeOrder: PERFECT_UPGRADE_ORDER, serveTimeMs: 15000, demandJitter: 0, avoidWeather: true, makeDecide: () => perfectDecide },
+  { name: 'PERFECT', reserve: DEFAULT_RESERVE, upgradeOrder: PERFECT_UPGRADE_ORDER, serveTimeMs: 15000, demandJitter: 0, avoidWeather: true, makeDecide: () => perfectDecide },
   {
     name: 'AVERAGE',
     reserve: AVERAGE_RESERVE,
@@ -54,7 +55,7 @@ const PROFILES: BotProfile[] = [
   },
   {
     name: 'POOR',
-    reserve: 250,
+    reserve: DEFAULT_RESERVE,
     upgradeOrder: [],
     serveTimeMs: 30000,
     demandJitter: 0.6,

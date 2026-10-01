@@ -4,16 +4,16 @@ import { needsSupport, supportGift } from './safetyNet';
 
 describe('needsSupport', () => {
   it('is true when money is below 3x the cheapest unlocked route ECONOMY cost', () => {
-    // HAN-DAD ECONOMY cost = 50, threshold = 150
-    expect(needsSupport(149, ['HAN-SGN', 'HAN-DAD'])).toBe(true);
-    expect(needsSupport(150, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
-    expect(needsSupport(151, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
+    // HAN-DAD ECONOMY cost = 730, threshold = 2190
+    expect(needsSupport(2189, ['HAN-SGN', 'HAN-DAD'])).toBe(true);
+    expect(needsSupport(2190, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
+    expect(needsSupport(2191, ['HAN-SGN', 'HAN-DAD'])).toBe(false);
   });
 
   it('picks the cheapest of the unlocked routes for the threshold', () => {
-    // Only HAN-SGN unlocked, ECONOMY cost = 70, threshold = 210
-    expect(needsSupport(200, ['HAN-SGN'])).toBe(true);
-    expect(needsSupport(210, ['HAN-SGN'])).toBe(false);
+    // Only HAN-SGN unlocked, ECONOMY cost = 1050, threshold = 3150
+    expect(needsSupport(3100, ['HAN-SGN'])).toBe(true);
+    expect(needsSupport(3150, ['HAN-SGN'])).toBe(false);
   });
 });
 

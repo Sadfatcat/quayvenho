@@ -1,7 +1,7 @@
 import type { BaggageKg, CabinClass, Extra, Modifiers, ScoreOutcome, Settings, Stars } from '@domain/models';
 
-export const SAVE_VERSION = 1;
-export const STARTING_MONEY = 400;
+export const SAVE_VERSION = 2;
+export const STARTING_MONEY = 6000;
 
 export const PROFILE_LIMITS = { playerName: 16, brandName: 20 } as const;
 export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.7, sfxVolume: 0.8, haptics: true };
@@ -16,8 +16,8 @@ export const BULK_DISCOUNT_TIERS: readonly { minQty: number; rate: number }[] = 
 export const SEAT_BIAS_PREFERENCE_CHANCE = 0.75;
 
 // Doanh thu
-export const BAGGAGE_FEES: Record<BaggageKg, number> = { 0: 0, 15: 20, 20: 25, 30: 35 };
-export const EXTRA_FEES: Record<Extra, number> = { VEG_MEAL: 5, WHEELCHAIR: 0, INSURANCE: 15 };
+export const BAGGAGE_FEES: Record<BaggageKg, number> = { 0: 0, 15: 300, 20: 380, 30: 530 };
+export const EXTRA_FEES: Record<Extra, number> = { VEG_MEAL: 80, WHEELCHAIR: 0, INSURANCE: 230 };
 export const BUSINESS_TIP_RATIO = 0.8;
 
 // Chấm điểm (accuracy tính bằng điểm phần trăm để tránh sai số số thực)
@@ -53,12 +53,12 @@ export const OUTCOME_PENALTY: Record<ScoreOutcome, number> = {
   GOOD: 0,
   OK: 0,
   POOR: 0,
-  FAILED: 25,
-  SOLD_INVALID: 40,
+  FAILED: 380,
+  SOLD_INVALID: 600,
   REFUSED_CORRECT: 0,
   REFUSED_NO_STOCK: 0,
-  REFUSED_WRONG: 20,
-  LEFT: 10,
+  REFUSED_WRONG: 300,
+  LEFT: 150,
 };
 
 // Quầy

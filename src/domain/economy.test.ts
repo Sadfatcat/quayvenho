@@ -3,6 +3,7 @@ import {
   bulkDiscountRate,
   businessTip,
   clampPenalty,
+  fareOf,
   makeTx,
   moneyBalances,
   purchaseCost,
@@ -39,12 +40,19 @@ describe('economy', () => {
     expect(purchaseCost(50, 10)).toBe(450);
   });
 
-  it('ticket revenue = fare + baggage + extras (§5.3), RUSH ×1.2', () => {
+  it('ticket revenue = fare + baggage + extras (§5.3)', () => {
     const dad = getRoute('HAN-DAD');
-    expect(ticketRevenue(order(), dad, false)).toBe(75);
-    expect(ticketRevenue(order(), dad, true)).toBe(90);
-    expect(ticketRevenue(order({ baggageKg: 20, extras: ['VEG_MEAL', 'INSURANCE'] }), dad, false)).toBe(75 + 25 + 20);
-    expect(ticketRevenue(order({ cabin: 'BUSINESS', extras: ['WHEELCHAIR'] }), dad, false)).toBe(190);
+    expect(ticketRevenue(order(), dad, 0)).toBe(1100);
+    expect(ticketRevenue(order({ baggageKg: 20, extras: ['VEG_MEAL', 'INSURANCE'] }), dad, 0)).toBe(1100 + 380 + 80 + 230);
+    expect(ticketRevenue(order({ cabin: 'BUSINESS', extras: ['WHEELCHAIR'] }), dad, 0)).toBe(2700);
+  });
+
+  it('fare follows the player price adjustment, rounded to whole k', () => {
+    const dad = getRoute('HAN-DAD');
+    expect(fareOf(dad, 'ECONOMY', 30)).toBe(1430);
+    expect(fareOf(dad, 'ECONOMY', -20)).toBe(880);
+    expect(fareOf(dad, 'ECONOMY', 40)).toBe(1540);
+    expect(fareOf(dad, 'ECONOMY', 3)).toBe(1133);
   });
 
   it('business tip = 0.8 × fare × tipMult', () => {
@@ -71,28 +79,32 @@ describe('economy', () => {
       makeTx('PENALTY', -25, 2, 600),
       makeTx('REFUND_EXPIRED', 15, 2, null),
       makeTx('WEATHER_LOSS', 0, 2, 480, 'HAN-DAD'),
+      makeTx('TICKET_REFUND', -60, 2, 700, 'x'),
+      makeTx('TICKET_REFUND', -40, 2, 710, 'y'),
     ];
     const results: ScoreResult[] = [
-      { customerId: 'a', outcome: 'PERFECT', stars: 5, revenue: 90, tip: 152, penalty: 0, mistakes: [] },
-      { customerId: 'b', outcome: 'LEFT', stars: 1, revenue: 0, tip: 0, penalty: 10, mistakes: [] },
+      { customerId: 'a', outcome: 'PERFECT', stars: 5, revenue: 90, tip: 152, penalty: 0, mistakes: [], overCap: false },
+      { customerId: 'b', outcome: 'LEFT', stars: 1, revenue: 0, tip: 0, penalty: 10, mistakes: [], overCap: false },
     ];
     const summary = summarizeDay({
       day: 2,
       moneyStart: 500,
-      moneyEnd: 382,
+      moneyEnd: 282,
       transactions: txs,
       seats: [seat('EXPIRED', 50), seat('LOST', 70), seat('SOLD', 50)],
       results,
       turnedAway: 3,
       travelVietAfter: null,
     });
-    expect(moneyBalances(500, txs, 382)).toBe(true);
+    expect(moneyBalances(500, txs, 282)).toBe(true);
     expect(summary).toMatchObject({
       ticketRevenue: 90,
       tips: 152,
       seatCost: 200,
       shopCost: 150,
       penalties: 25,
+      cancelledTickets: 2,
+      cancelRefunds: 100,
       refunds: 15,
       expiredSeats: 1,
       expiredCost: 50,

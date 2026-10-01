@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS } from './theme';
 
 const COIN_RADIUS = 14;
+const COIN_AMOUNT_UNIT = 500;
 const COIN_RISE_PX = 120;
 const COIN_SPREAD_PX = 70;
 const COIN_DURATION_MS = 700;
@@ -26,7 +27,7 @@ const releaseCoin = (scene: Phaser.Scene, coin: Phaser.GameObjects.Arc): void =>
 
 /** Vài đồng xu bay lên rồi mờ dần tại (x, y). Hiệu ứng thuần hình ảnh nên được dùng `Math.random()` (CLAUDE.md luật 2). */
 export const burstCoins = (scene: Phaser.Scene, x: number, y: number, amount: number): void => {
-  const count = Math.min(MAX_COINS_PER_BURST, Math.max(1, Math.ceil(amount / 50)));
+  const count = Math.min(MAX_COINS_PER_BURST, Math.max(1, Math.ceil(amount / COIN_AMOUNT_UNIT)));
   for (let index = 0; index < count; index++) {
     const coin = acquireCoin(scene);
     coin.setPosition(x, y);

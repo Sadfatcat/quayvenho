@@ -2,7 +2,7 @@ export const STRINGS = {
   gameTitle: 'Quầy Vé Nhỏ',
   common: {
     close: 'Đóng',
-    currencySuffix: 'xu',
+    currencySuffix: 'k',
     pauseIcon: '⏸',
     settingsIcon: '⚙',
   },

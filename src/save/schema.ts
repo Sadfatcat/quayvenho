@@ -25,7 +25,7 @@ const nonNegIntSchema = z.number().finite().transform((n) => Math.max(0, Math.ro
 
 const dayEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('NONE') }),
-  z.object({ type: z.literal('RUSH') }),
+  z.object({ type: z.literal('RUSH'), holidayId: z.string(), hotRoutes: z.array(z.string()) }),
   z.object({ type: z.literal('WEATHER'), routeId: z.string(), outcome: z.union([weatherOutcomeSchema, z.null()]) }),
 ]);
 
@@ -113,6 +113,8 @@ const scoreResultSchema = z.object({
       'REFUSED_SERVABLE',
     ]),
   ),
+  overCap: z.boolean(),
+  specialId: z.string().optional(),
 });
 
 const transactionSchema = z.object({
@@ -122,6 +124,7 @@ const transactionSchema = z.object({
     'TIP',
     'PENALTY',
     'REFUND_EXPIRED',
+    'TICKET_REFUND',
     'SUPPORT_GIFT',
     'WEATHER_LOSS',
     'UPGRADE_PURCHASE',
@@ -147,6 +150,8 @@ const daySummarySchema = z.object({
   weatherLostSeats: nonNegIntSchema,
   weatherLostCost: moneySchema,
   penalties: moneySchema,
+  cancelledTickets: nonNegIntSchema,
+  cancelRefunds: moneySchema,
   served: nonNegIntSchema,
   left: nonNegIntSchema,
   turnedAway: nonNegIntSchema,
@@ -175,6 +180,7 @@ const counterSlotSchema = z.object({
 const todayStateSchema = z.object({
   moneyStart: moneySchema,
   event: dayEventSchema,
+  priceAdjustPct: z.record(z.string(), z.number().finite()),
   flights: z.array(flightSchema),
   seats: z.array(ownedSeatSchema),
   pendingPurchase: z.record(z.string(), nonNegIntSchema),

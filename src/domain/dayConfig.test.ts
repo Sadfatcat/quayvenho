@@ -36,7 +36,7 @@ describe('isMechanicOpen', () => {
 
 describe('routes', () => {
   it('looks up routes and their stable numbers', () => {
-    expect(getRoute('HAN-DAD').cost.ECONOMY).toBe(50);
+    expect(getRoute('HAN-DAD').cost.ECONOMY).toBe(730);
     expect(routeNumber('HAN-SGN')).toBe(1);
     expect(() => getRoute('XXX')).toThrow();
     expect(startingRouteIds()).toEqual(['HAN-SGN', 'HAN-DAD']);

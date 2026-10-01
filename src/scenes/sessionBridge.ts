@@ -9,6 +9,7 @@ export type DomainEventListener = (events: DomainEvent[]) => void;
 const CHECKPOINT_COMMANDS: ReadonlySet<Command['type']> = new Set([
   'PROFILE_SET',
   'PREP_CONFIRM_PURCHASE',
+  'SET_ROUTE_PRICE',
   'SHOP_BUY_UPGRADE',
   'SHOP_UNLOCK_ROUTE',
   'NEXT_DAY',

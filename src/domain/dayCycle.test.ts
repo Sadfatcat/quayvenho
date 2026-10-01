@@ -25,9 +25,9 @@ const tickUntil = (game: GameSession, predicate: () => boolean, limit = 20_000) 
 };
 
 describe('createNewGame', () => {
-  it('starts at day 1 PREP with 400 xu and the two starting routes', () => {
+  it('starts at day 1 PREP with 6.000k and the two starting routes', () => {
     const state = createNewGame(1);
-    expect(state).toMatchObject({ day: 1, phase: 'PREP', money: 400, profile: null, unlockedRoutes: ['HAN-SGN', 'HAN-DAD'] });
+    expect(state).toMatchObject({ day: 1, phase: 'PREP', money: 6000, profile: null, unlockedRoutes: ['HAN-SGN', 'HAN-DAD'] });
     expect(state.today.flights).toHaveLength(6);
   });
 });
@@ -83,10 +83,10 @@ describe('commands outside the shift', () => {
     expect(rejected(game.dispatch({ type: 'PREP_SET_QTY', flightId: 'QV999', cabin: 'ECONOMY', qty: 1 }))).toBeTruthy();
     game.dispatch({ type: 'PREP_SET_QTY', flightId, cabin: 'ECONOMY', qty: 5 });
     const events = game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
-    expect(events[0]).toMatchObject({ type: 'SEATS_PURCHASED', cost: 238 });
-    expect(game.state.money).toBe(400 - 238);
+    expect(events[0]).toMatchObject({ type: 'SEATS_PURCHASED', cost: 3468 });
+    expect(game.state.money).toBe(6000 - 3468);
     expect(rejected(game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' }))).toMatchObject({ reason: 'NOTHING_PENDING' });
-    expect(game.state.money).toBe(162);
+    expect(game.state.money).toBe(6000 - 3468);
   });
 
   it('cannot buy more than money allows', () => {
@@ -123,9 +123,9 @@ describe('commands outside the shift', () => {
 
   it('safety net gives nothing when money is at or above the threshold', () => {
     const state = createNewGame(seedWithDay1Event('NONE'));
-    state.money = 150;
+    state.money = 2190;
     state.phase = 'SHOP';
-    state.lastSummary = { day: 1, moneyStart: 400, moneyEnd: 150 } as GameState['lastSummary'];
+    state.lastSummary = { day: 1, moneyStart: 6000, moneyEnd: 2190 } as GameState['lastSummary'];
     const game = new GameSession(state);
     const events = game.dispatch({ type: 'NEXT_DAY' });
     expect(events.some((e) => e.type === 'SUPPORT_GIFT')).toBe(false);
@@ -188,9 +188,9 @@ describe('shift', () => {
     expect(rejected(game.dispatch({ type: 'BUILD_RESET' }))).toBeTruthy();
     tickUntil(game, () => game.state.today.counter.state === 'READY_TO_DELIVER');
     const scored = game.dispatch({ type: 'DELIVER_TICKET' });
-    expect(scored[0]).toMatchObject({ type: 'TICKET_SCORED', result: { outcome: 'PERFECT', revenue: 75 } });
+    expect(scored[0]).toMatchObject({ type: 'TICKET_SCORED', result: { outcome: 'PERFECT', revenue: 1100 } });
     expect(rejected(game.dispatch({ type: 'DELIVER_TICKET' }))).toBeTruthy();
-    expect(game.state.money).toBe(400 - 150 + 75);
+    expect(game.state.money).toBe(6000 - 2190 + 1100);
     expect(game.state.today.seats.find((s) => s.seat === seat)?.state).toBe('SOLD');
   });
 
@@ -208,7 +208,7 @@ describe('shift', () => {
     game.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
     const events = tickUntil(game, () => game.state.today.counter.state === 'RESOLVING');
     expect(events).toContainEqual(expect.objectContaining({ type: 'CUSTOMER_LEFT' }));
-    expect(game.state.today.results[0]).toMatchObject({ outcome: 'LEFT', stars: 1, penalty: 10 });
+    expect(game.state.today.results[0]).toMatchObject({ outcome: 'LEFT', stars: 1, penalty: 150 });
     expect(game.state.today.seats.every((s) => s.state === 'AVAILABLE')).toBe(true);
   });
 
