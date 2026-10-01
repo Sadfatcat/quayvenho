@@ -27,6 +27,7 @@ import { showFloatingText } from '@ui/FloatingText';
 import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
 import { SpeechBubble } from '@ui/SpeechBubble';
+import { CustomerAvatar } from '@ui/CustomerAvatar';
 import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
 import { TicketView } from '@ui/TicketView';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
@@ -187,7 +188,7 @@ export class CounterScene extends BaseScene {
     const counter = counterCustomer(state.today);
     if (counter) this.renderCounterCustomer(counter);
     const queued = state.today.queue.filter((candidate) => candidate.position === 'QUEUE');
-    queued.forEach((_customer, index) => this.renderQueuedCustomer(index));
+    queued.forEach((queuedCustomer, index) => this.renderQueuedCustomer(index, queuedCustomer.order.spriteId));
 
     this.waitingText.setVisible(!counter && queued.length === 0);
     this.passportButton.setVisible(!!counter && isMechanicOpen('badPassport', state.day));
@@ -196,18 +197,17 @@ export class CounterScene extends BaseScene {
   private renderCounterCustomer(customer: Customer): void {
     const centerX = GAME_WIDTH / 2;
     const bubble = new SpeechBubble(this, centerX, 320, { width: 480, text: formatOrderSummary(customer.order) });
-    const avatar = this.add.circle(centerX, 440, 50, 0x94a3b8);
-    const spriteLabel = this.add.text(centerX, 440, customer.order.spriteId, { fontFamily: FONT_FAMILY, fontSize: '18px', color: '#ffffff' }).setOrigin(0.5);
+    const avatar = new CustomerAvatar(this, centerX, 440, 55, customer.order.spriteId);
     this.patienceBar = new PatienceBar(this, centerX - 100, 520, { width: 200, height: 16 });
     this.patienceBar.setProgress(patienceRatioOf(customer));
     this.patienceBar.setMood(customer.mood);
-    this.customerArea.add([bubble, avatar, spriteLabel, this.patienceBar]);
+    this.customerArea.add([bubble, avatar, this.patienceBar]);
   }
 
-  private renderQueuedCustomer(index: number): void {
+  private renderQueuedCustomer(index: number, queuedSpriteId: string): void {
     const x = GAME_WIDTH - 80 - index * 70;
     const scale = Math.max(0.5, 1 - index * 0.15);
-    this.customerArea.add(this.add.circle(x, 560, 30 * scale, 0xb9c4d0));
+    this.customerArea.add(new CustomerAvatar(this, x, 560, 32 * scale, queuedSpriteId));
   }
 
   private updateCustomerDynamics(state: GameState): void {

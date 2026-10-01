@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import type { Order } from '@domain/models';
+import { CustomerAvatar } from '@ui/CustomerAvatar';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Panel } from '@ui/Panel';
 import { TEXT_STYLES } from '@ui/textStyles';
@@ -16,8 +17,7 @@ export class PassportCard extends BaseOverlay {
     super(scene, { closeOnBackdropTap: true });
 
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });
-    const avatar = scene.add.circle(0, -PANEL_HEIGHT / 2 + 90, 50, 0x94a3b8);
-    const spriteLabel = scene.add.text(0, -PANEL_HEIGHT / 2 + 90, order.spriteId, { fontFamily: FONT_FAMILY, fontSize: '18px', color: '#ffffff' }).setOrigin(0.5);
+    const avatar = new CustomerAvatar(scene, 0, -PANEL_HEIGHT / 2 + 90, 55, order.spriteId);
     const name = scene.add.text(0, -PANEL_HEIGHT / 2 + 160, order.passport.name, TEXT_STYLES.heading).setOrigin(0.5);
     const expires = scene.add
       .text(0, -PANEL_HEIGHT / 2 + 210, `${STRINGS.passport.expires} ${order.passport.expiresDay}`, { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.textMuted) })
@@ -34,7 +34,7 @@ export class PassportCard extends BaseOverlay {
       .setInteractive({ useHandCursor: true });
     closeText.on('pointerup', () => this.close());
 
-    panel.add([avatar, spriteLabel, name, expires, bookedName, todayLabel, closeText]);
+    panel.add([avatar, name, expires, bookedName, todayLabel, closeText]);
     this.add(panel);
   }
 }
