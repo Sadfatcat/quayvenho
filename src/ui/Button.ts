@@ -1,14 +1,21 @@
 import Phaser from 'phaser';
 import { DRAG_TAP_THRESHOLD_PX, MIN_TOUCH_SIZE } from './layout';
-import { COLORS, FONT_FAMILY, toCssColor } from './theme';
+import { COLORS, EXTRUSION, HEADING_FONT_FAMILY, toCssColor } from './theme';
 
 export type ButtonVariant = 'primary' | 'success' | 'danger' | 'ghost';
 
 const VARIANT_FILL: Record<ButtonVariant, number> = {
   primary: COLORS.primary,
   success: COLORS.success,
-  danger: COLORS.danger,
+  danger: COLORS.accent,
   ghost: COLORS.cloud,
+};
+
+const VARIANT_BASE: Record<ButtonVariant, number> = {
+  primary: COLORS.primaryDark,
+  success: COLORS.successDark,
+  danger: COLORS.accentDark,
+  ghost: COLORS.primaryDark,
 };
 
 const VARIANT_TEXT: Record<ButtonVariant, number> = {
@@ -26,16 +33,20 @@ export interface ButtonOptions {
   onTap: () => void;
 }
 
-const PRESS_SCALE = 0.95;
+const OUTLINE_WIDTH = 2;
 
 /**
- * Tap-to-press button (PLAN §11.1): scales down while held, dims when disabled or locked.
+ * Tap-to-press pill button (PLAN §11.1, STYLE §4): face sinks onto its extruded base while held, dims when disabled or locked.
  * Call lock() before dispatching a command and unlock() once the scene handles the result,
  * to block double-tap. A release more than DRAG_TAP_THRESHOLD_PX from the press point never
  * fires onTap, so buttons nested in a ScrollList survive a scroll gesture without a false tap.
  */
 export class Button extends Phaser.GameObjects.Container {
-  private readonly bg: Phaser.GameObjects.Rectangle;
+  private readonly face: Phaser.GameObjects.Graphics;
+  private readonly bg: Phaser.GameObjects.Zone;
+  private readonly buttonWidth: number;
+  private readonly buttonHeight: number;
+  private pressed = false;
   private readonly labelText: Phaser.GameObjects.Text;
   private variant: ButtonVariant;
   private readonly onTap: () => void;
@@ -46,22 +57,24 @@ export class Button extends Phaser.GameObjects.Container {
 
   constructor(scene: Phaser.Scene, x: number, y: number, options: ButtonOptions) {
     super(scene, x, y);
-    const width = options.width ?? 220;
-    const height = options.height ?? MIN_TOUCH_SIZE;
+    this.buttonWidth = options.width ?? 220;
+    this.buttonHeight = options.height ?? MIN_TOUCH_SIZE;
     this.variant = options.variant ?? 'primary';
     this.onTap = options.onTap;
 
-    this.bg = scene.add.rectangle(0, 0, width, height, VARIANT_FILL[this.variant]);
+    this.face = scene.add.graphics();
+    this.bg = scene.add.zone(0, 0, this.buttonWidth, this.buttonHeight);
     this.labelText = scene.add
       .text(0, 0, options.label, {
-        fontFamily: FONT_FAMILY,
+        fontFamily: HEADING_FONT_FAMILY,
         fontSize: '30px',
         fontStyle: 'bold',
         color: toCssColor(VARIANT_TEXT[this.variant]),
       })
       .setOrigin(0.5);
-    this.add([this.bg, this.labelText]);
+    this.add([this.face, this.labelText, this.bg]);
     scene.add.existing(this);
+    this.redraw();
 
     this.bg.setInteractive({ useHandCursor: true });
     this.bg.on('pointerdown', this.handlePointerDown, this);
@@ -98,22 +111,42 @@ export class Button extends Phaser.GameObjects.Container {
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
     this.downX = pointer.x;
     this.downY = pointer.y;
-    this.setScale(PRESS_SCALE);
+    this.pressed = true;
+    this.redraw();
   }
 
   private handlePointerUp(pointer: Phaser.Input.Pointer): void {
-    this.setScale(1);
+    this.pressed = false;
+    this.redraw();
     const moved = Math.hypot(pointer.x - this.downX, pointer.y - this.downY);
     if (moved <= DRAG_TAP_THRESHOLD_PX && !this.disabledFlag && !this.lockedFlag) this.onTap();
   }
 
   private handlePointerCancel(): void {
-    this.setScale(1);
+    this.pressed = false;
+    this.redraw();
+  }
+
+  private redraw(): void {
+    const enabled = !this.disabledFlag && !this.lockedFlag;
+    const radius = this.buttonHeight / 2;
+    const left = -this.buttonWidth / 2;
+    const top = -this.buttonHeight / 2;
+    const offset = this.pressed ? EXTRUSION.pressedOffset : 0;
+    const base = enabled ? VARIANT_BASE[this.variant] : COLORS.textMuted;
+    this.face.clear();
+    this.face.fillStyle(base, 1);
+    this.face.fillRoundedRect(left, top + EXTRUSION.button, this.buttonWidth, this.buttonHeight, radius);
+    this.face.fillStyle(enabled ? VARIANT_FILL[this.variant] : COLORS.disabled, 1);
+    this.face.fillRoundedRect(left, top + offset, this.buttonWidth, this.buttonHeight, radius);
+    this.face.lineStyle(OUTLINE_WIDTH, base, 1);
+    this.face.strokeRoundedRect(left, top + offset, this.buttonWidth, this.buttonHeight, radius);
+    this.labelText.setY(offset);
   }
 
   private refreshInteractive(): void {
     const enabled = !this.disabledFlag && !this.lockedFlag;
-    this.bg.setFillStyle(enabled ? VARIANT_FILL[this.variant] : COLORS.disabled);
+    this.redraw();
     if (this.bg.input) this.bg.input.enabled = enabled;
   }
 }

@@ -31,7 +31,7 @@ export class TitleScene extends BaseScene {
       this.add
         .text(
           GAME_WIDTH / 2,
-          y - 60,
+          y - 90,
           `${profile.brandName} · ${STRINGS.title.dayLabel} ${day} · ${money} ${STRINGS.common.currencySuffix}`,
           { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.textMuted) },
         )

@@ -81,6 +81,8 @@ export const STRINGS = {
   },
   preload: {
     loading: 'Đang tải...',
+    failed: 'Không tải được phông chữ.',
+    retry: 'Thử lại',
   },
   prep: {
     dayLabel: 'Ngày',
