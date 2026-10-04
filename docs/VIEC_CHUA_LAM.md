@@ -22,7 +22,7 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Deploy Cloudflare Pages:** cần tài khoản của bạn, làm theo `docs/DEPLOY.md`.
 - **Kiểm điện thoại thật** (điền `tests/e2e-manual.md`): xoay ngang, bàn phím ảo che ô nhập, cài PWA Android/iOS, audio trên Safari iOS, 60 fps Android, cảm giác nhịp ngày chơi.
 - **Nghe thử audio:** SFX và nhạc là tổng hợp bằng code, chưa biết nghe có dễ chịu không.
-- **Cân hành lý bấm giữ:** đã làm và đã kiểm trên trình duyệt (giữ 2 giây → 10 kg; mỗi lần bấm cân lại từ 0; thả ngoài thanh vẫn chốt). Chưa thử bằng ngón tay thật trên điện thoại; tốc độ chỉnh ở `BAGGAGE_HOLD_SPEED_KG_PER_S` (đang 5 kg/giây).
+- **Cân hành lý bấm giữ:** đã làm và đã kiểm trên trình duyệt (giữ 2 giây → 10 kg; mỗi lần bấm cân lại từ 0; thả ngoài thanh vẫn chốt). Chưa thử bằng ngón tay thật trên điện thoại; tốc độ chỉnh ở `BAGGAGE_HOLD_SPEED_KG_PER_S` (đang 31,25 kg/giây).
 
 ## 4. Nội dung cá nhân hoá
 
