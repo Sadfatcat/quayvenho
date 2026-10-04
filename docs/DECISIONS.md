@@ -171,3 +171,10 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Sơ đồ ghế: hạng phổ thông 10 hàng (32 ghế), mọi ghế còn bán được đều chọn được (`holdSeat` gán lại đơn vị ghế dự phòng). Khách khó tính (từ ngày 7) đòi vị trí đầu/giữa/cuối, cửa sổ, lối đi.
 - Lý do: yêu cầu của chủ dự án sau khi test; giảm cuộn, giảm số bước.
 - Đã loại: giữ StepIndicator/FlightList (đã xoá). Lệnh BUILD_GOTO_STEP còn trong domain nhưng UI không dùng.
+
+## 2026-10-04 — Màn quản lý 4 mục + nhân viên (save v3)
+- Quyết định: Mua vé (Prep), Giá vé (Price), Đồ hỗ trợ (Shop), Nhân viên (Staff) là 4 scene dùng chung thanh mục `ManagementTabs` và khung `managementChrome`, chuyển qua lại bất cứ lúc nào. Ở phase SHOP (sau tổng kết) mục Mua vé và Giá vé bị khoá vì chưa có chuyến của ngày mới.
+- `SHOP_BUY_UPGRADE`, `SHOP_UNLOCK_ROUTE`, `HIRE_STAFF` chạy được ở cả PREP (có hiệu lực ngay, ghi vào giao dịch hôm nay) lẫn SHOP (tính cho ngày mai). `PriceOverlay` đổi thành `PriceScene`.
+- Nhân viên (`src/data/staff.ts`, `src/domain/staff.ts`): thuê một lần + lương mỗi ngày trừ lúc tổng kết (không âm quỹ). Nhân viên rảnh nhận khách đầu tiên trong hàng chờ mà họ xử lý được (không dịch vụ thêm, hộ chiếu đúng, không khách đặc biệt; tập sự không xử lý khách đòi vị trí ghế), bán ngay ghế khớp đơn, chấm điểm sau `serveMs`, sai cân hành lý theo `accuracyPct`.
+- Save v3: thêm `staff`, `today.staffTasks`, `lastSummary.staffWages` + migration v2→v3 và test.
+- Sim (`HIRE=1 npm run sim`): bot trung bình +25% tiền ngày 30, bot hoàn hảo −22% (lương tốn hơn lợi) — số tiền thuê/lương/độ chính xác mới ước lượng, chưa cân kỹ.

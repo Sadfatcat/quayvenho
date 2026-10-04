@@ -6,7 +6,6 @@ import { stampImageKey, upgradeImageKey } from '@ui/itemImages';
 import { shopContext } from '@domain/dayCycle';
 import type { Command, GameState, Route, UpgradeDef } from '@domain/models';
 import { checkRouteUnlock, checkUpgrade, type RouteUnlockError, type UpgradeError } from '@domain/upgrades';
-import { Button } from '@ui/Button';
 import { Card } from '@ui/Card';
 import { HOLIDAYS } from '@data/holidays';
 import { previewNextDayHoliday } from '@domain/events';
@@ -14,10 +13,10 @@ import { getRoute } from '@domain/routes';
 import { formatMoney } from '@ui/format';
 import { ScrollList } from '@ui/ScrollList';
 import { SegmentedControl } from '@ui/SegmentedControl';
-import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
+import { addManagementChrome, type ManagementChrome } from './managementChrome';
 import { promptForPwaUpdate } from './overlays/UpdatePrompt';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { sessionBridge } from './sessionBridge';
@@ -25,8 +24,10 @@ import { sessionBridge } from './sessionBridge';
 type ShopItem = { kind: 'upgrade'; upgrade: UpgradeDef } | { kind: 'route'; route: Route };
 type Tab = 'upgrades' | 'routes';
 
-const LIST_Y = 330;
-const TEASER_Y = 250;
+const SEGMENT_Y = 290;
+const TEASER_Y = 340;
+const LIST_Y = 395;
+const LIST_BOTTOM_MARGIN = 170;
 const CARD_HEIGHT = 190;
 const CARD_GAP = 16;
 const ROW_HEIGHT = CARD_HEIGHT + CARD_GAP;
@@ -37,8 +38,7 @@ const purchasableRoutes = (): Route[] => ROUTES.filter((route) => route.unlock !
 export class ShopScene extends BaseScene {
   private tab: Tab = 'upgrades';
   private list!: ScrollList<ShopItem>;
-  private moneyText!: Phaser.GameObjects.Text;
-  private nextDayButton!: Button;
+  private chrome!: ManagementChrome;
   private teaserText!: Phaser.GameObjects.Text;
   private unsubscribeEvents: (() => void) | null = null;
 
@@ -57,10 +57,9 @@ export class ShopScene extends BaseScene {
   }
 
   private buildLayout(): void {
-    this.add.text(GAME_WIDTH / 2, 90, STRINGS.shop.title, TEXT_STYLES.heading).setOrigin(0.5);
-    this.moneyText = this.add.text(GAME_WIDTH / 2, 140, '', { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5);
+    this.chrome = addManagementChrome(this, 'SUPPORT', true);
 
-    new SegmentedControl(this, GAME_WIDTH / 2, 200, {
+    new SegmentedControl(this, GAME_WIDTH / 2, SEGMENT_Y, {
       width: 500,
       height: 72,
       labels: [STRINGS.shop.tabUpgrades, STRINGS.shop.tabRoutes],
@@ -79,19 +78,12 @@ export class ShopScene extends BaseScene {
       x: 20,
       y: LIST_Y,
       width: GAME_WIDTH - 40,
-      height: GAME_HEIGHT - LIST_Y - 140,
+      height: GAME_HEIGHT - LIST_Y - LIST_BOTTOM_MARGIN,
       itemHeight: ROW_HEIGHT,
       items: this.itemsForTab(),
       renderItem: (item) => this.renderItem(item),
     });
 
-    this.nextDayButton = new Button(this, GAME_WIDTH / 2, GAME_HEIGHT - 80, {
-      width: 360,
-      height: 96,
-      label: STRINGS.shop.nextDay,
-      variant: 'primary',
-      onTap: () => this.handleNextDay(),
-    });
   }
 
   private itemsForTab(): ShopItem[] {
@@ -102,7 +94,7 @@ export class ShopScene extends BaseScene {
 
   private renderAll(): void {
     const state = sessionBridge.current.state;
-    this.moneyText.setText(formatMoney(state.money));
+    this.chrome.refresh(state);
     this.teaserText.setText(this.tomorrowHolidayTeaser(state));
     this.list.setItems(this.itemsForTab());
   }
@@ -194,13 +186,4 @@ export class ShopScene extends BaseScene {
     });
   }
 
-  private handleNextDay(): void {
-    this.nextDayButton.lock();
-    const events = sessionBridge.dispatch({ type: 'NEXT_DAY' });
-    if (events.some((event) => event.type === 'COMMAND_REJECTED')) {
-      this.nextDayButton.unlock();
-      return;
-    }
-    this.scene.start('Prep');
-  }
 }

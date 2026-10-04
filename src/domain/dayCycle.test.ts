@@ -76,7 +76,6 @@ describe('commands outside the shift', () => {
       { type: 'BUILD_RESET' },
       { type: 'GO_TO_SHOP' },
       { type: 'NEXT_DAY' },
-      { type: 'SHOP_BUY_UPGRADE', upgradeId: 'FAN' },
       { type: 'PREP_SET_SEAT_BIAS', bias: 'WINDOW' },
     ];
     for (const command of wrong) expect(rejected(game.dispatch(command)), command.type).toBeTruthy();
@@ -310,5 +309,53 @@ describe('shift', () => {
     expect(forecastLost).toBe(Math.round(forecastSeats.length / 3));
     expect(otherSeats.every((s) => s.state === 'AVAILABLE')).toBe(true);
     expect(game.state.today.flights.filter((f) => f.routeId === forecast.routeId).every((f) => f.status === 'SCHEDULED')).toBe(true);
+  });
+});
+
+describe('staff', () => {
+  const gameOnDay8 = () => {
+    const state = createNewGame(seedWithDay1Event('NONE'));
+    state.day = 8;
+    state.money = 100_000;
+    state.today.moneyStart = 100_000;
+    return new GameSession(state);
+  };
+
+  it('hiring in PREP charges the hire cost immediately and records it today', () => {
+    const game = gameOnDay8();
+
+    game.dispatch({ type: 'HIRE_STAFF', staffId: 'TRAINEE' });
+
+    expect(game.state.staff).toEqual(['TRAINEE']);
+    expect(game.state.money).toBe(100_000 - 4500);
+    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -4500, day: 8, minute: null, ref: 'TRAINEE' });
+    expect(rejected(game.dispatch({ type: 'HIRE_STAFF', staffId: 'TRAINEE' }))).toMatchObject({ reason: 'ALREADY_HIRED' });
+  });
+
+  it('rejects hiring during a shift', () => {
+    const game = gameOnDay8();
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+
+    expect(rejected(game.dispatch({ type: 'HIRE_STAFF', staffId: 'TRAINEE' }))).toMatchObject({ reason: 'WRONG_PHASE' });
+  });
+
+  it('serves customers on their own and the wage is charged in the day summary', () => {
+    const game = gameOnDay8();
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'HIRE_STAFF', staffId: 'VETERAN' });
+    for (const flight of game.state.today.flights) {
+      game.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin: 'ECONOMY', qty: 8 });
+      game.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin: 'BUSINESS', qty: 3 });
+    }
+    game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+
+    tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000);
+
+    expect(game.state.phase).toBe('SUMMARY');
+    expect(game.state.lastSummary?.staffWages).toBe(1500);
+    expect(game.state.today.staffTasks).toEqual([]);
+    expect(game.state.today.results.some((result) => result.outcome !== 'LEFT')).toBe(true);
   });
 });

@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { formatClock } from '@domain/clock';
-import { isTravelVietOpen, travelVietScore } from '@domain/demand';
 import { bulkDiscountRate, purchaseCost } from '@domain/economy';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '@domain/inventory';
 import type { CabinClass, Flight, GameState, TodayState } from '@domain/models';
@@ -10,17 +9,15 @@ import { routeOfFlight } from '@domain/schedule';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
-import { SCREEN_MARGIN, buttonRow } from '@ui/layout';
+import { buttonRow } from '@ui/layout';
 import { Stepper } from '@ui/Stepper';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { HOLIDAYS } from '@data/holidays';
 import { formatMoney } from '@ui/format';
-import { TopBar } from '@ui/TopBar';
 import { GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
+import { addManagementChrome, requestOpenCounter, type ManagementChrome } from './managementChrome';
 import { DialogOverlay } from './overlays/DialogOverlay';
-import { PriceOverlay } from './overlays/PriceOverlay';
-import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { showPendingTutorials, showScriptedMoments } from './overlays/TutorialOverlay';
 import { sessionBridge } from './sessionBridge';
 
@@ -30,10 +27,8 @@ const CABIN_PRICE_GAP = 12;
 const OWNED_RIGHT_INSET = 16;
 const ECONOMY_ROW_Y = 112;
 const BUSINESS_ROW_Y = 184;
-const LIST_Y = 320;
-const PRICE_BUTTON_Y = 272;
-const PRICE_BUTTON_HEIGHT = 72;
-const BANNER_Y = 182;
+const LIST_Y = 360;
+const BANNER_Y = 300;
 const LIST_HEIGHT = 1060 - LIST_Y;
 const TOTAL_Y = 1095;
 const BUTTON_ROW_Y = 1180;
@@ -41,12 +36,11 @@ const BUTTON_HEIGHT = 88;
 
 /** PLAN §10.5 (Kho). Grey box: nội dung tiếng Việt của banner/hộp thoại xem `strings.prep.*`. */
 export class PrepScene extends BaseScene {
-  private topBar!: TopBar;
+  private chrome!: ManagementChrome;
   private bannerText!: Phaser.GameObjects.Text;
   private flightList!: ScrollList<Flight>;
   private totalText!: Phaser.GameObjects.Text;
   private confirmButton!: Button;
-  private priceButton!: Button;
   private unsubscribeEvents: (() => void) | null = null;
 
   constructor() {
@@ -80,26 +74,11 @@ export class PrepScene extends BaseScene {
   private buildLayout(): void {
     const state = sessionBridge.current.state;
 
-    this.topBar = new TopBar(this, 0, 90, {
-      width: GAME_WIDTH,
-      leftLabel: `${STRINGS.prep.dayLabel} ${state.day}`,
-      money: state.money,
-      travelViet: isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null,
-      icon: STRINGS.common.settingsIcon,
-      onIconTap: () => new SettingsOverlay(this, { onExitToTitle: () => this.scene.start('Title') }),
-    });
+    this.chrome = addManagementChrome(this, 'TICKETS', false);
 
     this.bannerText = this.add
       .text(GAME_WIDTH / 2, BANNER_Y, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })
       .setOrigin(0.5);
-
-    this.priceButton = new Button(this, GAME_WIDTH / 2, PRICE_BUTTON_Y, {
-      width: GAME_WIDTH - 2 * SCREEN_MARGIN,
-      height: PRICE_BUTTON_HEIGHT,
-      label: STRINGS.prep.priceBoardButton,
-      variant: 'ghost',
-      onTap: () => new PriceOverlay(this, () => this.renderAll()),
-    });
 
     this.flightList = new ScrollList<Flight>(this, {
       x: 20,
@@ -128,17 +107,14 @@ export class PrepScene extends BaseScene {
       height: BUTTON_HEIGHT,
       label: STRINGS.prep.openCounter,
       variant: 'success',
-      onTap: () => this.handleOpenCounter(),
+      onTap: () => requestOpenCounter(this),
     });
   }
 
   private renderAll(): void {
     const state = sessionBridge.current.state;
-    this.topBar.setLeftLabel(`${STRINGS.prep.dayLabel} ${state.day}`);
-    this.topBar.setMoney(state.money);
-    this.topBar.setTravelViet(isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null);
+    this.chrome.refresh(state);
     this.bannerText.setText(this.bannerFor(state));
-    this.priceButton.setLabel(this.priceButtonLabel(state));
     this.flightList.setItems([...state.today.flights]);
 
     const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights);
@@ -146,12 +122,6 @@ export class PrepScene extends BaseScene {
 
     const hasPending = Object.keys(state.today.pendingPurchase).length > 0;
     this.confirmButton.setEnabled(hasPending);
-  }
-
-  private priceButtonLabel(state: GameState): string {
-    const changed = Object.values(state.today.priceAdjustPct).filter((pct) => pct !== 0).length;
-    const summary = changed === 0 ? STRINGS.prep.priceBoardSummaryBase : STRINGS.prep.priceBoardSummaryChanged.replace('{count}', String(changed));
-    return `${STRINGS.prep.priceBoardButton}: ${summary}`;
   }
 
   private holidayBanner(holidayId: string, hotRoutes: readonly string[]): string {
@@ -234,42 +204,6 @@ ${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
     let qty = currentQty;
     while (qty < seatLimit && purchaseCost(unitCost, qty + 1) <= moneyLeft) qty++;
     return qty;
-  }
-
-  private handleOpenCounter(): void {
-    const state = sessionBridge.current.state;
-    const hasPending = Object.keys(state.today.pendingPurchase).length > 0;
-    if (hasPending) {
-      const pendingCount = Object.values(state.today.pendingPurchase).reduce((a, b) => a + b, 0);
-      new DialogOverlay(this, {
-        title: STRINGS.prep.pendingTitle,
-        message: `${STRINGS.prep.pendingMessagePrefix}${pendingCount}${STRINGS.prep.pendingMessageSuffix}`,
-        buttons: [
-          { label: STRINGS.prep.pendingCancel, variant: 'ghost', onTap: () => {} },
-          { label: STRINGS.prep.pendingDiscardAndOpen, variant: 'danger', onTap: () => { this.dispatch({ type: 'PREP_CLEAR_PENDING' }); this.openCounter(); } },
-          { label: STRINGS.prep.pendingConfirmAndOpen, variant: 'primary', onTap: () => { this.dispatch({ type: 'PREP_CONFIRM_PURCHASE' }); this.openCounter(); } },
-        ],
-      });
-      return;
-    }
-    const hasStock = state.today.seats.some((seat) => seat.state === 'AVAILABLE');
-    if (!hasStock) {
-      new DialogOverlay(this, {
-        title: STRINGS.prep.emptyStockTitle,
-        message: STRINGS.prep.emptyStockMessage,
-        buttons: [
-          { label: STRINGS.prep.emptyStockCancel, variant: 'ghost', onTap: () => {} },
-          { label: STRINGS.prep.emptyStockConfirm, variant: 'danger', onTap: () => this.openCounter() },
-        ],
-      });
-      return;
-    }
-    this.openCounter();
-  }
-
-  private openCounter(): void {
-    this.dispatch({ type: 'OPEN_COUNTER' });
-    this.scene.start('Counter');
   }
 
   private dispatch(command: Parameters<typeof sessionBridge.dispatch>[0]): void {

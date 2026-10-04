@@ -131,6 +131,8 @@ const transactionSchema = z.object({
     'WEATHER_LOSS',
     'UPGRADE_PURCHASE',
     'ROUTE_UNLOCK',
+    'STAFF_HIRE',
+    'STAFF_WAGE',
   ]),
   amount: z.number().finite(),
   day: z.number().finite(),
@@ -146,6 +148,7 @@ const daySummarySchema = z.object({
   tips: moneySchema,
   seatCost: moneySchema,
   shopCost: moneySchema,
+  staffWages: moneySchema,
   expiredSeats: nonNegIntSchema,
   expiredCost: moneySchema,
   refunds: moneySchema,
@@ -170,6 +173,16 @@ const settingsSchema = z.object({
 const profileSchema = z.object({
   playerName: z.string().trim().min(1).max(PROFILE_LIMITS.playerName),
   brandName: z.string().trim().min(1).max(PROFILE_LIMITS.brandName),
+});
+
+const staffTaskSchema = z.object({
+  staffId: z.string(),
+  customer: customerSchema,
+  leftMs: z.number().finite(),
+  flightId: z.string(),
+  cabin: cabinClassSchema,
+  seat: seatIdSchema,
+  baggageKg: z.number().finite(),
 });
 
 const counterSlotSchema = z.object({
@@ -197,6 +210,7 @@ const todayStateSchema = z.object({
   counter: counterSlotSchema,
   results: z.array(scoreResultSchema),
   turnedAway: nonNegIntSchema,
+  staffTasks: z.array(staffTaskSchema),
 });
 
 export const gameStateSchema = z.object({
@@ -210,6 +224,7 @@ export const gameStateSchema = z.object({
   unlockedRoutes: z.array(z.string()),
   routeUnlockedDay: z.record(z.string(), z.number().finite()),
   upgrades: z.array(z.string()),
+  staff: z.array(z.string()),
   settings: settingsSchema,
   flags: z.record(z.string(), z.boolean()),
   today: todayStateSchema,

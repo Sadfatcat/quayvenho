@@ -61,3 +61,9 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Đã dùng:** 9 tư thế (chào, phấn khích, tinh nghịch, lo lắng, chỉ tay, tự hào, buồn, suy nghĩ, bust) ở atlas riêng `public/assets/atlas/beo.*`. Onboarding và tutorial dùng tư thế theo từng bước.
 - **Còn dùng ảnh cũ độ phân giải thấp:** 2 khách VIP, logo.
 - **Lỗi đã sửa kèm theo:** save bị ghi giữa ca (cờ tutorial/cài đặt) làm nút "Chơi tiếp" không vào được; nay không ghi save giữa ca và save hỏng như vậy tự rơi về bản sao lưu.
+
+## 10. Sau khi làm màn quản lý 4 mục và nhân viên
+- Chưa có ảnh nhân viên; thẻ Nhân viên chỉ có chữ. Nhân viên chưa hiện trên thanh khách chờ (khách đang được phục vụ biến mất khỏi hàng).
+- Cân bằng nhân viên (tiền thuê, lương, tốc độ, độ chính xác) mới thử bằng `HIRE=1 npm run sim`, cần chủ dự án chơi thử rồi chỉnh.
+- Nâng cấp `SEARCH_FILTER` ("Ô lọc chuyến") không còn tác dụng vì màn Quầy mới không có danh sách chuyến; cần bỏ hoặc đổi tác dụng.
+- Chưa có tutorial giới thiệu nhân viên và 4 mục quản lý.

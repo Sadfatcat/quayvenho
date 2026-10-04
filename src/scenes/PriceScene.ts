@@ -5,28 +5,29 @@ import { STRINGS } from '@data/strings';
 import type { Route } from '@domain/models';
 import { fareOf } from '@domain/economy';
 import { isHolidayEvent, isOverCap, priceDemandFactor } from '@domain/pricing';
-import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { formatMoney } from '@ui/format';
-import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
 import { Slider } from '@ui/Slider';
+import { buttonRow } from '@ui/layout';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
-import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
-import { sessionBridge } from '../sessionBridge';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { BaseScene } from './BaseScene';
+import { addManagementChrome, MANAGEMENT_CONTENT_TOP, requestOpenCounter, type ManagementChrome } from './managementChrome';
+import { sessionBridge } from './sessionBridge';
 
-const PANEL_WIDTH = 660;
-const PANEL_HEIGHT = 980;
+const LIST_WIDTH = 660;
+const LIST_X = (GAME_WIDTH - LIST_WIDTH) / 2;
 const ROW_HEIGHT = 270;
 const ROW_PADDING = 24;
-const SLIDER_WIDTH = PANEL_WIDTH - 2 * ROW_PADDING - 60;
+const SLIDER_WIDTH = LIST_WIDTH - 2 * ROW_PADDING - 60;
 const SLIDER_X = ROW_PADDING + 30;
 const SLIDER_Y = 130;
-const LIST_TOP = 110;
-const LIST_HEIGHT = PANEL_HEIGHT - LIST_TOP - 140;
-const FOOTER_BUTTON_Y = PANEL_HEIGHT / 2 - 70;
-const FOOTER_BUTTON_WIDTH = 280;
+const LIST_TOP = MANAGEMENT_CONTENT_TOP + 50;
+const FOOTER_Y = GAME_HEIGHT - 80;
+const LIST_BOTTOM_MARGIN = 190;
+const NOTE_Y = MANAGEMENT_CONTENT_TOP + 20;
 const CROWD_BAR_STEPS = 5;
 const SPAN_PCT = PRICE_MAX_PCT - PRICE_MIN_PCT;
 
@@ -41,47 +42,46 @@ const crowdBar = (factor: number): string => {
 
 const zoneColor = (pct: number): number => (isOverCap(pct) ? COLORS.danger : pct < 0 ? COLORS.success : COLORS.warning);
 
-/** Bảng chỉnh giá vé theo từng tuyến (người chơi đặt trước khi mở cửa). Trần +30%: vượt thì khách giảm một nửa và vé bị huỷ. */
-export class PriceOverlay extends BaseOverlay {
-  private readonly routeList: ScrollList<Route>;
-  private readonly onChanged: () => void;
+/** Mục "Giá vé": chỉnh giá vé từng tuyến trước khi mở cửa. Trần +30%: vượt thì khách giảm một nửa và vé bị huỷ. */
+export class PriceScene extends BaseScene {
+  private chrome!: ManagementChrome;
+  private routeList!: ScrollList<Route>;
 
-  constructor(scene: Phaser.Scene, onChanged: () => void) {
-    super(scene, { closeOnBackdropTap: false });
-    this.onChanged = onChanged;
-    const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });
-    const title = scene.add.text(0, -PANEL_HEIGHT / 2 + 60, STRINGS.priceBoard.title, TEXT_STYLES.heading).setOrigin(0.5);
-    const unlocked = ROUTES.filter((route) => sessionBridge.current.state.unlockedRoutes.includes(route.id));
+  constructor() {
+    super('Price');
+    this.backgroundTheme = 'prep';
+    this.musicTrack = 'calm';
+  }
 
-    this.routeList = new ScrollList<Route>(scene, {
-      x: -PANEL_WIDTH / 2,
-      y: -PANEL_HEIGHT / 2 + LIST_TOP,
-      width: PANEL_WIDTH,
-      height: LIST_HEIGHT,
+  protected onCreate(): void {
+    const state = sessionBridge.current.state;
+    this.chrome = addManagementChrome(this, 'PRICES', false);
+    this.chrome.refresh(state);
+
+    if (state.phase !== 'PREP') {
+      this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, STRINGS.management.lockedAfterSummary, { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.textMuted), align: 'center', wordWrap: { width: GAME_WIDTH - 120 } }).setOrigin(0.5);
+      return;
+    }
+    this.add.text(GAME_WIDTH / 2, NOTE_Y, STRINGS.priceBoard.title, { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5);
+
+    const unlocked = ROUTES.filter((route) => state.unlockedRoutes.includes(route.id));
+    this.routeList = new ScrollList<Route>(this, {
+      x: LIST_X,
+      y: LIST_TOP,
+      width: LIST_WIDTH,
+      height: GAME_HEIGHT - LIST_TOP - LIST_BOTTOM_MARGIN,
       itemHeight: ROW_HEIGHT,
       items: unlocked,
-      renderItem: (route) => this.renderRow(scene, route),
+      renderItem: (route) => this.renderRow(this, route),
     });
-    const resetButton = new Button(scene, -FOOTER_BUTTON_WIDTH / 2 - 10, FOOTER_BUTTON_Y, {
-      width: FOOTER_BUTTON_WIDTH,
-      label: STRINGS.priceBoard.reset,
-      variant: 'ghost',
-      onTap: () => this.resetAll(unlocked),
-    });
-    const doneButton = new Button(scene, FOOTER_BUTTON_WIDTH / 2 + 10, FOOTER_BUTTON_Y, {
-      width: FOOTER_BUTTON_WIDTH,
-      label: STRINGS.priceBoard.done,
-      variant: 'success',
-      onTap: () => this.close(),
-    });
-    panel.add([title, this.routeList, resetButton, doneButton]);
-    this.add(panel);
+    const row = buttonRow(GAME_WIDTH, 2);
+    new Button(this, row.centers[0] ?? 0, FOOTER_Y, { width: row.width, height: 88, label: STRINGS.priceBoard.reset, variant: 'ghost', onTap: () => this.resetAll(unlocked) });
+    new Button(this, row.centers[1] ?? 0, FOOTER_Y, { width: row.width, height: 88, label: STRINGS.prep.openCounter, variant: 'success', onTap: () => requestOpenCounter(this) });
   }
 
   private resetAll(routes: readonly Route[]): void {
     for (const route of routes) sessionBridge.dispatch({ type: 'SET_ROUTE_PRICE', routeId: route.id, pct: 0 });
     this.routeList.setItems([...routes]);
-    this.onChanged();
   }
 
   private renderRow(scene: Phaser.Scene, route: Route): Phaser.GameObjects.Container {
@@ -100,7 +100,7 @@ export class PriceOverlay extends BaseOverlay {
     );
     const selling = scene.add.text(ROW_PADDING, SLIDER_Y + 40, '', { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) });
     const crowd = scene.add.text(ROW_PADDING, SLIDER_Y + 74, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) });
-    const warning = scene.add.text(ROW_PADDING, SLIDER_Y + 100, '', { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.danger), wordWrap: { width: PANEL_WIDTH - 2 * ROW_PADDING } });
+    const warning = scene.add.text(ROW_PADDING, SLIDER_Y + 100, '', { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.danger), wordWrap: { width: LIST_WIDTH - 2 * ROW_PADDING } });
 
     const refresh = (pct: number): void => {
       selling.setText(
@@ -121,7 +121,6 @@ export class PriceOverlay extends BaseOverlay {
       onChange: (value) => refresh(pctFromSliderValue(value)),
       onCommit: (value) => {
         sessionBridge.dispatch({ type: 'SET_ROUTE_PRICE', routeId: route.id, pct: pctFromSliderValue(value) });
-        this.onChanged();
       },
     });
     const capX = SLIDER_X + sliderValueFromPct(PRICE_CAP_PCT) * SLIDER_WIDTH;

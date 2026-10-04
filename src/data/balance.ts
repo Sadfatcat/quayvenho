@@ -1,6 +1,6 @@
 import type { BaggageKg, CabinClass, Extra, Modifiers, ScoreOutcome, Settings, Stars } from '@domain/models';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const STARTING_MONEY = 6000;
 
 export const PROFILE_LIMITS = { playerName: 16, brandName: 20 } as const;

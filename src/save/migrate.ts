@@ -40,6 +40,19 @@ function migrateV1ToV2(old: RawRecord): RawRecord {
   };
 }
 
+/** v2 → v3: thêm nhân viên (danh sách đã thuê, việc đang làm) và lương trong tổng kết. */
+function migrateV2ToV3(old: RawRecord): RawRecord {
+  const today = asRecord(old.today);
+  const summary = asRecord(old.lastSummary);
+  return {
+    ...old,
+    version: 3,
+    staff: [],
+    lastSummary: summary ? { ...summary, staffWages: 0 } : old.lastSummary,
+    today: today ? { ...today, staffTasks: [] } : old.today,
+  };
+}
+
 /**
  * Save v0 (giả định, minh hoạ cách thêm migration thật sau này): chưa có
  * field `flags`. Chuỗi migration chạy tuần tự cho tới `SAVE_VERSION` hiện tại.
@@ -47,6 +60,7 @@ function migrateV1ToV2(old: RawRecord): RawRecord {
 const migrations: Record<number, (old: Record<string, unknown>) => Record<string, unknown>> = {
   0: (old) => ({ ...old, version: 1, flags: old.flags ?? {} }),
   1: migrateV1ToV2,
+  2: migrateV2ToV3,
 };
 
 export type MigrateResult =

@@ -142,7 +142,9 @@ export type TxType =
   | 'SUPPORT_GIFT'
   | 'WEATHER_LOSS'
   | 'UPGRADE_PURCHASE'
-  | 'ROUTE_UNLOCK';
+  | 'ROUTE_UNLOCK'
+  | 'STAFF_HIRE'
+  | 'STAFF_WAGE';
 
 export interface Transaction {
   type: TxType;
@@ -161,6 +163,8 @@ export interface DaySummary {
   tips: number;
   seatCost: number;
   shopCost: number;
+  /** Lương nhân viên trả lúc tổng kết ngày. */
+  staffWages: number;
   expiredSeats: number;
   expiredCost: number;
   refunds: number;
@@ -224,6 +228,32 @@ export interface CounterSlot {
   resolveLeftMs: number;
 }
 
+export type StaffId = string;
+
+export interface StaffDef {
+  id: StaffId;
+  hireCost: number;
+  wagePerDay: number;
+  /** Thời gian (ms) nhân viên cần để phục vụ xong một khách. */
+  serveMs: number;
+  /** Xác suất (%) ghi đúng cân hành lý; sai thì vé bị trừ điểm. */
+  accuracyPct: number;
+  minDay: number;
+  /** Xử lý được cả khách đòi ghế đầu/giữa/cuối. */
+  handlesSeatPositions: boolean;
+}
+
+/** Khách đang được nhân viên phục vụ: đã rời hàng chờ, ghế đã bán, chấm điểm khi hết `leftMs`. */
+export interface StaffTask {
+  staffId: StaffId;
+  customer: Customer;
+  leftMs: number;
+  flightId: string;
+  cabin: CabinClass;
+  seat: SeatId;
+  baggageKg: number;
+}
+
 export interface TodayState {
   moneyStart: number;
   event: DayEvent;
@@ -245,6 +275,7 @@ export interface TodayState {
   counter: CounterSlot;
   results: ScoreResult[];
   turnedAway: number;
+  staffTasks: StaffTask[];
 }
 
 export interface GameState {
@@ -260,6 +291,8 @@ export interface GameState {
   /** Day the route was bought in the shop. */
   routeUnlockedDay: Record<RouteId, number>;
   upgrades: UpgradeId[];
+  /** Nhân viên đã thuê (trả lương mỗi ngày). */
+  staff: StaffId[];
   settings: Settings;
   flags: Record<string, boolean>;
   today: TodayState;
@@ -290,6 +323,7 @@ export type Command =
   | { type: 'GO_TO_SHOP' }
   | { type: 'SHOP_BUY_UPGRADE'; upgradeId: UpgradeId }
   | { type: 'SHOP_UNLOCK_ROUTE'; routeId: RouteId }
+  | { type: 'HIRE_STAFF'; staffId: StaffId }
   | { type: 'NEXT_DAY' }
   | { type: 'SETTINGS_UPDATE'; patch: Partial<Settings> }
   | { type: 'FLAG_SET'; flag: string };
@@ -315,5 +349,6 @@ export type DomainEvent =
   | { type: 'TRAVELVIET_UNLOCKED' }
   | { type: 'UPGRADE_BOUGHT'; upgradeId: UpgradeId }
   | { type: 'ROUTE_UNLOCKED'; routeId: RouteId }
+  | { type: 'STAFF_HIRED'; staffId: StaffId }
   | { type: 'SETTINGS_UPDATED' }
   | { type: 'FLAG_SET'; flag: string };

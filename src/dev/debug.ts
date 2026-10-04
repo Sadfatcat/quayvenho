@@ -8,10 +8,13 @@ declare global {
     __game?: Phaser.Game;
     /** DEV: tạo ván mới đang ở Quầy, bước Hành lý (đã chọn chuyến + ghế) để thử nhanh cân hành lý. */
     __debugBaggageStep?: () => void;
-    /** DEV: mở thẳng một màn với ván mẫu (Prep | Counter | Summary | Shop) để xem giao diện. */
-    __debugScene?: (scene: 'Prep' | 'Counter' | 'Summary' | 'Shop') => void;
+    /** DEV: mở thẳng một màn với ván mẫu (Prep | Price | Staff | Counter | Summary | Shop) để xem giao diện. */
+    __debugScene?: (scene: DebugScene) => void;
   }
 }
+
+type DebugScene = 'Prep' | 'Price' | 'Staff' | 'Counter' | 'Summary' | 'Shop';
+const PREP_PHASE_SCENES: ReadonlySet<DebugScene> = new Set(['Prep', 'Price', 'Staff']);
 
 const DEBUG_SEED = 4242;
 const TUTORIAL_FLAG_IDS = ['prepDay1', 'counterDay1', 'baggageDay2', 'priceDay2', 'rushFirst', 'weatherFirst'];
@@ -42,7 +45,7 @@ const startBaggageStepSession = (): void => {
   game.scene.start('Counter');
 };
 
-const startSceneWithSession = (target: 'Prep' | 'Counter' | 'Summary' | 'Shop'): void => {
+const startSceneWithSession = (target: DebugScene): void => {
   const game = window.__game;
   if (!game) return;
   const session = GameSession.newGame(DEBUG_SEED);
@@ -50,7 +53,7 @@ const startSceneWithSession = (target: 'Prep' | 'Counter' | 'Summary' | 'Shop'):
   session.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
   for (const id of TUTORIAL_FLAG_IDS) session.dispatch({ type: 'FLAG_SET', flag: `tut_${id}` });
   const flight = session.state.today.flights.find((candidate) => candidate.routeId === 'HAN-DAD');
-  if (flight && target !== 'Prep') {
+  if (flight && !PREP_PHASE_SCENES.has(target)) {
     session.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin: 'ECONOMY', qty: 3 });
     session.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
     session.dispatch({ type: 'OPEN_COUNTER' });

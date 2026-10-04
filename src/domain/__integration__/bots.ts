@@ -1,3 +1,5 @@
+import { STAFF } from '@data/staff';
+import { checkHire } from '../staff';
 import { ROUTES } from '@data/routes';
 import { UPGRADES } from '@data/upgrades';
 import { counterCustomer, patienceRatioOf } from '../dayCycle';
@@ -205,6 +207,19 @@ const nextDayStockBudget = (state: Readonly<GameState>): number =>
   Math.ceil(customersForDay({ seed: state.seed, day: state.day + 1, rating: travelVietScore(state.starHistory), rush: false }) * AVERAGE_SEAT_COST * STOCK_RESERVE_MARGIN);
 const STOCK_RESERVE_MARGIN = 1.1;
 
+/** Thí nghiệm kinh tế nhân viên (bot thuê khi còn đủ tiền dự trữ); tắt khi chạy chuẩn. */
+let hireStaffInSim = false;
+export const enableStaffHiring = (): void => {
+  hireStaffInSim = true;
+};
+
+const hireAffordableStaff = (game: GameSession, keepForStock: number): void => {
+  for (const def of STAFF) {
+    const { state } = game;
+    if (checkHire(def.id, state.staff, { day: state.day + 1, money: state.money - keepForStock - def.wagePerDay * 3 }).ok) run(game, { type: 'HIRE_STAFF', staffId: def.id });
+  }
+};
+
 /** Buys the cheapest route, then upgrades (listed ids first, then cheapest), keeping a reserve. */
 export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly string[] = []): void => {
   run(game, { type: 'GO_TO_SHOP' });
@@ -225,6 +240,7 @@ export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly 
     if (!upgrade) break;
     run(game, { type: 'SHOP_BUY_UPGRADE', upgradeId: upgrade.id });
   }
+  if (hireStaffInSim) hireAffordableStaff(game, keepForStock);
   run(game, { type: 'NEXT_DAY' });
 };
 

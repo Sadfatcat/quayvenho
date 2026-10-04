@@ -7,11 +7,11 @@ describe('migrateSave', () => {
 
     const result = migrateSave(v0);
 
-    expect(result).toMatchObject({ ok: true, value: { seed: 1, day: 1, version: 2, flags: {} } });
+    expect(result).toMatchObject({ ok: true, value: { seed: 1, day: 1, version: 3, flags: {} } });
   });
 
   it('giữ nguyên save đã đúng version hiện tại', () => {
-    const current = { version: 2, seed: 1, day: 1 };
+    const current = { version: 3, seed: 1, day: 1 };
 
     const result = migrateSave(current);
 
@@ -38,10 +38,11 @@ describe('migrateSave', () => {
     expect(result).toEqual({
       ok: true,
       value: {
-        version: 2,
+        version: 3,
+        staff: [],
         money: 6000,
         nextDayTransactions: [{ type: 'WEATHER_LOSS', amount: -150, day: 2, minute: null }],
-        lastSummary: { day: 1, moneyStart: 6000, moneyEnd: 6975, ticketRevenue: 1500, penalties: 150, cancelledTickets: 0, cancelRefunds: 0 },
+        lastSummary: { day: 1, moneyStart: 6000, moneyEnd: 6975, ticketRevenue: 1500, penalties: 150, cancelledTickets: 0, cancelRefunds: 0, staffWages: 0 },
         today: {
           moneyStart: 6975,
           event: { type: 'RUSH', holidayId: 'NATIONAL_DAY', hotRoutes: [] },
@@ -49,9 +50,18 @@ describe('migrateSave', () => {
           transactions: [{ type: 'TICKET_REVENUE', amount: 1125, day: 2, minute: 500 }],
           seats: [{ flightId: 'F', seat: '1A', cabin: 'ECONOMY', unitCost: 750, state: 'AVAILABLE' }],
           results: [{ customerId: 'c1', revenue: 1125, tip: 0, penalty: 0, overCap: false }],
+          staffTasks: [],
         },
       },
     });
+  });
+
+  it('nâng save v2 lên v3: thêm danh sách nhân viên, việc của nhân viên và lương trong tổng kết', () => {
+    const v2 = { version: 2, lastSummary: { day: 1 }, today: { clock: 480 } };
+
+    const result = migrateSave(v2);
+
+    expect(result).toEqual({ ok: true, value: { version: 3, staff: [], lastSummary: { day: 1, staffWages: 0 }, today: { clock: 480, staffTasks: [] } } });
   });
 
   it('từ chối save có version lớn hơn bản đang chạy', () => {

@@ -105,6 +105,7 @@ export class SummaryScene extends BaseScene {
       { label: STRINGS.summary.seatCost, to: summary.seatCost, format: money },
     ];
     if (summary.shopCost > 0) lines.push({ label: STRINGS.summary.shopCost, to: summary.shopCost, format: money });
+    if (summary.staffWages > 0) lines.push({ label: STRINGS.summary.staffWages, to: summary.staffWages, format: money });
     if (summary.expiredSeats > 0) {
       lines.push({ label: STRINGS.summary.expiredSeats, to: summary.expiredSeats, format: count });
       lines.push({ label: STRINGS.summary.expiredCost, to: summary.expiredCost, format: money });

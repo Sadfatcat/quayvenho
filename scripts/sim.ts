@@ -7,7 +7,7 @@ declare const process: { env: Record<string, string | undefined> };
  * chậm (POOR, 30s/khách) tốn khá nhiều tick giả lập. Tăng hằng số này để chạy đầy đủ hơn.
  */
 import { GameSession } from '@domain/game';
-import { makeErrorProneDecide, perfectDecide, playDay, type Decide, type PricingStrategy } from '@domain/__integration__/bots';
+import { enableStaffHiring, makeErrorProneDecide, perfectDecide, playDay, type Decide, type PricingStrategy } from '@domain/__integration__/bots';
 import { createRng, type Rng } from '@domain/rng';
 
 const SEEDS_PER_BOT = Number(process.env.SEEDS ?? 200);
@@ -70,6 +70,7 @@ const poorPricing: PricingStrategy = ({ event }) => (event.type === 'RUSH' ? POO
 
 /** FORCE_PCT=n: mọi bot đặt đúng n% cho mọi tuyến (thí nghiệm độ nhạy giá, không dùng khi chạy chuẩn). */
 const forcePct = process.env.FORCE_PCT === undefined ? null : Number(process.env.FORCE_PCT);
+/** HIRE=1: bot thuê nhân viên khi còn đủ tiền (thí nghiệm kinh tế nhân viên, không dùng khi chạy chuẩn). */if (process.env.HIRE === '1') enableStaffHiring();
 const pricingOf = (strategy: PricingStrategy): PricingStrategy => (forcePct === null ? strategy : () => forcePct);
 
 const PROFILES: BotProfile[] = [
