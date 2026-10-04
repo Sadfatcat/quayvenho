@@ -1,5 +1,5 @@
 export type CabinClass = 'ECONOMY' | 'BUSINESS';
-export type SeatPref = 'WINDOW' | 'AISLE' | 'ANY';
+export type SeatPref = 'WINDOW' | 'AISLE' | 'FRONT' | 'MIDDLE' | 'BACK' | 'ANY';
 export type TimeWindow = 'NIGHT' | 'LATE';
 export type TimePref = TimeWindow | 'ANY';
 export type Extra = 'VEG_MEAL' | 'WHEELCHAIR' | 'INSURANCE';
@@ -86,6 +86,9 @@ export interface Customer {
 
 export interface TicketDraft {
   step: BuildStep;
+  /** Con dấu điểm đến và con dấu giờ bay đã đóng; đủ cả hai (và chuyến còn bay) thì `flightId` được xác định. */
+  routeStamp: RouteId | null;
+  timeStamp: number | null;
   flightId: string | null;
   cabin: CabinClass | null;
   seat: SeatId | null;
@@ -272,6 +275,9 @@ export type Command =
   | { type: 'SET_ROUTE_PRICE'; routeId: RouteId; pct: number }
   | { type: 'PREP_CLEAR_PENDING' }
   | { type: 'OPEN_COUNTER' }
+  | { type: 'BUILD_TAKE_TICKET'; cabin: CabinClass }
+  | { type: 'BUILD_STAMP_ROUTE'; routeId: RouteId }
+  | { type: 'BUILD_STAMP_TIME'; departAt: number }
   | { type: 'BUILD_SELECT_FLIGHT'; flightId: string; cabin: CabinClass }
   | { type: 'BUILD_SELECT_SEAT'; seat: SeatId }
   | { type: 'BUILD_SET_BAGGAGE'; kg: number }

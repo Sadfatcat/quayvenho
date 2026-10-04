@@ -3,18 +3,18 @@ import { cabinOfSeat, isAisle, isWindow, matchesSeatPref, seatsOfCabin } from '.
 import { flightCode, generateFlights } from './schedule';
 
 describe('seatMap', () => {
-  it('has 8 business and 40 economy seats', () => {
+  it('has 8 business and 32 economy seats', () => {
     expect(seatsOfCabin('BUSINESS')).toHaveLength(8);
-    expect(seatsOfCabin('ECONOMY')).toHaveLength(40);
+    expect(seatsOfCabin('ECONOMY')).toHaveLength(32);
     expect(seatsOfCabin('BUSINESS')[0]).toBe('1A');
-    expect(seatsOfCabin('ECONOMY').at(-1)).toBe('12D');
+    expect(seatsOfCabin('ECONOMY').at(-1)).toBe('10D');
   });
 
   it('A/D are window, B/C aisle', () => {
     expect(isWindow('5A')).toBe(true);
     expect(isWindow('5D')).toBe(true);
     expect(isAisle('5B')).toBe(true);
-    expect(isAisle('12C')).toBe(true);
+    expect(isAisle('10C')).toBe(true);
     expect(matchesSeatPref('3B', 'WINDOW')).toBe(false);
     expect(matchesSeatPref('3B', 'ANY')).toBe(true);
   });
@@ -52,8 +52,8 @@ describe('schedule', () => {
         const eco = flight.takenByOthers.filter((s) => cabinOfSeat(s) === 'ECONOMY').length;
         expect(biz).toBeGreaterThanOrEqual(4);
         expect(biz).toBeLessThanOrEqual(5);
-        expect(eco).toBeGreaterThanOrEqual(16);
-        expect(eco).toBeLessThanOrEqual(28);
+        expect(eco).toBeGreaterThanOrEqual(12);
+        expect(eco).toBeLessThanOrEqual(24);
         expect(new Set(flight.takenByOthers).size).toBe(flight.takenByOthers.length);
       }
     }

@@ -8,7 +8,7 @@ import { PROFILE_LIMITS } from '@data/balance';
  */
 
 const cabinClassSchema = z.enum(['ECONOMY', 'BUSINESS']);
-const seatPrefSchema = z.enum(['WINDOW', 'AISLE', 'ANY']);
+const seatPrefSchema = z.enum(['WINDOW', 'AISLE', 'FRONT', 'MIDDLE', 'BACK', 'ANY']);
 const timePrefSchema = z.enum(['NIGHT', 'LATE', 'ANY']);
 const extraSchema = z.enum(['VEG_MEAL', 'WHEELCHAIR', 'INSURANCE']);
 const baggageKgSchema = z.union([z.literal(0), z.literal(15), z.literal(20), z.literal(30)]);
@@ -75,6 +75,8 @@ const customerSchema = z.object({
 
 const ticketDraftSchema = z.object({
   step: buildStepSchema,
+  routeStamp: z.string().nullable(),
+  timeStamp: z.number().finite().nullable(),
   flightId: z.string().nullable(),
   cabin: cabinClassSchema.nullable(),
   seat: seatIdSchema.nullable(),

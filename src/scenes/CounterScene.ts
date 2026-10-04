@@ -1,42 +1,21 @@
 import Phaser from 'phaser';
 import { PERSONAL } from '@data/personal';
 import { STRINGS } from '@data/strings';
-import { canGoToStep, counterCustomer, patienceRatioOf } from '@domain/dayCycle';
+import { counterCustomer } from '@domain/dayCycle';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
 import { isMechanicOpen } from '@domain/dayConfig';
 import { formatClock } from '@domain/clock';
-import type {
-  BuildStep,
-  Command,
-  Customer,
-  DomainEvent,
-  GameState,
-  Mood,
-  ScoreResult,
-  TicketDraft,
-} from '@domain/models';
+import type { Command, DomainEvent, GameState, ScoreResult } from '@domain/models';
 import { getRoute } from '@domain/routes';
-import { computeModifiers } from '@domain/upgrades';
 import { GAME_WIDTH } from '../config';
 import { registerVisibilityHandler } from '@platform/visibility';
-import { BaggageSlider } from '@ui/BaggageSlider';
 import { Button } from '@ui/Button';
-import { DragController } from '@ui/DragController';
-import { ExtrasToggles } from '@ui/ExtrasToggles';
-import { FlightList } from '@ui/FlightList';
-import { audio } from '@platform/audio';
 import { burstCoins } from '@ui/CoinBurst';
+import { CounterDesk } from '@ui/CounterDesk';
+import { CustomerCard } from '@ui/CustomerCard';
 import { formatMoney } from '@ui/format';
-import { formatOrderRequest } from '@ui/orderRequest';
 import { showFloatingText } from '@ui/FloatingText';
-import { PatienceBar } from '@ui/PatienceBar';
-import { SeatMapView } from '@ui/SeatMapView';
-import { SpeechBubble } from '@ui/SpeechBubble';
-import { CustomerAvatar, type AvatarMood } from '@ui/CustomerAvatar';
-import { TEXT_STYLES } from '@ui/textStyles';
 import { buttonRow, MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
-import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
-import { TicketView } from '@ui/TicketView';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
 import { TopBar } from '@ui/TopBar';
@@ -47,28 +26,16 @@ import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { showPendingTutorials, showScriptedMoments } from './overlays/TutorialOverlay';
 import { sessionBridge } from './sessionBridge';
 
-const COUNTER_SURFACE_Y = 650;
 const SHAKE_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['POOR', 'FAILED', 'SOLD_INVALID', 'REFUSED_WRONG']);
-const MOOD_TO_AVATAR: Record<Mood, AvatarMood> = { HAPPY: 'happy', NEUTRAL: 'neutral', IMPATIENT: 'angry' };
-const COUNTER_AVATAR_RADIUS = 62;
-const REQUEST_BUBBLE_WIDTH = 520;
-const REQUEST_FONT_SIZE = 24;
-const REQUEST_TAIL_TIP_Y = 392;
-const REQUEST_TAIL_HEIGHT = 34;
-const SPECIAL_LINE_WIDTH = 520;
-const SPECIAL_PATIENCE_BAR_Y = 570;
 const SPECIAL_TOAST_MS = 3000;
 const GOOD_SPECIAL_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['PERFECT', 'GOOD', 'OK']);
 const specialLinesOf = (specialId: string | undefined) => PERSONAL.specialCustomers.find((special) => special.id === specialId)?.lines;
 const SHAKE_DURATION_MS = 180;
 const SHAKE_INTENSITY = 0.006;
-const TICKET_SLIDE_FROM_PX = -160;
-const TICKET_SLIDE_MS = 350;
-const BUILD_AREA_ORIGIN = { x: 40, y: 775 };
-const BUILD_AREA_WIDTH = GAME_WIDTH - 80;
-
-const nextStepOf = (step: BuildStep): BuildStep =>
-  BUILD_STEP_ORDER[Math.min(BUILD_STEP_ORDER.indexOf(step) + 1, BUILD_STEP_ORDER.length - 1)] as BuildStep;
+const DOCK_Y = 1170;
+const HEADER_TEXT_Y = 146;
+const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 150 };
+const FEEDBACK_Y = 300;
 
 const rejectedLabel = (reason: string): string =>
   (STRINGS.counter.rejectedReasons as Record<string, string>)[reason] ?? STRINGS.counter.rejectedFallback;
@@ -78,11 +45,8 @@ export class CounterScene extends BaseScene {
   private brandText!: Phaser.GameObjects.Text;
   private eventBadge!: Phaser.GameObjects.Text;
   private waitingText!: Phaser.GameObjects.Text;
-  private customerArea!: Phaser.GameObjects.Container;
-  private patienceBar: PatienceBar | null = null;
-  private stepIndicator!: StepIndicator;
-  private buildArea!: Phaser.GameObjects.Container;
-  private printBar: Phaser.GameObjects.Container | null = null;
+  private customerCard!: CustomerCard;
+  private desk!: CounterDesk;
   private retryButton!: Button;
   private refuseButton!: Button;
   private mainButton!: Button;
@@ -92,10 +56,6 @@ export class CounterScene extends BaseScene {
   private pauseOverlay: PauseOverlay | null = null;
   private unsubscribeEvents: (() => void) | null = null;
   private unsubscribeVisibility: (() => void) | null = null;
-
-  private lastQueueSignature = '';
-  private counterAvatar: CustomerAvatar | null = null;
-  private lastBuildSignature = '';
 
   constructor() {
     super('Counter');
@@ -142,24 +102,19 @@ export class CounterScene extends BaseScene {
       onIconTap: () => this.openPause(),
     });
 
-    this.brandText = this.add.text(GAME_WIDTH / 2, 180, state.profile?.brandName ?? '', { fontFamily: FONT_FAMILY, fontSize: '32px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5);
-    this.eventBadge = this.add.text(GAME_WIDTH / 2, 214, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.warning) }).setOrigin(0.5);
+    this.brandText = this.add.text(SCREEN_MARGIN, HEADER_TEXT_Y, state.profile?.brandName ?? '', { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5);
+    this.eventBadge = this.add.text(GAME_WIDTH / 2, HEADER_TEXT_Y, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.warning) }).setOrigin(0.5);
 
-    this.waitingText = this.add.text(GAME_WIDTH / 2, 400, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
-    this.customerArea = this.add.container(0, 0);
-
-    this.stepIndicator = new StepIndicator(this, GAME_WIDTH / 2 - BUILD_STEP_ORDER.length * 70 + 70, 695, {
-      onStepTap: (step) => this.dispatch({ type: 'BUILD_GOTO_STEP', step }),
-    });
-
-    this.buildArea = this.add.container(BUILD_AREA_ORIGIN.x, BUILD_AREA_ORIGIN.y);
+    this.waitingText = this.add.text(GAME_WIDTH / 2, 290, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
+    this.customerCard = new CustomerCard(this);
+    this.desk = new CounterDesk(this, { dispatch: (command) => this.dispatch(command) });
 
     const dock = buttonRow(GAME_WIDTH, 3);
-    this.retryButton = new Button(this, dock.centers[0] ?? 0, 1170, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
-    this.refuseButton = new Button(this, dock.centers[1] ?? 0, 1170, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
-    this.mainButton = new Button(this, dock.centers[2] ?? 0, 1170, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.next, variant: 'primary', onTap: () => this.onMainAction() });
+    this.retryButton = new Button(this, dock.centers[0] ?? 0, DOCK_Y, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
+    this.refuseButton = new Button(this, dock.centers[1] ?? 0, DOCK_Y, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
+    this.mainButton = new Button(this, dock.centers[2] ?? 0, DOCK_Y, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.print, variant: 'primary', onTap: () => this.onMainAction() });
 
-    this.passportButton = new Button(this, GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, 250, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
+    this.passportButton = new Button(this, PASSPORT_BUTTON.x, PASSPORT_BUTTON.y, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
     this.passportButton.setVisible(false);
   }
 
@@ -180,8 +135,13 @@ export class CounterScene extends BaseScene {
     this.brandText.setText(state.profile?.brandName ?? '');
     this.eventBadge.setText(this.eventBadgeText(state));
 
-    this.renderCustomerArea(state);
-    this.renderBuildArea(state);
+    const counter = counterCustomer(state.today);
+    const queuedCount = state.today.queue.filter((candidate) => candidate.position === 'QUEUE').length;
+    this.customerCard.update(counter, queuedCount, specialLinesOf(counter?.order.special?.id)?.arrive);
+    this.waitingText.setVisible(!counter && queuedCount === 0);
+    this.passportButton.setVisible(!!counter && isMechanicOpen('badPassport', state.day));
+    this.desk.renderFrame(state);
+    this.updateButtons(state);
 
     if (state.phase === 'SUMMARY') this.scene.start('Summary');
   }
@@ -196,221 +156,6 @@ export class CounterScene extends BaseScene {
     return '';
   }
 
-  // ---------- customer area ----------
-
-  private renderCustomerArea(state: GameState): void {
-    const signature = state.today.queue.map((customer) => customer.order.customerId).join(',');
-    if (signature === this.lastQueueSignature) {
-      this.updateCustomerDynamics(state);
-      return;
-    }
-    this.lastQueueSignature = signature;
-    this.customerArea.removeAll(true);
-    this.patienceBar = null;
-    this.counterAvatar = null;
-
-    const counter = counterCustomer(state.today);
-    if (counter) this.renderCounterCustomer(counter);
-    const queued = state.today.queue.filter((candidate) => candidate.position === 'QUEUE');
-    queued.forEach((queuedCustomer, index) => this.renderQueuedCustomer(index, queuedCustomer.order.spriteId));
-
-    this.waitingText.setVisible(!counter && queued.length === 0);
-    this.passportButton.setVisible(!!counter && isMechanicOpen('badPassport', state.day));
-  }
-
-  private renderCounterCustomer(customer: Customer): void {
-    const centerX = GAME_WIDTH / 2;
-    const bubble = new SpeechBubble(this, centerX, 0, {
-      width: REQUEST_BUBBLE_WIDTH,
-      text: formatOrderRequest(customer.order),
-      speaker: customer.order.passport.bookedName,
-      tailX: 0,
-      fontSize: REQUEST_FONT_SIZE,
-    });
-    // Đuôi bong bóng chạm đỉnh đầu khách: đặt khung ngay trên đầu, bất kể câu nói dài mấy dòng.
-    bubble.setY(REQUEST_TAIL_TIP_Y - REQUEST_TAIL_HEIGHT - bubble.frameHeight / 2);
-    const avatar = new CustomerAvatar(this, centerX, 440, COUNTER_AVATAR_RADIUS, customer.order.spriteId, MOOD_TO_AVATAR[customer.mood]);
-    this.counterAvatar = avatar;
-    const arriveLine = specialLinesOf(customer.order.special?.id)?.arrive;
-    if (arriveLine) this.customerArea.add(this.add.text(centerX, 500, arriveLine, { ...TEXT_STYLES.label, align: 'center', wordWrap: { width: SPECIAL_LINE_WIDTH } }).setOrigin(0.5, 0));
-    this.patienceBar = new PatienceBar(this, centerX - 100, arriveLine ? SPECIAL_PATIENCE_BAR_Y : 520, { width: 200, height: 16 });
-    this.patienceBar.setProgress(patienceRatioOf(customer));
-    this.patienceBar.setMood(customer.mood);
-    this.customerArea.add([bubble, avatar, this.patienceBar]);
-  }
-
-  private renderQueuedCustomer(index: number, queuedSpriteId: string): void {
-    const x = GAME_WIDTH - 80 - index * 70;
-    const scale = Math.max(0.5, 1 - index * 0.15);
-    this.customerArea.add(new CustomerAvatar(this, x, 560, 32 * scale, queuedSpriteId));
-  }
-
-  private updateCustomerDynamics(state: GameState): void {
-    const counter = counterCustomer(state.today);
-    if (counter && this.patienceBar) {
-      this.patienceBar.setProgress(patienceRatioOf(counter));
-      this.patienceBar.setMood(counter.mood);
-      this.counterAvatar?.setMood(MOOD_TO_AVATAR[counter.mood] ?? 'happy');
-    }
-  }
-
-  // ---------- build area (Bước A-D, in vé, giao vé) ----------
-
-  private renderBuildArea(state: GameState): void {
-    const counter = state.today.counter;
-    const draft = counter.draft;
-    const signature = JSON.stringify({
-      s: counter.state,
-      step: draft?.step,
-      f: draft?.flightId,
-      c: draft?.cabin,
-      seat: draft?.seat,
-      kg: draft?.baggageKg,
-      ex: draft?.extras,
-    });
-
-    if (signature === this.lastBuildSignature) {
-      if (counter.state === 'PRINTING') this.updatePrintProgress(state);
-      this.updateButtons(state);
-      return;
-    }
-    this.lastBuildSignature = signature;
-    this.buildArea.removeAll(true);
-    this.printBar = null;
-
-    if (counter.state === 'BUILDING' && draft) {
-      this.stepIndicator.setCurrentStep(draft.step);
-      if (draft.step === 'FLIGHT') this.renderStepFlight(state);
-      else if (draft.step === 'SEAT') this.renderStepSeat(state, draft);
-      else if (draft.step === 'EXTRAS') this.renderStepExtras(state, draft);
-      else this.renderStepReview(state, draft);
-    } else if (counter.state === 'PRINTING') {
-      this.renderPrinting(state);
-    } else if (counter.state === 'READY_TO_DELIVER' && draft) {
-      this.renderReadyToDeliver(state, draft);
-    } else if (counter.state === 'EMPTY') {
-      this.renderStepFlight(state, true);
-    }
-
-    this.updateButtons(state);
-  }
-
-  private renderStepFlight(state: GameState, readOnly = false): void {
-    const list = new FlightList(this, {
-      x: 0,
-      y: 0,
-      width: BUILD_AREA_WIDTH,
-      height: 340,
-      flights: state.today.flights,
-      seats: state.today.seats,
-      readOnly,
-      onSelect: (flightId, cabin) => this.dispatch({ type: 'BUILD_SELECT_FLIGHT', flightId, cabin }),
-    });
-    this.buildArea.add(list);
-  }
-
-  private renderStepSeat(state: GameState, draft: TicketDraft): void {
-    if (!draft.flightId || !draft.cabin) return;
-    const flight = state.today.flights.find((candidate) => candidate.id === draft.flightId);
-    if (!flight) return;
-    const mapWidth = SeatMapView.widthFor(draft.cabin);
-    const seatMap = new SeatMapView(this, (BUILD_AREA_WIDTH - mapWidth) / 2, 20, {
-      cabin: draft.cabin,
-      flight,
-      seats: state.today.seats,
-      selectedSeat: draft.seat,
-      onSelect: (seat) => {
-        audio.playSfx('seat');
-        this.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
-      },
-    });
-    this.buildArea.add(seatMap);
-  }
-
-  private renderStepExtras(state: GameState, draft: TicketDraft): void {
-    const slider = new BaggageSlider(this, 40, 40, {
-      width: BUILD_AREA_WIDTH - 80,
-      initialKg: draft.baggageKg,
-      onCommit: (kg) => this.dispatch({ type: 'BUILD_SET_BAGGAGE', kg }),
-    });
-    this.buildArea.add(slider);
-    if (isMechanicOpen('extras', state.day)) {
-      const toggles = new ExtrasToggles(this, 20, 160, {
-        width: BUILD_AREA_WIDTH - 40,
-        selected: draft.extras,
-        onToggle: (extra) => this.dispatch({ type: 'BUILD_TOGGLE_EXTRA', extra }),
-      });
-      this.buildArea.add(toggles);
-    }
-  }
-
-  private renderStepReview(state: GameState, draft: TicketDraft): void {
-    const ticket = this.buildTicketView(state, draft, (BUILD_AREA_WIDTH) / 2, 220);
-    if (ticket) this.buildArea.add(ticket);
-  }
-
-  private renderPrinting(state: GameState): void {
-    const totalMs = computeModifiers(state.upgrades).printMs;
-    const track = this.add.rectangle(60, 180, BUILD_AREA_WIDTH - 120, 24, COLORS.disabled).setOrigin(0, 0.5);
-    const fill = this.add.rectangle(60, 180, BUILD_AREA_WIDTH - 120, 24, COLORS.primary).setOrigin(0, 0.5);
-    fill.width = (BUILD_AREA_WIDTH - 120) * (1 - state.today.counter.printLeftMs / totalMs);
-    const label = this.add.text(BUILD_AREA_WIDTH / 2, 130, `${STRINGS.counter.print}...`, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.text) }).setOrigin(0.5);
-    const group = this.add.container(0, 0, [track, fill, label]);
-    this.printBar = group;
-    this.buildArea.add(group);
-  }
-
-  private updatePrintProgress(state: GameState): void {
-    if (!this.printBar) return;
-    const fill = this.printBar.list[1] as Phaser.GameObjects.Rectangle;
-    const totalMs = computeModifiers(state.upgrades).printMs;
-    fill.width = (BUILD_AREA_WIDTH - 120) * (1 - state.today.counter.printLeftMs / totalMs);
-  }
-
-  private renderReadyToDeliver(state: GameState, draft: TicketDraft): void {
-    const originX = BUILD_AREA_WIDTH / 2;
-    const originY = 220;
-    const ticket = this.buildTicketView(state, draft, originX, originY);
-    if (!ticket) return;
-    ticket.setSize(560, 440);
-    ticket.setInteractive();
-    ticket.setY(originY + TICKET_SLIDE_FROM_PX).setAlpha(0);
-    this.tweens.add({ targets: ticket, y: originY, alpha: 1, duration: TICKET_SLIDE_MS, ease: 'Back.easeOut' });
-    const dragController = new DragController(ticket, {
-      onDragMove: (point) => {
-        const local = this.buildArea.getLocalPoint(point.x, point.y);
-        ticket.setPosition(local.x, local.y);
-      },
-      onDragEnd: (point) => {
-        if (point.y < COUNTER_SURFACE_Y) this.dispatch({ type: 'DELIVER_TICKET' });
-        else ticket.setPosition(originX, originY);
-      },
-    });
-    void dragController;
-    this.buildArea.add(ticket);
-    this.buildArea.add(this.add.text(BUILD_AREA_WIDTH / 2, 20, STRINGS.counter.deliverHint, { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5));
-  }
-
-  private buildTicketView(state: GameState, draft: TicketDraft, x: number, y: number): TicketView | null {
-    if (!draft.flightId || !draft.cabin) return null;
-    const flight = state.today.flights.find((candidate) => candidate.id === draft.flightId);
-    const customer = counterCustomer(state.today);
-    if (!flight || !customer) return null;
-    const route = getRoute(flight.routeId);
-    return new TicketView(this, x, y, {
-      width: 560,
-      brandName: state.profile?.brandName ?? '',
-      passengerName: customer.order.passport.bookedName,
-      routeName: route.name,
-      flightId: flight.id,
-      departAt: flight.departAt,
-      cabin: draft.cabin,
-      seat: draft.seat,
-      baggageKg: draft.baggageKg,
-      extras: draft.extras,
-    });
-  }
-
   // ---------- buttons ----------
 
   private updateButtons(state: GameState): void {
@@ -423,25 +168,19 @@ export class CounterScene extends BaseScene {
     this.retryButton.setEnabled(canBuild);
     this.refuseButton.setEnabled(canRefuse);
 
-    if (canBuild && draft) {
-      if (draft.step === 'REVIEW') {
-        this.mainButton.setLabel(STRINGS.counter.print);
-        this.mainButton.setEnabled(true);
-      } else {
-        this.mainButton.setLabel(STRINGS.counter.next);
-        this.mainButton.setEnabled(canGoToStep(draft, nextStepOf(draft.step)));
-      }
-    } else {
-      this.mainButton.setLabel(STRINGS.counter.next);
-      this.mainButton.setEnabled(false);
+    if (counter.state === 'READY_TO_DELIVER') {
+      this.mainButton.setLabel(STRINGS.counter.desk.deliver);
+      this.mainButton.setEnabled(true);
+      return;
     }
+    this.mainButton.setLabel(STRINGS.counter.print);
+    this.mainButton.setEnabled(canBuild && !!draft?.cabin && !!draft.flightId && !!draft.seat);
   }
 
   private onMainAction(): void {
-    const draft = sessionBridge.current.state.today.counter.draft;
-    if (!draft) return;
-    if (draft.step === 'REVIEW') this.dispatch({ type: 'PRINT_TICKET' });
-    else this.dispatch({ type: 'BUILD_GOTO_STEP', step: nextStepOf(draft.step) });
+    const counterState = sessionBridge.current.state.today.counter.state;
+    if (counterState === 'READY_TO_DELIVER') this.dispatch({ type: 'DELIVER_TICKET' });
+    else if (counterState === 'BUILDING') this.dispatch({ type: 'PRINT_TICKET' });
   }
 
   // ---------- events, pause, summary ----------
@@ -462,7 +201,7 @@ export class CounterScene extends BaseScene {
 
   private showScoreFeedback(result: ScoreResult): void {
     const x = GAME_WIDTH / 2;
-    const y = 480;
+    const y = FEEDBACK_Y;
     if (result.revenue > 0) {
       showFloatingText(this, x, y, { text: `+${formatMoney(result.revenue)}`, color: COLORS.success });
       burstCoins(this, x, y, result.revenue);
@@ -489,5 +228,4 @@ export class CounterScene extends BaseScene {
       },
     });
   }
-
 }

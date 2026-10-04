@@ -141,18 +141,29 @@ export const releaseHeld = (seats: readonly OwnedSeat[]) => withState(seats, 'HE
 export const sellHeld = (seats: readonly OwnedSeat[]) => withState(seats, 'HELD', 'SOLD');
 export const expireAvailable = (seats: readonly OwnedSeat[]) => withState(seats, 'AVAILABLE', 'EXPIRED');
 
+/**
+ * Giữ một ghế cho vé đang lập. Mọi ghế của khoang đều chọn được: ghế trống (chưa bán/chưa giữ) là hợp lệ miễn là
+ * còn ít nhất một ghế tồn kho (AVAILABLE) của chuyến + khoang — tồn kho chỉ là SỐ LƯỢNG, số ghế cụ thể được gán lúc bán.
+ */
 export const holdSeat = (
   seats: readonly OwnedSeat[],
   flightId: string,
   cabin: CabinClass,
   seatId: SeatId,
 ): Result<OwnedSeat[], 'SEAT_NOT_AVAILABLE'> => {
+  if (!seatsOfCabin(cabin).includes(seatId)) return err('SEAT_NOT_AVAILABLE');
   const released = releaseHeld(seats);
-  const index = released.findIndex(
-    (seat) => seat.flightId === flightId && seat.cabin === cabin && seat.seat === seatId && seat.state === 'AVAILABLE',
-  );
-  if (index < 0) return err('SEAT_NOT_AVAILABLE');
-  return ok(released.map((seat, i) => (i === index ? { ...seat, state: 'HELD' as const } : seat)));
+  const inCabin = (seat: OwnedSeat) => seat.flightId === flightId && seat.cabin === cabin;
+  const sameSeat = released.findIndex((seat) => inCabin(seat) && seat.seat === seatId);
+  if (sameSeat >= 0) {
+    // Ghế này đã có bản ghi: chỉ dùng được nếu còn trống trong kho.
+    return released[sameSeat]?.state === 'AVAILABLE'
+      ? ok(released.map((seat, i) => (i === sameSeat ? { ...seat, state: 'HELD' as const } : seat)))
+      : err('SEAT_NOT_AVAILABLE');
+  }
+  const spare = released.findIndex((seat) => inCabin(seat) && seat.state === 'AVAILABLE');
+  if (spare < 0) return err('SEAT_NOT_AVAILABLE');
+  return ok(released.map((seat, i) => (i === spare ? { ...seat, seat: seatId, state: 'HELD' as const } : seat)));
 };
 
 /** Marks `share` of the AVAILABLE seats on the given flights as LOST (rounded). */

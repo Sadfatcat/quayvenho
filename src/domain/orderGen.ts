@@ -1,11 +1,13 @@
 import {
   BAD_PASSPORT_EXPIRED_DAYS,
+  FUSSY_SEAT_PREF_FROM_DAY,
   PATIENCE_PER_COMPLEXITY_MS,
   VALID_PASSPORT_EXTRA_DAYS,
 } from '@data/balance';
 import { CUSTOMER_SPRITES, FAMILY_NAMES, GIVEN_NAMES, MAX_FULL_NAME_LENGTH, MIDDLE_NAMES } from '@data/customers';
 import { ROUTES } from '@data/routes';
 import { routeHasAvailableSeat } from './canServe';
+import { seatPrefsForCabin } from './seatMap';
 import { timeWindowOf } from './clock';
 import { invariant } from './common/invariant';
 import { isMechanicOpen } from './dayConfig';
@@ -37,6 +39,7 @@ const BAGGAGE_CHOICES: readonly { value: BaggageKg; weight: number }[] = [
   { value: 20, weight: 4 },
   { value: 30, weight: 2 },
 ];
+const BASIC_SEAT_PREFS: readonly SeatPref[] = ['WINDOW', 'AISLE'];
 const EXTRAS: readonly Extra[] = ['VEG_MEAL', 'WHEELCHAIR', 'INSURANCE'];
 
 const FRACTIONAL_WEIGHT_SCALE = 4;
@@ -157,7 +160,7 @@ export const generateOrder = (ctx: OrderContext): Order => {
   const cabin = canAdd('business', cfg.pBusiness) ? (complexity++, 'BUSINESS' as const) : 'ECONOMY';
   const baggageKg: BaggageKg = canAdd('baggage', cfg.pBaggage) ? (complexity++, rng.weighted(BAGGAGE_CHOICES)) : 0;
   const seatPref: SeatPref = canAdd('seatPref', cfg.pSeatPref)
-    ? (complexity++, rng.pick(['WINDOW', 'AISLE'] as const))
+    ? (complexity++, rng.pick(day >= FUSSY_SEAT_PREF_FROM_DAY ? seatPrefsForCabin(cabin) : BASIC_SEAT_PREFS))
     : 'ANY';
   const timePref: TimePref = windows.length && canAdd('timePref', cfg.pTimePref) ? (complexity++, rng.pick(windows)) : 'ANY';
 

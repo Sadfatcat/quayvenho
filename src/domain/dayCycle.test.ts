@@ -49,7 +49,7 @@ describe('helpers', () => {
   });
 
   it('cannot jump past an incomplete step', () => {
-    const draft = { step: 'FLIGHT' as const, flightId: null, cabin: null, seat: null, baggageKg: 0, extras: [] };
+    const draft = { step: 'FLIGHT' as const, flightId: null, routeStamp: null, timeStamp: null, cabin: null, seat: null, baggageKg: 0, extras: [] };
     expect(canGoToStep(draft, 'FLIGHT')).toBe(true);
     expect(canGoToStep(draft, 'SEAT')).toBe(false);
     expect(canGoToStep({ ...draft, flightId: 'x', cabin: 'ECONOMY' }, 'SEAT')).toBe(true);

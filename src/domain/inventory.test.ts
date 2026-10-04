@@ -42,7 +42,7 @@ describe('inventory: purchase', () => {
     const free = freeSeatsFor(flight(), 'ECONOMY', [owned('4A')]);
     expect(free).not.toContain('3A');
     expect(free).not.toContain('4A');
-    expect(free).toHaveLength(40 - 2 - 1);
+    expect(free).toHaveLength(32 - 2 - 1);
   });
 
   it('limit is 12 ECO / 4 BIZ per flight minus owned', () => {
@@ -93,10 +93,15 @@ describe('inventory: seat states', () => {
     expect(second.ok && second.value.map((s) => s.state)).toEqual(['AVAILABLE', 'HELD']);
   });
 
+  it('reassigns a spare unit to any chosen seat of the cabin', () => {
+    const result = holdSeat([owned('4A')], 'QV201', 'ECONOMY', '5A');
+    expect(result.ok && result.value.map((s) => [s.seat, s.state])).toEqual([['5A', 'HELD']]);
+    expect(holdSeat([owned('4A')], 'QV201', 'ECONOMY', '99A').ok).toBe(false);
+  });
+
   it('cannot hold sold, foreign or wrong-cabin seats', () => {
     expect(holdSeat([owned('4A', 'SOLD')], 'QV201', 'ECONOMY', '4A').ok).toBe(false);
-    expect(holdSeat([owned('4A')], 'QV201', 'ECONOMY', '5A').ok).toBe(false);
-    expect(holdSeat([owned('4A')], 'QV201', 'BUSINESS', '4A').ok).toBe(false);
+        expect(holdSeat([owned('4A')], 'QV201', 'BUSINESS', '4A').ok).toBe(false);
   });
 
   it('release, sell, expire', () => {
@@ -121,7 +126,7 @@ describe('inventory: seat states', () => {
     const gift = giftSeats(flight(), 'ECONOMY', 3, [], createRng(2));
     expect(gift).toHaveLength(3);
     expect(gift.every((s) => s.unitCost === 0 && s.state === 'AVAILABLE')).toBe(true);
-    const full = flight({ takenByOthers: seatsOfCabin('ECONOMY').slice(0, 39) });
+    const full = flight({ takenByOthers: seatsOfCabin('ECONOMY').slice(0, 31) });
     expect(giftSeats(full, 'ECONOMY', 3, [], createRng(2))).toHaveLength(1);
   });
 });

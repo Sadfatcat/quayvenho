@@ -66,6 +66,8 @@ export const OUTCOME_PENALTY: Record<ScoreOutcome, number> = {
 };
 
 // Quầy
+/** Từ ngày này khách khó tính mới đòi vị trí ghế theo hàng (đầu/giữa/cuối khoang), ngoài cửa sổ/lối đi. */
+export const FUSSY_SEAT_PREF_FROM_DAY = 7;
 export const PATIENCE_PER_COMPLEXITY_MS = 5000;
 export const QUEUE_PATIENCE_RATE = 0.5;
 export const MOOD_HAPPY_ABOVE = 0.6;

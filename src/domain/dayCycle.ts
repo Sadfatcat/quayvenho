@@ -77,7 +77,7 @@ export interface Session {
 export const TUTORIAL_FLAG = 'tutorialDone_1';
 const BUILD_STEPS: readonly BuildStep[] = ['FLIGHT', 'SEAT', 'EXTRAS', 'REVIEW'];
 
-const freshDraft = (): TicketDraft => ({ step: 'FLIGHT', flightId: null, cabin: null, seat: null, baggageKg: 0, extras: [] });
+const freshDraft = (): TicketDraft => ({ step: 'FLIGHT', routeStamp: null, timeStamp: null, flightId: null, cabin: null, seat: null, baggageKg: 0, extras: [] });
 const emptyCounter = (): CounterSlot => ({ state: 'EMPTY', draft: null, printLeftMs: 0, resolveLeftMs: 0 });
 
 const createToday = (
@@ -158,6 +158,20 @@ export const counterCustomer = (today: TodayState): Customer | undefined =>
 
 const isStepComplete = (draft: TicketDraft, step: BuildStep): boolean =>
   step === 'FLIGHT' ? draft.flightId !== null && draft.cabin !== null : step === 'SEAT' ? draft.seat !== null : true;
+
+/** Có đủ hai con dấu (điểm đến + giờ bay) thì chuyến bay xác định; đổi chuyến thì nhả ghế đang giữ. */
+const resolveStampedFlight = (session: Session, draft: TicketDraft): void => {
+  const { today } = session.state;
+  const flight =
+    draft.routeStamp !== null && draft.timeStamp !== null
+      ? today.flights.find((candidate) => candidate.routeId === draft.routeStamp && candidate.departAt === draft.timeStamp && candidate.status === 'SCHEDULED')
+      : undefined;
+  const flightId = flight?.id ?? null;
+  if (flightId === draft.flightId) return;
+  today.seats = releaseHeld(today.seats);
+  draft.seat = null;
+  draft.flightId = flightId;
+};
 
 export const canGoToStep = (draft: TicketDraft, target: BuildStep): boolean =>
   BUILD_STEPS.slice(0, BUILD_STEPS.indexOf(target)).every((step) => isStepComplete(draft, step));
@@ -278,6 +292,35 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       return openCounter(session);
     }
 
+    case 'BUILD_TAKE_TICKET': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      if (ctx.draft.cabin !== command.cabin) {
+        today.seats = releaseHeld(today.seats);
+        ctx.draft.seat = null;
+      }
+      ctx.draft.cabin = command.cabin;
+      return [];
+    }
+
+    case 'BUILD_STAMP_ROUTE': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      if (!state.unlockedRoutes.includes(command.routeId)) return reject('ROUTE_LOCKED');
+      ctx.draft.routeStamp = command.routeId;
+      resolveStampedFlight(session, ctx.draft);
+      return [];
+    }
+
+    case 'BUILD_STAMP_TIME': {
+      const ctx = building();
+      if (!ctx) return reject('NOT_BUILDING');
+      if (!today.flights.some((flight) => flight.departAt === command.departAt)) return reject('BAD_TIME_STAMP');
+      ctx.draft.timeStamp = command.departAt;
+      resolveStampedFlight(session, ctx.draft);
+      return [];
+    }
+
     case 'BUILD_SELECT_FLIGHT': {
       if (!building()) return reject('NOT_BUILDING');
       const flight = findFlight(today.flights, command.flightId);
@@ -286,7 +329,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       const hasSeat = seats.some((s) => s.flightId === flight.id && s.cabin === command.cabin && s.state === 'AVAILABLE');
       if (!hasSeat) return reject('NO_SEAT_IN_CABIN');
       today.seats = seats;
-      today.counter.draft = { ...freshDraft(), baggageKg: 0, step: 'SEAT', flightId: flight.id, cabin: command.cabin };
+      today.counter.draft = { ...freshDraft(), baggageKg: 0, step: 'SEAT', routeStamp: flight.routeId, timeStamp: flight.departAt, flightId: flight.id, cabin: command.cabin };
       return [];
     }
 
@@ -338,7 +381,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
     case 'PRINT_TICKET': {
       const ctx = building();
       if (!ctx) return reject('NOT_BUILDING');
-      if (ctx.draft.step !== 'REVIEW' || !canGoToStep(ctx.draft, 'REVIEW')) return reject('TICKET_INCOMPLETE');
+      if (!ctx.draft.cabin || !ctx.draft.flightId || !ctx.draft.seat) return reject('TICKET_INCOMPLETE');
       const printMs = computeModifiers(state.upgrades).printMs;
       today.counter = { ...today.counter, state: 'PRINTING', printLeftMs: printMs };
       return [{ type: 'PRINT_STARTED', durationMs: printMs }];

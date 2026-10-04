@@ -10,7 +10,7 @@ import { maxPurchasable, pendingKey, pendingTotalCost } from '../inventory';
 import type { CabinClass, Command, DayEvent, DomainEvent, GameState, Order, RouteId, SeatId } from '../models';
 import { dayDemandProfile } from '../pricing';
 import { createRng, type Rng } from '../rng';
-import { matchesSeatPref } from '../seatMap';
+import { matchesSeatPref, seatsOfCabin } from '../seatMap';
 import { isPassportValid } from '../scoring';
 import { checkRouteUnlock, checkUpgrade } from '../upgrades';
 
@@ -52,21 +52,22 @@ export const makeErrorProneDecide = (rng: Rng, profile: ErrorProfile): Decide =>
   return isPassportValid(order.passport, state.day) && !findTicket(state, order, order.cabin) ? 'REFUSE' : 'CORRECT';
 };
 
+/** Mọi ghế của khoang đều chọn được; cần còn ít nhất một ghế tồn kho (AVAILABLE) của chuyến + khoang. */
 export const findTicket = (
   state: Readonly<GameState>,
   order: Order,
   cabin: CabinClass,
 ): { flightId: string; seat: SeatId } | null => {
-  let fallback: { flightId: string; seat: SeatId } | null = null;
   for (const flight of state.today.flights) {
     if (flight.routeId !== order.routeId || flight.status !== 'SCHEDULED' || !matchesTimePref(flight.departAt, order.timePref)) continue;
-    for (const seat of state.today.seats) {
-      if (seat.flightId !== flight.id || seat.cabin !== cabin || seat.state !== 'AVAILABLE') continue;
-      if (matchesSeatPref(seat.seat, order.seatPref)) return { flightId: flight.id, seat: seat.seat };
-      fallback ??= { flightId: flight.id, seat: seat.seat };
-    }
+    const units = state.today.seats.filter((seat) => seat.flightId === flight.id && seat.cabin === cabin);
+    if (!units.some((unit) => unit.state === 'AVAILABLE')) continue;
+    const blocked = new Set(units.filter((unit) => unit.state !== 'AVAILABLE').map((unit) => unit.seat));
+    const open = seatsOfCabin(cabin).filter((seat) => !blocked.has(seat));
+    const seat = open.find((candidate) => matchesSeatPref(candidate, order.seatPref)) ?? open[0];
+    if (seat) return { flightId: flight.id, seat };
   }
-  return fallback;
+  return null;
 };
 
 export class BotError extends Error {}

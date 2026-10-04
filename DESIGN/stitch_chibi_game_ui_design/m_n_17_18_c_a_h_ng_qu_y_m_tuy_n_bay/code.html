@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@700;800&amp;family=Nunito+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "secondary": "#97472e", "on-surface-variant": "#4f453e", "on-tertiary-fixed": "#002021", "surface": "#fff8f5", "surface-bright": "#fff8f5", "on-secondary-container": "#772f18", "error-container": "#ffdad6", "on-background": "#2b1704", "on-error-container": "#93000a", "primary-container": "#6c4f3d", "on-secondary-fixed-variant": "#793019", "outline": "#81746e", "tertiary": "#114547", "on-surface": "#2b1704", "tertiary-fixed-dim": "#9fcfd1", "on-tertiary-fixed-variant": "#1c4e50", "on-tertiary": "#ffffff", "primary-fixed": "#ffdbc7", "on-primary": "#ffffff", "tertiary-fixed": "#baebed", "inverse-on-surface": "#ffeee1", "on-error": "#ffffff", "surface-variant": "#ffdcc0", "surface-container-low": "#fff1e8", "outline-variant": "#d3c3bb", "tertiary-container": "#2d5d5f", "surface-container-high": "#ffe3ce", "surface-container-lowest": "#ffffff", "background": "#fff8f5", "secondary-fixed": "#ffdbd0", "on-secondary-fixed": "#3a0a00", "on-secondary": "#ffffff", "secondary-container": "#fe997a", "on-primary-container": "#eac3ac", "surface-tint": "#765845", "on-primary-fixed": "#2b1608", "inverse-surface": "#432b15", "on-tertiary-container": "#a3d4d6", "surface-container": "#ffeadb", "surface-dim": "#fad3b2", "on-primary-fixed-variant": "#5c4130", "surface-container-highest": "#ffdcc0", "primary-fixed-dim": "#e6bfa8", "inverse-primary": "#e6bfa8", "error": "#ba1a1a", "secondary-fixed-dim": "#ffb59f", "primary": "#523828" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "space-sm": "0.5rem", "space-lg": "1.25rem", "gutter": "0.75rem", "space-xs": "0.25rem", "space-md": "0.875rem", "margin": "1rem", "space-xl": "1.75rem" }, fontFamily: { "headline-sm": ["Be Vietnam Pro"], "body-lg": ["Nunito Sans"], "body-sm": ["Nunito Sans"], "body-md": ["Nunito Sans"], "headline-md": ["Be Vietnam Pro"], "label-md": ["Nunito Sans"], "label-lg": ["Nunito Sans"], "label-sm": ["Nunito Sans"], "headline-xl-mobile": ["Be Vietnam Pro"], "headline-xl": ["Be Vietnam Pro"], "headline-lg-mobile": ["Be Vietnam Pro"], "headline-lg": ["Be Vietnam Pro"] }, fontSize: { "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "700"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "600"}], "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "500"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}], "headline-md": ["20px", {"lineHeight": "26px", "fontWeight": "700"}], "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "700"}], "label-lg": ["14px", {"lineHeight": "18px", "fontWeight": "800"}], "label-sm": ["10px", {"lineHeight": "14px", "fontWeight": "700"}], "headline-xl-mobile": ["28px", {"lineHeight": "34px", "fontWeight": "800"}], "headline-xl": ["36px", {"lineHeight": "44px", "fontWeight": "800"}], "headline-lg-mobile": ["22px", {"lineHeight": "28px", "fontWeight": "700"}], "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_4px_16px_rgba(74,53,37,0.08)]"><div class="h-20 px-margin flex items-center justify-between gap-space-xs"><div class="flex items-center gap-space-xs"><img alt="Logo Quầy Vé Nhỏ Chibi" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UenJD4eJqml5eMNO9mKLN1gmVBfbGW6sXZ6uHgCGoUYTmuj5Ti-jgcrksR75qGCM6KSaFxrIC468zTveNLd52qT5ZNrTj7Da0CSnuq__ZaqKXwIxNsgQBn8RbFq3tNKU5ilUtklho2fZI6rr_j3NM_cqOVPWl6HnzK16grQJ2AE0DTpFfav2cYh-HbRBh1Xp5YOZlMNK81qZkOzBW4HH8vMj3xdB6T7OOg_7g93s3AGm5cbbTA2U2YsnBc"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary leading-none">Quầy Vé Nhỏ</span><span class="font-label-sm text-label-sm text-on-surface-variant">Cửa Hàng Nâng Cấp · Ngày 1</span></div></div><div class="flex items-center gap-space-xs"><div class="flex items-center gap-1 bg-surface-container px-space-xs py-0.5 rounded-full shadow-[0_2px_0_#6c4f3d]"><span class="material-symbols-outlined text-[16px] text-secondary">monetization_on</span><span class="font-label-md text-label-md text-on-surface">1,450</span></div><div class="flex items-center gap-0.5 bg-surface-container-high px-space-xs py-0.5 rounded-full shadow-[0_2px_0_#6c4f3d]"><span class="material-symbols-outlined text-[16px] text-secondary-container">hotel_class</span><span class="font-label-md text-label-md text-on-surface">4.8</span></div><button aria-label="Tạm Dừng" class="w-11 h-11 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-[0_3px_0_#432b15] active:translate-y-0.5 active:shadow-[0_1px_0_#432b15] transition-transform"><span class="material-symbols-outlined text-[20px]">pause</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full px-margin pb-space-lg gap-space-md">
+<!-- Top Mini HUD Status Card -->
+<div class="w-full bg-surface-container rounded-lg p-space-sm shadow-[0_4px_0_#6c4f3d] flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-[0_2px_0_#97472e]">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">savings</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ngân Quỹ Ca Trực</span>
+<span class="font-headline-sm text-headline-sm text-primary leading-tight">12.450k <span class="font-label-md text-label-md text-secondary">xu</span></span>
+</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/60"></div>
+<div class="flex items-center gap-space-xs">
+<div class="flex items-center gap-0.5 bg-surface-container-high px-space-xs py-1 rounded-full shadow-[0_2px_0_#6c4f3d]">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">hotel_class</span>
+<span class="font-label-lg text-label-lg text-on-surface">4.8</span>
+</div>
+<div class="bg-primary text-on-primary font-label-md text-label-md px-space-sm py-1 rounded-full shadow-[0_2px_0_#432b15]">
+        Ngày 7
+      </div>
+</div>
+</div>
+<!-- Forecast Notification Ribbon (Đất nung / Terracotta) -->
+<div class="relative w-full bg-secondary text-on-secondary p-space-md rounded-lg shadow-[0_4px_0_#772f18] overflow-hidden flex items-start gap-space-sm">
+<div class="w-9 h-9 shrink-0 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shadow-[0_2px_0_#793019] mt-0.5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">campaign</span>
+</div>
+<div class="flex flex-col gap-0.5 min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="bg-secondary-container text-on-secondary-container px-1.5 py-0.2 rounded-full font-label-sm text-label-sm font-bold">Dự Báo Ca Mai</span>
+<span class="font-label-md text-label-md font-bold text-secondary-fixed">Giỗ Tổ Hùng Vương</span>
+</div>
+<p class="font-body-sm text-body-sm text-surface-container-lowest leading-snug">
+        Lượng hành khách tìm vé đi <span class="underline decoration-secondary-container font-bold">Phú Thọ</span> &amp; <span class="underline decoration-secondary-container font-bold">Đà Lạt</span> tăng vọt! Hãy chuẩn bị mở tuyến sớm.
+      </p>
+</div>
+</div>
+<!-- Wooden 3D Extruded Dual Switcher Tabs -->
+<div class="w-full bg-surface-container-high p-1 rounded-full flex gap-1 shadow-[inset_0_3px_0_#d3c3bb]">
+<button class="flex-1 py-space-xs rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-[0_3px_0_#432b15] active:translate-y-0.5 active:shadow-[0_1px_0_#432b15] flex items-center justify-center gap-1 transition-all" id="tab-btn-decor">
+<span class="material-symbols-outlined text-[18px]">build_circle</span>
+<span>Nâng Cấp Quầy</span>
+</button>
+<button class="flex-1 py-space-xs rounded-full bg-surface-container-low text-on-surface-variant font-label-lg text-label-lg flex items-center justify-center gap-1 hover:bg-surface-container active:translate-y-0.5 transition-all" id="tab-btn-routes">
+<span class="material-symbols-outlined text-[18px]">flight_takeoff</span>
+<span>Tuyến Bay Mới</span>
+</button>
+</div>
+<!-- SECTION 1: UPGRADE KIOSK (Default Visible) -->
+<div class="flex flex-col gap-space-sm w-full" id="section-decor">
+<!-- Item 1: Ghế Chờ Nệm Êm -->
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-md shadow-[0_4px_0_#6c4f3d] flex gap-space-sm items-center">
+<div class="relative w-16 h-16 shrink-0 rounded-DEFAULT bg-surface-container flex items-center justify-center shadow-[inset_0_2px_0_#d3c3bb] overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Chibi cozy waiting chair with soft plush cushion in warm beige and mustard yellow tones, wooden legs, 3d game asset, charming isometric style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFMGxNUa-KR4JzQB4ImVVw3KqRjxcPM9uXaYFiZ7-S_XRfWlsAHdm3gc6_MGMtfufSh3uQTPwcC2yAZuHbhKbCTwkaM0aesVJUGCkwH0m-QBDqwZf4cAzPQjLWvu62yPaqbJugFFDpvrQCE-MqlDwrs6XdRfOdr4gHj0TTXPhq857JorN5na74CdHvqOmyyHWmS9TIpqh_IkE2t1B7KglTQvKeyadHGIWlIKeMCNW8-9bOc_vNiYJpxA"/>
+<span class="absolute top-0.5 left-0.5 bg-primary text-on-primary font-label-sm text-label-sm px-1 rounded-full">Lv.2</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-headline-sm text-headline-sm text-primary truncate">Ghế Chờ Nệm Êm</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary">sentiment_satisfied</span>
+          +40% thời gian kiên nhẫn
+        </span>
+<div class="mt-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Cấp tiếp theo: +60%</span>
+<button class="px-space-md py-1 bg-secondary text-on-secondary rounded-full font-label-md text-label-md shadow-[0_3px_0_#772f18] active:translate-y-0.5 active:shadow-[0_1px_0_#772f18] flex items-center gap-1 transition-transform">
+<span>Nâng Cấp</span>
+<span class="font-bold">850k</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 2: Quạt Mát Lofi & Radio (Owned) -->
+<div class="w-full bg-surface-container-low/80 rounded-lg p-space-md shadow-[0_3px_0_#6c4f3d] flex gap-space-sm items-center">
+<div class="relative w-16 h-16 shrink-0 rounded-DEFAULT bg-surface-container flex items-center justify-center shadow-[inset_0_2px_0_#d3c3bb] overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Chibi vintage wooden radio with mint green mini oscillating desk fan playing soft cozy lofi tunes, warm pastel palette" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACtdabN8JvXLWLREvuYPxsmvm5pFR--0r7HgkoURJBFx0kVFAgMQwUASBsRj7TPU6N5Yy1L5rokHs6Y0P3OCfyNXzye6GDDiu1aO3XixQZVrKhuiu6JalyygECPZYuan-lZZr7XcrEp_p1k2VdDk1oh_OI0ySaUXheezJwIJTnde0gK95IljZ61g9H0mPOYmDqnEEQ9zt0P85o9p8RefPBmluDjoHs1IXF3FCY9jGwrhFQfTKzfoQhSg"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-primary truncate">Quạt Lofi &amp; Radio</span>
+<span class="bg-tertiary text-on-tertiary font-label-sm text-label-sm px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-[0_2px_0_#1c4e50]">
+<span class="material-symbols-outlined text-[14px]">check</span>
+            Đã Sở Hữu
+          </span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">favorite</span>
+          Tăng 15% tiền tip ngẫu nhiên
+        </span>
+<span class="font-label-sm text-label-sm text-tertiary-container mt-1 font-bold">Kích hoạt hiệu ứng âm thanh thư giãn</span>
+</div>
+</div>
+<!-- Item 3: Máy In Vé Gỗ Đời Mới -->
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-md shadow-[0_4px_0_#6c4f3d] flex gap-space-sm items-center">
+<div class="relative w-16 h-16 shrink-0 rounded-DEFAULT bg-surface-container flex items-center justify-center shadow-[inset_0_2px_0_#d3c3bb] overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Cute antique wooden desktop ticket printer dispenser with polished brass gears and rolling kraft tickets, chibi game asset styling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA33kSH9_VECbVn8uXjW-sfrO5QSnb2DqsPwlqrDwQ5B9QP8kSu0n21XNppV40uDh41K2uDmPV2wUrpenI3ZNWNtLVFktqCaJ59mnnkeIOZJ7gBZ30X6aAWLKzCphPF-1sVJXDV6zwXSl7JEM9Qinb4YByUdL4L64HN4yIC3pvNYir91lmX-jQEuW3JTBmS4bxw-s0xMzXSYRE5Aah3Z28ttuOM0WRpf2qYpmC4lajBBp7jA7cI6-5ETQ"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-headline-sm text-headline-sm text-primary truncate">Máy In Vé Gỗ Đời Mới</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary">speed</span>
+          Giảm 50% thời gian nhả vé
+        </span>
+<div class="mt-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary-container font-bold">Bán chạy nhất!</span>
+<button class="px-space-md py-1 bg-secondary text-on-secondary rounded-full font-label-md text-label-md shadow-[0_3px_0_#772f18] active:translate-y-0.5 active:shadow-[0_1px_0_#772f18] flex items-center gap-1 transition-transform">
+<span>Mua Ngay</span>
+<span class="font-bold">1.200k</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 4: Ô Lọc Chuyến & Tìm Nhanh (Locked) -->
+<div class="w-full bg-surface-container-high/60 rounded-lg p-space-md shadow-[0_2px_0_#d3c3bb] flex gap-space-sm items-center opacity-85">
+<div class="relative w-16 h-16 shrink-0 rounded-DEFAULT bg-surface-dim flex items-center justify-center shadow-[inset_0_2px_0_#81746e] overflow-hidden">
+<span class="material-symbols-outlined text-[28px] text-outline">lock</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-outline truncate">Ô Lọc Chuyến Tự Động</span>
+<span class="font-label-sm text-label-sm bg-surface-dim text-on-surface-variant px-2 py-0.5 rounded-full">
+            Khóa
+          </span>
+</div>
+<span class="font-body-sm text-body-sm text-outline-variant mt-0.5">Tự động gợi ý chuyến theo khách</span>
+<div class="mt-1 flex items-center gap-1 text-on-secondary-container font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">event_note</span>
+<span>Mở khóa tự động từ Ngày 10</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 2: NEW ROUTES (Chibi Postcard Layout) -->
+<div class="hidden flex-col gap-space-sm w-full" id="section-routes">
+<!-- Route Card 1: Hà Nội -> Đà Lạt (Unlocked & Purchasable) -->
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-md shadow-[0_4px_0_#6c4f3d] flex flex-col gap-space-sm relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-1 text-tertiary">
+<span class="font-headline-md text-headline-md text-primary">Hà Nội</span>
+<span class="material-symbols-outlined text-[20px] text-secondary">flight_takeoff</span>
+<span class="font-headline-md text-headline-md text-secondary">Đà Lạt</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant italic">Thung Lũng Tình Yêu &amp; Đồi Thông Sương Mù</span>
+</div>
+<span class="bg-secondary-fixed text-on-secondary-fixed px-space-xs py-0.5 rounded-full font-label-sm text-label-sm font-bold shadow-[0_2px_0_#793019]">
+          Sốt Vé Ca Mai
+        </span>
+</div>
+<!-- Scenery Card -->
+<div class="w-full h-28 rounded-DEFAULT overflow-hidden relative shadow-[inset_0_2px_0_#6c4f3d]">
+<img class="w-full h-full object-cover" data-alt="Chibi illustrated postcard of Da Lat pine hills covered in warm morning mist with a small vintage airplane flying across, cozy storybook watercolor art, earthy warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjRaW5qcZfXaGKDqm6rk68-cGtOZ2XutgjubQhzSQGMWyx8kkTcuT5P_McpkBntZ5T7XbXYwJ7njXib3dtdUEx-y9smKFcTsVEkwperVGYbE6dS2Pp_QGefLtFpIw9JAfv4yUGS681h0V7ADOo5l2oo4_B64gQdyQYsWqmTKmVv2WzKNOJbASb6pnW3Nzk8ss2Poor7CITAWwLsFBEEmY7hiGAnhVWXVdsuNypU7j4xDQnEFeeBdAdAQ"/>
+<div class="absolute bottom-1 right-2 bg-inverse-surface/80 text-inverse-on-surface text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
+          Khoảng cách: 1.150 km
+        </div>
+</div>
+<!-- Route Info & Price Tags -->
+<div class="flex items-center justify-between bg-surface-container-low p-space-xs rounded-DEFAULT">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Giá vé cơ bản</span>
+<span class="font-label-md text-label-md text-primary font-bold">Phổ thông: 1.300k · Thương gia: 3.600k</span>
+</div>
+<button class="px-space-md py-1.5 bg-primary text-on-primary rounded-full font-label-lg text-label-lg shadow-[0_3px_0_#432b15] active:translate-y-0.5 active:shadow-[0_1px_0_#432b15] transition-transform flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">lock_open</span>
+<span>Mở 3.750k</span>
+</button>
+</div>
+</div>
+<!-- Route Card 2: Hà Nội -> Nha Trang (Locked by rep) -->
+<div class="w-full bg-surface-container-high/60 rounded-lg p-space-md shadow-[0_3px_0_#d3c3bb] flex flex-col gap-space-sm relative opacity-90">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-1 text-outline">
+<span class="font-headline-md text-headline-md text-on-surface-variant">Hà Nội</span>
+<span class="material-symbols-outlined text-[20px] text-outline">flight_takeoff</span>
+<span class="font-headline-md text-headline-md text-on-surface-variant">Nha Trang</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline italic">Tháp Bà Ponagar &amp; Bờ Biển Ngọc Bích</span>
+</div>
+<div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shadow-[0_2px_0_#81746e]">
+<span class="material-symbols-outlined text-[16px] text-outline">lock</span>
+</div>
+</div>
+<!-- Scenery Preview Locked -->
+<div class="w-full h-24 rounded-DEFAULT overflow-hidden relative shadow-[inset_0_2px_0_#81746e]">
+<img class="w-full h-full object-cover grayscale contrast-75" data-alt="Chibi vintage travel postcard of Nha Trang turquoise beach with small sunny palm trees and antique lighthouse, warm retro palette" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxvWcwUJwjwU07ckWWY7FXFbOjX0DaZKQ23g-C98DHyAr_W2MpGPZOPmJv7I96-88u4RYxIuQA7P6_ODFbAOfmWnboPkR595_z-AHO3a6IfCNBus2AJ5iFiPyFmOx8w3LYsJomhufE3589WipPxwGtEbZFbglb-NImWuLYEZsJNhEeNlulDj9DqzD64mJ9usjZvhV5qCHqW0yIpJsvssNTlLobCwZFY7OEV9kSsrbgbdZ5AQHIAsgJcA"/>
+<div class="absolute inset-0 bg-inverse-surface/40 flex items-center justify-center">
+<div class="bg-surface text-on-surface px-space-md py-1 rounded-full font-label-md text-label-md shadow-[0_2px_0_#6c4f3d] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">hotel_class</span>
+<span>Yêu cầu Uy Tín 4.9 Sao</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between text-outline">
+<span class="font-body-sm text-body-sm">Độ dài chặng: 1.280 km</span>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded-full">Chưa Đạt Chuẩn</span>
+</div>
+</div>
+</div>
+<!-- SECTION 3: SAFETY NET DIALOGUE (BÉO CỨU TRỢ - MỤC 18a) -->
+<div class="w-full bg-surface-container rounded-lg p-space-md shadow-[0_4px_0_#6c4f3d] flex flex-col gap-space-xs relative overflow-hidden">
+<!-- Dialogue Header with Chibi Mascot Béo -->
+<div class="flex items-start gap-space-sm">
+<div class="relative w-14 h-14 shrink-0 rounded-full bg-secondary-fixed flex items-center justify-center shadow-[0_3px_0_#793019] overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Cute round chubby chibi station cat mascot wearing tiny station master cap with gold badge, warm friendly expression, storybook illustration" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsw_L13Kc7qIZdg3FoKgPMwzkx_IHJQTx9puWBVaOe-Nu168-2lUO6ASdXWx5cdXEG5ZeKAhREWDMs8VCZRKftOUaAYJTI-GRcOSa8vYA_GuSmqYLXyq-had3k5OU5Wrq5zI36Nm5BByWgK-ncI0QurnoXk08WT0SDhxuRvjPeRELKD60YCevTILw6TTXoElFcViOGO2LXgwNsKRyFlosabuCpDHG_DbLsk7idY3t4jUEFz_YnWJSjtA"/>
+</div>
+<!-- Dialogue Bubble -->
+<div class="flex-1 bg-surface-container-lowest p-space-sm rounded-DEFAULT rounded-tl-none shadow-[0_2px_0_#6c4f3d] relative">
+<div class="flex items-center justify-between mb-0.5">
+<span class="font-label-lg text-label-lg text-primary font-bold">Mascot Béo (Bảo Trợ)</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.2 rounded-full font-label-sm text-label-sm font-bold">Phao Cứu Sinh</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          “Đừng lo nếu quầy gặp khó khăn! Ta luôn giữ <span class="font-bold text-secondary">3 vé Ghế Phổ Thông Dự Phòng</span> để tặng bạn lập tức khi ngân quỹ rơi xuống dưới 500k xu nhé!”
+        </p>
+</div>
+</div>
+<!-- Benefit Status Bar -->
+<div class="w-full bg-surface-container-high rounded-full p-1.5 flex items-center justify-between mt-1 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary">verified_user</span>
+<span class="font-label-sm text-label-sm text-on-surface">Bảo hiểm Quầy Vé: Sẵn sàng kích hoạt</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary-container font-extrabold">3 / 3 Vé</span>
+</div>
+</div>
+<!-- Primary Next Day Call to Action (Wood Extruded 3D Button) -->
+<div class="w-full pt-space-xs">
+<button class="w-full py-space-md bg-secondary text-on-secondary rounded-full font-headline-sm text-headline-sm shadow-[0_5px_0_#772f18] active:translate-y-1 active:shadow-[0_2px_0_#772f18] flex items-center justify-center gap-space-xs transition-all" id="btn-next-day">
+<span>TIẾP TỤC SANG NGÀY TIẾP THEO (NGÀY 8)</span>
+<span class="material-symbols-outlined text-[24px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<script>
+  (function() {
+    const btnDecor = document.getElementById('tab-btn-decor');
+    const btnRoutes = document.getElementById('tab-btn-routes');
+    const secDecor = document.getElementById('section-decor');
+    const secRoutes = document.getElementById('section-routes');
+
+    if (btnDecor && btnRoutes && secDecor && secRoutes) {
+      btnDecor.addEventListener('click', function() {
+        // Decor active
+        btnDecor.className = 'flex-1 py-space-xs rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-[0_3px_0_#432b15] active:translate-y-0.5 active:shadow-[0_1px_0_#432b15] flex items-center justify-center gap-1 transition-all';
+        btnRoutes.className = 'flex-1 py-space-xs rounded-full bg-surface-container-low text-on-surface-variant font-label-lg text-label-lg flex items-center justify-center gap-1 hover:bg-surface-container active:translate-y-0.5 transition-all';
+        secDecor.classList.remove('hidden');
+        secDecor.classList.add('flex');
+        secRoutes.classList.add('hidden');
+        secRoutes.classList.remove('flex');
+      });
+
+      btnRoutes.addEventListener('click', function() {
+        // Routes active
+        btnRoutes.className = 'flex-1 py-space-xs rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-[0_3px_0_#432b15] active:translate-y-0.5 active:shadow-[0_1px_0_#432b15] flex items-center justify-center gap-1 transition-all';
+        btnDecor.className = 'flex-1 py-space-xs rounded-full bg-surface-container-low text-on-surface-variant font-label-lg text-label-lg flex items-center justify-center gap-1 hover:bg-surface-container active:translate-y-0.5 transition-all';
+        secRoutes.classList.remove('hidden');
+        secRoutes.classList.add('flex');
+        secDecor.classList.add('hidden');
+        secDecor.classList.remove('flex');
+      });
+    }
+
+    const nextBtn = document.getElementById('btn-next-day');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function() {
+        this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">sync</span><span>Đang Chuẩn Bị Ca Mới...</span>';
+        setTimeout(() => {
+          this.innerHTML = '<span>SẴN SÀNG! ĐANG TẢI NGÀY 8 ➔</span>';
+        }, 800);
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-low/95 backdrop-blur-xl shadow-[0_-4px_16px_rgba(74,53,37,0.08)]" data-active-classes="bg-primary-container text-on-primary shadow-[0_3px_0_#432b15]"><div class="flex justify-around items-center h-20 px-space-xs"><a class="flex flex-col items-center justify-center min-w-[70px] h-12 px-space-xs rounded-full text-on-surface-variant transition-all" data-path="quay-phuc-vu" href="#"><span class="material-symbols-outlined text-[22px]">confirmation_number</span><span class="font-label-sm text-label-sm mt-0.5">Phục Vụ</span></a><a class="flex flex-col items-center justify-center min-w-[70px] h-12 px-space-xs rounded-full text-on-surface-variant transition-all" data-path="kho-ve-sang" href="#"><span class="material-symbols-outlined text-[22px]">inventory_2</span><span class="font-label-sm text-label-sm mt-0.5">Kho Vé</span></a><a class="flex flex-col items-center justify-center min-w-[70px] h-12 px-space-xs rounded-full text-on-surface-variant transition-all" data-path="so-do-ghe" href="#"><span class="material-symbols-outlined text-[22px]">airline_seat_recline_normal</span><span class="font-label-sm text-label-sm mt-0.5">Sơ Đồ Ghế</span></a><a class="flex flex-col items-center justify-center min-w-[70px] h-12 px-space-xs rounded-full text-on-surface-variant transition-all" data-path="cua-hang-nang-cap" href="#"><span class="material-symbols-outlined text-[22px]">storefront</span><span class="font-label-sm text-label-sm mt-0.5">Nâng Cấp</span></a></div></nav></body></html>

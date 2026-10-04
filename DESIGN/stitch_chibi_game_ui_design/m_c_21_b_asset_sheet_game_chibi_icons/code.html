@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@700;800&amp;family=Nunito+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#fff8f5;color:#2b1704;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}.material-symbols-outlined{font-variation-settings:'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'surface-bright': '#fff8f5', 'secondary-fixed': '#ffdbd0', 'error': '#ba1a1a', 'on-tertiary': '#ffffff', 'on-secondary': '#ffffff', 'primary-container': '#6c4f3d', 'surface': '#fff8f5', 'on-surface-variant': '#4f453e', 'outline-variant': '#d3c3bb', 'inverse-primary': '#e6bfa8', 'on-primary-fixed-variant': '#5c4130', 'surface-container-highest': '#ffdcc0', 'background': '#fff8f5', 'error-container': '#ffdad6', 'surface-container-lowest': '#ffffff', 'inverse-on-surface': '#ffeee1', 'surface-container-high': '#ffe3ce', 'on-primary': '#ffffff', 'on-tertiary-fixed-variant': '#1c4e50', 'tertiary': '#114547', 'surface-container-low': '#fff1e8', 'outline': '#81746e', 'on-tertiary-container': '#a3d4d6', 'on-error': '#ffffff', 'inverse-surface': '#432b15', 'on-secondary-container': '#772f18', 'surface-container': '#ffeadb', 'surface-tint': '#765845', 'primary-fixed-dim': '#e6bfa8', 'tertiary-fixed': '#baebed', 'secondary-fixed-dim': '#ffb59f', 'secondary-container': '#fe997a', 'on-tertiary-fixed': '#002021', 'on-surface': '#2b1704', 'on-primary-container': '#eac3ac', 'on-background': '#2b1704', 'primary-fixed': '#ffdbc7', 'surface-dim': '#fad3b2', 'tertiary-fixed-dim': '#9fcfd1', 'primary': '#523828', 'on-secondary-fixed': '#3a0a00', 'secondary': '#97472e', 'on-error-container': '#93000a', 'on-primary-fixed': '#2b1608', 'tertiary-container': '#2d5d5f', 'surface-variant': '#ffdcc0', 'on-secondary-fixed-variant': '#793019' }, borderRadius: { DEFAULT: '1rem', lg: '2rem', xl: '3rem', full: '9999px' }, spacing: { 'space-md': '0.875rem', 'space-xs': '0.25rem', 'space-sm': '0.5rem', 'margin': '1rem', 'space-xl': '1.75rem', 'space-lg': '1.25rem', 'gutter': '0.75rem' }, fontFamily: { 'headline-xl-mobile': ['Be Vietnam Pro'], 'label-lg': ['Nunito Sans'], 'headline-md': ['Be Vietnam Pro'], 'body-lg': ['Nunito Sans'], 'headline-lg': ['Be Vietnam Pro'], 'label-md': ['Nunito Sans'], 'headline-sm': ['Be Vietnam Pro'], 'label-sm': ['Nunito Sans'], 'headline-lg-mobile': ['Be Vietnam Pro'], 'body-md': ['Nunito Sans'], 'headline-xl': ['Be Vietnam Pro'], 'body-sm': ['Nunito Sans'] }, fontSize: { 'headline-xl-mobile': ['28px', { lineHeight: '34px', fontWeight: '800' }], 'label-lg': ['14px', { lineHeight: '18px', fontWeight: '800' }], 'headline-md': ['20px', { lineHeight: '26px', fontWeight: '700' }], 'body-lg': ['16px', { lineHeight: '24px', fontWeight: '600' }], 'headline-lg': ['28px', { lineHeight: '36px', fontWeight: '700' }], 'label-md': ['12px', { lineHeight: '16px', fontWeight: '700' }], 'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '700' }], 'label-sm': ['10px', { lineHeight: '14px', fontWeight: '700' }], 'headline-lg-mobile': ['22px', { lineHeight: '28px', fontWeight: '700' }], 'body-md': ['14px', { lineHeight: '20px', fontWeight: '500' }], 'headline-xl': ['36px', { lineHeight: '44px', fontWeight: '800' }], 'body-sm': ['12px', { lineHeight: '18px', fontWeight: '500' }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="Brand logo. - Primary color: #6c4f3d - Font: beVietnamPro - Mode: light - Roundness: rounded-full" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VNnhBuXZ4mhJ-ewlT6DjjqxKEY886DFiQN-usB5Nls5-cTXMuCG4Dd-r3rtVNuoOxRltLh0c1NvGRDr4RaafdU4M3al7q9IDNaFXiI82vjVPHzBAekTUZUx-Gpt3TKcnP_FrYlE-A-bjNi5Xp4y4gc94bvcZd6UfORPntKvynn2uJTch9vKyfrmV6t85JX5zbkYOcUaf-sp__J4szb7ChySBbYbnDYRxrgXquCUWFgWFCcazgs7ZaVG3Vb"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary leading-tight tracking-tight">Quầy Vé Nhỏ</span><span class="font-label-sm text-label-sm text-secondary tracking-wide uppercase">Tổng Kết</span></div></div><div class="flex items-center gap-space-xs"><div class="flex items-center gap-1 px-space-xs py-1 bg-surface-container-high rounded-full shadow-[0_3px_0_#4f453e] transform active:translate-y-[2px] transition-all"><span class="material-symbols-outlined text-[16px] text-primary">calendar_today</span><span class="font-label-sm text-label-sm text-on-surface pr-1">Ngày 7</span></div><div class="flex items-center gap-1 px-space-xs py-1 bg-secondary-container rounded-full shadow-[0_3px_0_#772f18] text-on-surface transform active:translate-y-[2px] transition-all"><span class="material-symbols-outlined text-[16px] text-secondary">toll</span><span class="font-label-sm text-label-sm font-bold text-on-surface pr-1">12.450k</span></div><div class="flex items-center gap-1 px-space-xs py-1 bg-surface-container-highest rounded-full shadow-[0_3px_0_#81746e] text-on-surface"><span class="material-symbols-outlined text-[15px] text-secondary">star</span><span class="font-label-sm text-label-sm text-on-surface pr-1">4.2</span></div></div><div class="flex items-center gap-space-xs"><a class="w-11 h-11 rounded-full bg-surface-container-low flex items-center justify-center text-primary shadow-[0_4px_0_#523828] active:translate-y-[2px] active:shadow-[0_2px_0_#523828] transition-all" data-path="cai-dat" href="#"><span class="material-symbols-outlined text-[20px]">settings</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full px-margin pb-space-xl gap-space-lg">
+<div class="relative w-full rounded-lg p-space-md shadow-md overflow-hidden bg-surface-container-low text-on-surface">
+<div class="flex items-center justify-between gap-space-sm pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[24px] text-primary">grid_view</span>
+<h2 class="font-headline-sm text-headline-sm text-primary tracking-tight">Khu Kỹ Thuật: Asset Sheet #21</h2>
+</div>
+<span class="px-space-xs py-0.5 rounded-full font-label-sm text-label-sm uppercase bg-secondary-fixed text-on-secondary-fixed">Chibi Kit 1.0</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Bảng tổng hợp sprite chuẩn tọa độ, lưới ô li kẹp giấy 16px, chất liệu giấy kraft ấm và gỗ mộc dập nổi dành cho Dev &amp; 2D Artist.</p>
+<div class="mt-space-sm flex flex-wrap gap-space-xs">
+<button class="flex items-center gap-1 px-space-sm py-1.5 rounded-DEFAULT font-label-md text-label-md bg-primary text-on-primary shadow-sm active:scale-95 transition-all" id="btn-export-spec">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+        Xuất JSON Atlas
+      </button>
+<button class="flex items-center gap-1 px-space-sm py-1.5 rounded-DEFAULT font-label-md text-label-md bg-surface-container text-on-surface shadow-sm active:scale-95 transition-all" id="btn-toggle-grid">
+<span class="material-symbols-outlined text-[16px]">grid_4x4</span>
+<span id="grid-status-label">Lưới Ô Li: BẬT</span>
+</button>
+<div class="flex items-center gap-1 px-space-sm py-1.5 rounded-DEFAULT font-label-md text-label-md bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
+<span>42 Sprite Sẵn Sàng</span>
+</div>
+</div>
+</div>
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-6 rounded-full bg-secondary"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">1. Mascot Gấu Béo (512px High-Res)</h3>
+</div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-bold">4 Biểu Cảm Kiosk</span>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div class="group relative flex flex-col p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md transition-all hover:-translate-y-1">
+<div class="relative w-full aspect-square rounded-DEFAULT overflow-hidden flex items-center justify-center p-space-xs bg-surface-container-low">
+<img class="w-full h-full object-contain rounded-DEFAULT" data-alt="Chibi round brown bear mascot in vintage stationmaster cap, friendly welcoming pose waving one chubby paw, warm wide happy smile, soft wooden toy aesthetic with crisp espresso brown outlines, warm beige and caramel palette, sticker style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOZeMjdkJSydgzA_e35KuB2r6y7Vf2WwKfcrFiIeuQKLxZJMbz52u-PSbhyJy4X1_VkKTe-jbESnvoViytvZpv5UeVX_QkZQgnierEGvfYYvYcU00LX0AYnaVcJFVrSedvqbydIwg6iAT4-ik6xKNwALSnKkVzEfsedd3BEmTm6THtgoKXF8BQZ7rV_Ri_j8FBEGcBHZB6J69j-Zz6fOtcYFFgpZYLXoVdmbIAYgRvSqNH9vEoPuLc4Q"/>
+<span class="absolute top-2 left-2 px-1.5 py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container text-primary">#BE-01</span>
+</div>
+<div class="mt-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Béo Chào Đón</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Vẫy tay tươi cười, nghiêng tai chào khách</span>
+</div>
+</div>
+<div class="group relative flex flex-col p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md transition-all hover:-translate-y-1">
+<div class="relative w-full aspect-square rounded-DEFAULT overflow-hidden flex items-center justify-center p-space-xs bg-surface-container-low">
+<img class="w-full h-full object-contain rounded-DEFAULT" data-alt="Chibi chubby bear mascot with big sparkling star eyes, paws pressed together in pure excitement, happy wide open mouth, ticket in chest pocket, warm caramel tones with vintage cozy stationmaster hat, thick espresso outline." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARzF7mz4O5QNfxLWRIHuE94RFChNLDkN8T9UYjnFXxOP462ULdQvcDSBA3apiXTCMti9hpLTRS6JEMrffLHns4Dv67zV4_8-H8ShehODArDDWE5HBFrOZHaG2xWAc49kBEG8mHh0MpKYcDHLaxQ0OJap6E_Km-5EoJ-y9pRwgtvBlCZzju-kejglXvW3QrGlrs4hiaw7x-cp_XEXoiIMFTk3w1aRDjX92OcbnCoAqDclTL2Fu7_zrQ4g"/>
+<span class="absolute top-2 left-2 px-1.5 py-0.5 rounded-full font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed">#BE-02</span>
+</div>
+<div class="mt-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Béo Hào Hứng</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mắt sao lấp lánh khi mở khóa tuyến bay</span>
+</div>
+</div>
+<div class="group relative flex flex-col p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md transition-all hover:-translate-y-1">
+<div class="relative w-full aspect-square rounded-DEFAULT overflow-hidden flex items-center justify-center p-space-xs bg-surface-container-low">
+<img class="w-full h-full object-contain rounded-DEFAULT" data-alt="Chibi chubby bear mascot scratching head with a tiny bead of sweat, slightly bewildered worried expression, vintage stationmaster hat tilted, holding a tangled paper ticket reel, cozy warm storybook toy style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnBzwqkkpwSUB3AYUheQZkaiz1DQCVPrX9iOVBm5pziEVbGKQAM2uTYKj2hl6UZJ_y6X9ieLK-Cb0EDL5YHG5HBmlyQ1qcGMMZyXlyN2YPuiMCWDdsYjpHlZO8ww-ja0HLc8rKpE_9T-iIyty6fHgjoxV1onmeys-mAb2fR0U5jtCXCm_Ud1eDoPzIPC0csP5NQPkh2nHCLcM_XBReplgGl0Fi3JwzNygBss73ddUjdl5XEDxU2vzGBQ"/>
+<span class="absolute top-2 left-2 px-1.5 py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container-highest text-on-surface">#BE-03</span>
+</div>
+<div class="mt-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Béo Lo Lắng</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gãi đầu, giọt mồ hôi khi vượt trần vé</span>
+</div>
+</div>
+<div class="group relative flex flex-col p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md transition-all hover:-translate-y-1">
+<div class="relative w-full aspect-square rounded-DEFAULT overflow-hidden flex items-center justify-center p-space-xs bg-surface-container-low">
+<img class="w-full h-full object-contain rounded-DEFAULT" data-alt="Chibi cute bear mascot in wooden station uniform pointing index finger forward with confident proud face, holding an oversized wooden ink stamp, warm biscuit kraft tones, crisp espresso borders." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAze0XM0dKXXGooSi8TNg6-56nrGtUJvcqbx4-eeHto6iiKfjrt-qnmJy-XHSxK6pDdOiE9g87aJCfX-rhg7jaJke761vP-yOyq67UcH4Ojal1cLmHIrYcpn87no33FqqtS6mQ-kGfFq4SoH-qfFeHE2h-lp5d1-akA2ol3VAxwMdyHbwBPILCsChCXXmwPXR7uk_6dwvj4-dJrL-i9m0g45y2j7hvf_T579CSmYVLPanB9C6OcAc570w"/>
+<span class="absolute top-2 left-2 px-1.5 py-0.5 rounded-full font-label-sm text-label-sm bg-tertiary-fixed text-on-tertiary-fixed">#BE-04</span>
+</div>
+<div class="mt-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Béo Chỉ Dẫn</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Chỉ tay hướng dẫn mua ghế phụ và suất ăn</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-6 rounded-full bg-primary"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">2. Khách Hàng Chibi (Archetypes c01-c08 &amp; VIP)</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 Sắc Thái / Nhân Vật</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c01</span>
+<span class="font-headline-sm text-headline-sm text-primary">Minh Châu (Phượt Thủ Tự Do)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold">Nón tai bèo &amp; máy ảnh mini</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi portrait of young Vietnamese traveler girl Minh Chau wearing canvas bucket hat and round camera, smiling cheerful face, warm watercolor storybook style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6e2mck2V0Kg5Bwmg1vGFryzE31TCmPUEjbOEOKaz157Zpx7TicNvgTf0L3aXuc9xtgQ6h6lzmBfLpZfTX7jb0fff9xUVKQyK44_865DGXkKoCe4dUa_0KdC2MSu-6ep4S2mWHHVukACm0JDNYhHN7xqt5XzjypUzH0GlLKBPd7Kd7HshB8XNcUbhWSx31T2uhl7nqEs8toVj5UGAeqfdNaL8nQTddo4nZmW85cSHF4nt_-yDg9v1asQ"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi portrait of traveler girl Minh Chau with calm neutral expression, blink eyes, waiting patiently for boarding ticket, warm kraft background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKn9tiE0Aqt5vA54vho4SyiH8zt-9AcPA3Sa1yslj7SLQdrtyk6AwxoqYNsyU2FbbNS6-eB1Ci7Cw_UD3lS6i6TQEJ-Bp31eAKZMbc7tl7MDw2-IZcCKInyKFc13HvC-0DK_W5Hz5T453iGx7ZZqt5T1DIuXeQoLMWZgTv6oMFPpDLdyxRGectT584XymWraNCV_7Td4s-ZGYXa7Yp7cwZ9NcN9EjjgB5XCb0yKJQzW92-gm5bantABQ"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi portrait of traveler girl Minh Chau with pouting cheeks and angry steam puff, disappointed by sold out flight, cute comical expressive face." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2l3yDcHmkdiT4E88AkRT6zSllyLOfFTyGFXNDpD2ZsUuNKAvLWr2932m-DUAPkfg0mCrLdul6ysw23IgairNpia2nw_ogQFQPD4a2ywp68M6-GCb-e4lVqAYg4ugr5CcOfTrxqNho_n9YlL47myD8DVqBXhPFWXz80uUhW-3CUN1U7XctPv_gm6ts4PNKl3Adg52N6RXC3RZRrzaD7cnJUtjm-Q5DWdDLLWfkIK4xjZIlHB2ygB55kg"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c02</span>
+<span class="font-headline-sm text-headline-sm text-primary">Bác Ba (Nông Dân Về Quê)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khăn rằn &amp; giỏ trái cây</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi portrait of elderly Vietnamese farmer Bac Ba wearing gingham checkered scarf with hearty warm smile, holding pomelo basket, chibi art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT3LS3ud6Z1O9sPcBIwXEkybjp33WIKvkvP-5ufklUpBagIw72qmti3XxaUcru4ubfNE1pp-Fb0qyMmBnEgZZlY75PEru29r-E2UWJ1bKQMQX-pKsJJ4TNZlL_YxuAGusKV0ViAwwx1ee-7NkPW836DfRoWmUmFlhx4rcwAE1TJp8O6f8wuu54_puj_3-MltJjXcTaWif0i3nPgDPDlW6mAvEk0X03xv3gtWoUMbOtlUtGRrUBCk1L5A"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi portrait of Bac Ba farmer with thoughtful neutral face, adjusting hat carefully, vintage muted tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlzO5vWcoFsr9apI55K2w2nTiswZY47Cy7TeMvMrwWZbRXw1M_mwZUHSiofKqEfFhmAnpcW7DUQUYlwVwx_aODov51szWFIoMcBONh0JydW7zWe-k46jETNuKKhuYC2ehsdMFHcv_YjsyMnlWFWUmlF2cmSB8VU1gDOsQYjlWIzbGokFCYlm5TtnLirv07ZAd4H_vgoTd6VIh55MnE2RgBBrgsH1fE50W5tZxTYqhUTZAe3lJyf5bbYg"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi Bac Ba farmer with furrowed eyebrows, puzzled and upset by high price surcharge, comical sweat drops." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6tOiStqj40M1z2zNoPCJIQlnOtMwGDemaD2zOK4W7_P6s4IV6EtlEUZz_A8rmS6E0Xv8x_7Jj83CYUhDyVG6QWG6Kfe-RkPY_9fWN8BlHIe-s4pQjIbxldyStDXnadI5m_fjUEkXKS3ap8IrWZu5TFFf-vX6gEZ6SS5mtmnEsAZ-1kvrhfCQFgJuVzIqVAgIMxU97Jesnp4ZWoNm1V4rwVTiaeuXkuqtysHkkvwYzlA-DBqt36-cmyg"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c03</span>
+<span class="font-headline-sm text-headline-sm text-primary">Cô Thư Ký Công Sở</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">Kính mắt tròn &amp; sổ tay da</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi elegant office secretary lady with round glasses and beige blazer smiling cheerfully, neat hair bun, vintage warmth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeadzXeFMdR3MRjgKUcUbj7G5bs7d-dxXdwWAPRLNCqgxU4Uuo2FAKnIP_G6MY_XHAQVMAm_c-5rFfs_nxgF2Xcg7QgUtAvioqYdgxXEka60_vTzZzeHKIX6YhgQOoxpa_bSThmIWVajr74KoaV1kOHJ7lN6-9rb-qYL52WJPttr2hD8nPMrYtfizGO--GYex2-xgCoOT5KRq-a-M3v7iwXnCL7lcVv5GPZPgsokar-m5sTFb8LHtj1g"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi office secretary looking at small watch with calm neutral focus, ready for official business trip." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB43-b50aOKJmdxB-jVyq2z2_CTMzavR7K-n3SpdRzdXgrCZ0wwfxa34E6agzhaqEEpL6qmCKSJauUfk50jziXg7NAQwwTr8alTQmN2SzQthPcC89xCo1adLakH9Cr41KWQF6E-b3fRZdspVQtMbxsvhbxucHiOR5EXMiRTW9N1v58bAA5O3U1WyahyqoC8KoeymVfhVuwJf6DFFQv2Jh9ncEo5MJJflHyQBhZDN_-GQJ-bDAqPnyaE3w"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi office secretary tapping foot impatiently with crossed arms and irritated glare, delay alert, cute comic effect." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0pZ126I7L0AZWtS6a8gVtu2AT9NVrP6zU2CUBad_Omu_E3pGc-GZLd9v1z7SmjafiugZc8jUlqrdqg6yF2LhS6g4Ltv7VQBKOavaM5Z_VMpRBH_CWW-55Vbo5ygBBb0pRn1E3szwih7ykA60R-uZZXPOMkYLMNqY2TlBOW5x_tlQsxwHkga0gmjwpouw7mQvoz-wAniVImGboXZMaeRu79Aq2pcKYTN5_ANInJ0nBqV85nxiPRtfgmQ"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c04</span>
+<span class="font-headline-sm text-headline-sm text-primary">Chú Tây Balo Khổng Lồ</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Râu quai nón &amp; ba lô leo núi</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi friendly foreign backpacker with blonde beard and huge green hiking rucksack giving thumbs up with cheerful smile, storybook aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGmdfa3RGu3O93O-M01pCz5imDw17arNVEKUPyEIOmx8CdIQgObqllPoz1OByoqxi4q3D_o5xV_SAaNioSZv2ZIPZmnO4HOmMN-Agag24UmUOrPbBOxeo5pGk0JvOZAM11dE7NvfE9xK6qGVSgZarrU2Lle9D6IxN_FNpZ-K0A5fuISHbsDIhbvUXZ4sT0Cj3Ae6RXkwAcG2dLxH4oQ4FwQOxhe7MwZgigTXaeQ4Gfaeqx7EGkfB6F6g"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi backpacker tourist checking foldable paper map, calm curious gaze, wooden toy texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADcv42Y4eaky_ptzgVu19ZU_sptgQuypuO5lJRZ2cCwsmoX8Ee-UAe_HkQVsf-JPijCkMu6bqgUF9Pyk377s-NRXf00iCGN0wk9y-u4-Yhum7iH0UpujJrCoxid3FfOsXyP8wCj0wa3xcuivdBm0_QXR0-nCnZKLGfqxPst4CdqNZDfKri2iZ02VGZNsV4snSQ8HIJbeAFwLIWzEgmt9diXIQiicEhGifVfWH4312YG0_-iivciC5icQ"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi backpacker sweating heavily under huge pack, disappointed angry grimace due to cancelled connection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt-ZikMtqrKaB7cPNBrrdq9L5EuuSsty8jyH7IluwHkh6ImDflwoj54ND9hC-0R2izFjeonzKN1GeBrMUnJqmGuY7CqxWFxJkmq4TFykw4ZWrj1pGrtZYOoOkmEsD1huumLp6yRzJ4KTBGT2TzRQcU08_qBQLLPGNJp7sW33fBMmgfU2Nwemqz-Ztm4oB3tBIYhUnTzO87c69XvbVBc2P-NnTIIbVca5JHIzRRXDSKTZKwpZlm-HPg7g"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c05</span>
+<span class="font-headline-sm text-headline-sm text-primary">Bé Khăn Quàng Đỏ</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold">Balo gấu &amp; kẹo mút</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Cute chibi school child wearing red neckerchief holding lollipop with joyful sparkling expression, warm tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD650Kqu5U2ZNO2JO20_HKVJTjDAW8EGsXAsqnqbujQibAaNa6ckz7Lgjfa-5R3EPgc67Z_0kTKyJcrUq3Bzq6QugrdGPceXFWG5iERt5HuxN7lhmRPGG6sgMQ0gaBWgdW2LtxPL3jLYF1yLu0h5sTEsBkd31GleFyvNCwjq1OX6scnn9GzJbpnGGfSgzdCruEIIha7mKMp9tJOpyfbaYJK2Cog4IxU_aZMJqLl5z8jc0sPMTDsMIqzBQ"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi school child holding schoolbag quietly, big curious round eyes, peaceful mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoejL_NihBMcGiaL1ymoADJxT528Hr7PsJ7XyI_qFfMQiXzsv0y3nyse5I-Wi079m5rEHxUyRyH6yu44xP4eyOR1CseD3I77j5t7Lhd-GgWyUfXPdRKHIUJM46JS_UN_L56zQqu8o5qsNA9uMiKRVAwkO5Cj3NeaDPrU38VDtRSFRArt0ryg-a6J1w_1V5Ifch_gN2LTZgq9jzq5fRty-SgfZePk8sRDMNcOWRmPf59L098UTvRhkYvQ"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi school child teary eyed with puffed cheeks, sad angry tantrum expression, adorable chibi style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbwL4Sf7r0qGtCwdWj6vMm20IWhcupy5FyZ7SCkjJQRMjHeX3LdQv2rmJ9svVoiCI9fAx39onMFnDKUkDISyzEbSXK5OpeqEPcKHLcGOdK7gMHdMLLdHSM4SHWHi5biQ-YxfArTxKZvKTdMMmR_UYZW9bFtRNxDfrZTLSrzsYR2OCIRyDFMmHNdeSxCtF_ZvQpe4J8JZOPUPnxBZNvBeHTAEbtOKv11EyqnPd8LnNyQeu8HBZHKKir8g"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c06</span>
+<span class="font-headline-sm text-headline-sm text-primary">Doanh Nhân Cặp Táp</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Cà vạt sọc &amp; tai nghe Bluetooth</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi businessman in neat navy suit holding briefcase, smiling warmly, successful demeanor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCi2F5IUioW6kwRd7rdGbeDgj7aoDQQB9EeGQYzT_DtKpJF9LpOA56YHUvEN3yoeZhSSlvvJKgTi1XEZEMF7XoziuidFSbq9J5z-Bnd6YKzglTcfQLNZ6rkxABJzWsIL28MfisWYUfnSqT1ZeNbOsBHtLsZo6thBsqt10vormHHHYckW_khxci1C693wFMH8nzs0iFISUSwB8TzQO2FnWgu4Rz4IBRik8HgY2zfQEUN5rACTt4nXaQBw"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi businessman looking forward analytically, neutral polite smile, ready to travel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSNsNfJDAMF_qZYhcxa_qz2wBDG8pRQY6DTDuOKH5LDCiEN8cxyKikbZTWz8yf4sZvMr9SlyUmxRhCJSRYHxo6DTT0gtDybR1DRxKv8Xeu7lPQ1KXNmsyl1fe-Yp-28Je1q4yQvYLb5XZjIL1eBLdmOSe-4RguxdMRl3gDOKu5cbVSBZKoW3e7aNDFmHTNcDGPYydm2bFA9qE1XbjN7JsnOgG89E3qUsX_rrgNGllPd1lzivIRp6OYoA"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi businessman with dark cloud over head, looking furiously at missed ticket time, comical angry red face." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKtpWcbE74G17Fp7arTMf37NjCMho5K21bf_KuIC-63HpSlv7mlDQqI322T0bZq0yvqfXL9DtYEXGXTKszHGHW3x0pi3NC-FNbAXJWfXWUExISonxOLPJ0gOaanFqfMOJXsbPhBEV-g0OoK1IIlXg8-WQECxRuyhYbtZFMzQfv5p6TDJ8YB6WQrUzB_n4Sr-wtGwrvM4stapKjmo-Yhvzij1fU5cDbV4U_q7ReZP-epVfSg3hvG9Fm1w"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-primary text-on-primary font-bold">c07</span>
+<span class="font-headline-sm text-headline-sm text-primary">Bà Cụ Hiền Hậu Bế Mèo</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tóc búi bạc &amp; mèo tam thể lười</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi gentle grandmother with silver hair bun holding a sleeping calico cat, sweet tender smile, cozy aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAri25jQ4ISthyAfTseUwqPYohXBJSh-5blCiW2Fzdu-_c4C68PmZXetCgh520sj_UeGgIn5YgZygdjUgN1QWE-ET9R2ktKx9hXGaqh1l3IBi_79ChWcmmdqff9zED8nib7b-esL864CFzOd6Jz-EcURtv2WoOnKA6SC-A41RiqRx3ZV7lwboCXSeeodXcCisgkNPB8HQkTQoECOn_n83mGj3U0J1uTOv1DmHyykCmjaEn5UVfxtl5iRQ"/>
+<span class="font-label-sm text-label-sm text-on-surface mt-1">Vui Vẻ</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi grandmother petting cat with peaceful calm gaze, sitting gracefully on vintage bench." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxxfdoFay6WHFQXLRTpaqSF_pVK0bWq5cSk53lCyLcerNuTRfGIsUVaAaL2JFOB5F2NK5Ui-w4wuMQJcvKNizPFxahyyqh_Om1B1AZ0am95bWrn6JSvbcGYK-ClkBmyhKnRV1Aa3nRq253kALiGL6_2VSOHRRHZ5vjQ0zpFx3zOt6zpktPq4S_dyhR8y0k7Qiop9uvtf2sUTfO0QnWqHGrIU-Js7zWwISP7y9UxYJqRzsMFEZmY1rfsA"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Trung Tính</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi grandmother with shaking finger and disapproving frown, cat hissing playfully, comical upset vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy7oXUXt_7kLDG2jU52LoNbFaU5L6fEl2LXGF-xsDyzNuSo8jBQh0-WgPF54SkSIpM0VIwoyrx71L4iiBWUDPClWWYhmwVGxwtiQmGwFIsf6js8nMR2jKWxzyU_5xX3iq1Bugy-Wi6RHJLeUdsmyd4vt_KEOYJYDD-JWH0_vjFqp7hp8fj7Fzdnj8bMKbCRr9EWa2fYjyu0dVXe1_2pFPBF7xHVCVEg3G1papxysadfLjno_lHPlY9xQ"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Giận Dỗi</span>
+</div>
+</div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-highest text-on-surface shadow-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-secondary text-on-secondary font-bold">VIP-08</span>
+<span class="font-headline-sm text-headline-sm text-primary">Khách Hạng Thương Gia VIP</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Viền Ruy Băng Vàng</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-1">
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi opulent VIP passenger wearing gold trimmed velvet coat and monocle, holding golden ticket with beaming proud smile, ornate royal frame." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB1Fu6ZQZroRHswJzUX0RTMAVbVw9Sno7ILtG6QGEJNJFs5rD4uaEDpAwIaGh1FAeZ0AiROjZazJO3f6bdtCnxZingQowEdPtE5VTzzYTmRRpBUqiKJ3irlvfuhN8SF1-t7iOMV-PnTxxgwP6kPy9Nq6QsQUATb6cNbqlrYtfJSudy1zindLSJW3thODaN2F-Rvq54QHimY1ZTMAcJHgBCUFNqt8d5UGxUWfbEqNgGgrRYIzkueIVwOg"/>
+<span class="font-label-sm text-label-sm text-secondary mt-1 font-bold">Đắc Ý</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi VIP passenger with poised dignified neutral expression, drinking tea from vintage porcelain cup, gold accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHu6x5qtBpYX1jWeJ656dj7p69V-aJhSud48rcMl67gpyZCAzkKg8STcY1lEJ_SgEsuJHyOwkv90sABj5UNZisLs-7B9dYS0LpkW88uf09vODIEP4rTTX7-Fm9PvxHLtq0wZlekJ60cRG9vB5FvfwOuraJaOjc-26TOEZoOniX8SrW99Q795J8efkCwwl6ff5kwHsB2WLDBBR4IIl03Sg5R27iNwu02dmYc0qkc6BaDs9kRywjIYArcg"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Điềm Tĩnh</span>
+</div>
+<div class="flex flex-col items-center p-1.5 rounded-DEFAULT bg-surface-container-low">
+<img class="w-14 h-14 object-contain rounded-full bg-surface" data-alt="Chibi VIP passenger dramatically throwing hands up with shock and outrage, golden cane trembling, fiery expressive comic effect." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0-8M0EGRXhwiaHARbq3wL6d2aTPCftweQ1ABDn5SusrDiPAOxqphpHNNIYjx-g7O807o-Fx5yPuosVAtleo9qtf2315c2g44CGgvORHW3d4Wr8zWKSH96GIAzkoc1lPijoXAstfOZ9GNYUaVcLpEeMtlnpXi0osPieP-1sXR5U8OS8K-ptnWMzPB8d-8pg7tomCXqZ-B25P2HbWMbhQc21b1ZHaAispm00gz9l53_TS7a2ZiN8h2l1w"/>
+<span class="font-label-sm text-label-sm text-error mt-1 font-bold">Thất Vọng</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-6 rounded-full bg-tertiary"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">3. Bộ Icon Gỗ Dập Nổi (64px Sprite Matrix)</h3>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">17 Icon Phẳng</span>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md">
+<div class="grid grid-cols-3 sm:grid-cols-4 gap-space-sm" id="icon-matrix">
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">toll</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Tiền Xu Quầy</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_coin</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shadow-sm">
+<span class="material-symbols-outlined text-[28px]">star</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Sao Đánh Giá</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_star</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">alarm</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Đồng Hồ Quả Quýt</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_pocket_clock</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed shadow-sm">
+<span class="material-symbols-outlined text-[28px]">flight_takeoff</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Máy Bay Cất Cánh</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_departure</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">event_seat</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Ghế Thường</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_seat_std</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-tertiary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">window</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Ghế Cửa Sổ</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_seat_window</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-secondary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">view_column</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Ghế Lối Đi</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_seat_aisle</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">luggage</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Vali 20kg</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_luggage_20</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-tertiary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">eco</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Suất Ăn Chay</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_meal_vegan</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">accessible_forward</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Xe Lăn Trợ Giúp</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_wheelchair</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container shadow-sm">
+<span class="material-symbols-outlined text-[28px]">shield</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Khiên Bảo Hiểm</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_shield_insure</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">menu_book</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Quyển Hộ Chiếu</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_passport</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">print</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Máy In Vé Gỗ</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_wood_printer</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-secondary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">receipt</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Răng Cưa Vé</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_ticket_rip</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">local_fire_department</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Lửa Nhu Cầu Cao</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_high_demand</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">fence</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Rào Trần +30%</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_ceiling_fence</span>
+</div>
+<div class="flex flex-col items-center text-center p-space-xs rounded-DEFAULT bg-surface-container-low shadow-sm active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant shadow-sm">
+<span class="material-symbols-outlined text-[28px]">thunderstorm</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface line-clamp-1">Mây Thời Tiết Xấu</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant">ic_bad_weather</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-6 rounded-full bg-secondary-container"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">4. Bưu Thiếp Tuyến Bay (Chibi Postcards)</h3>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold">Bộ Sưu Tập Điểm Đến</span>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div class="flex flex-col p-space-xs rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md">
+<div class="relative w-full h-28 rounded-DEFAULT overflow-hidden">
+<img class="w-full h-full object-cover rounded-DEFAULT" data-alt="Chibi illustrated vintage travel postcard of Da Nang Dragon Bridge breathing gentle fire over Han River, pastel warm sky, retro stamp border, cute fluffy clouds." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx75DbP2aeqp6J9zFmAaw-doygHFs-8jm0MuFMVehmM4wVmSY6SCidGEgb45TNqB4YZ1ygOabsDOmgi_y4JuhhOhq-3WnNuv7DpCugrk_SUSt-EBCCYcg4q9-OcUaiGjOj9WTrd2KWvA4OiC-32x-LFdJ0PlrQ4mrnsFvYig8yF-Si5J7bWm3tVDb8LTGmqnsuobt5t0unWaGuu0wfpiEp6v1JhT0rCw_Z1Jdm4QFWSZ3in8h-nJ0SWQ"/>
+<div class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-surface/90 text-primary font-label-sm text-[10px]">DAD</div>
+</div>
+<div class="p-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Cầu Rồng Đà Nẵng</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tuyến miền Trung nhộn nhịp</span>
+</div>
+</div>
+<div class="flex flex-col p-space-xs rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md">
+<div class="relative w-full h-28 rounded-DEFAULT overflow-hidden">
+<img class="w-full h-full object-cover rounded-DEFAULT" data-alt="Chibi illustrated vintage postcard of Notre Dame Cathedral of Saigon TP HCM with red brick spires, tiny pigeons and vintage scooter, warm butter sunlight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT2897CJN5omBLDOAWZU9DqatCNGpXdUB0_ZPJiTPt3By7TsFhZxxdGLAdw0g7rrrhc4_SxWq9tS0a39VK9Wp_qqwaDcf8FRJtGp74LpwR-sW2GvIgZ99PWyHqfUTQjeetwXnHqLf175JTNjdkK_YUl13OjQdvo-_0LshtlaSVQLx7tOla4irsOZL8hC-8CyxRc82BZTPO9UKAS8m1MR1HyEXZwUuyBd2KaqRBhP0nWyhKPWDjQNltvw"/>
+<div class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-surface/90 text-primary font-label-sm text-[10px]">SGN</div>
+</div>
+<div class="p-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Nhà Thờ Đức Bà TP.HCM</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tâm điểm giao thương lớn</span>
+</div>
+</div>
+<div class="flex flex-col p-space-xs rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md">
+<div class="relative w-full h-28 rounded-DEFAULT overflow-hidden">
+<img class="w-full h-full object-cover rounded-DEFAULT" data-alt="Chibi tropical postcard of Phu Quoc island with swaying palm trees, starfish on creamy sand, turquoise sea waves, warm sun stamp." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApUabOp2n1ZtL6IakGOAxZqNu7E5pnnt3njYBdP4Ej0C41EGgT3SSJAoDRdGCpSw5OvelKcR0_IAPNP75vRCZ6zMC4W70RbjHELJBg4wBfbrtr56KXEhHUnSCD_3YPlK54BGIfOXPJSXftK6DSqB7u1ZYiACGgaC_gEV8RyPT1UuQ8Mp7Ei-q41yEe3JizuJtdpq7ohWfB6LJL1DRJF4SIxCM1o7AN8AZx6f7LxNFgrvnt8kphptyVag"/>
+<div class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-surface/90 text-primary font-label-sm text-[10px]">PQC</div>
+</div>
+<div class="p-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Biển Dừa Phú Quốc</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Nghỉ dưỡng &amp; vé gia đình</span>
+</div>
+</div>
+<div class="flex flex-col p-space-xs rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md">
+<div class="relative w-full h-28 rounded-DEFAULT overflow-hidden">
+<img class="w-full h-full object-cover rounded-DEFAULT" data-alt="Chibi illustrated postcard of Da Lat pine hills with morning fog, tiny wooden train puffing cute heart smoke, cozy European Asian retro colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvqz7Pbef62VXc4tDz6IEf-mbcG64jW16RSK3Z70miurIj3ta_DhP-oRc9duRYP23TLpYaY61XoKRv3N-esQ27LPkMQbyEDAcdyN66qztmtCqPeIxejE2RUuutyDuDehwc6xWFtzSatF5r1jWt4MfyQ1fL9DnnlO7B9tpgzxtWFXDuFKPDXY2WV9Xj__8NH6GrJFgSrCyJpHdoYNXK1zNN_06SZNw4T2aXGJekgG_gdgIrgP38TAYBlA"/>
+<div class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-surface/90 text-primary font-label-sm text-[10px]">DLI</div>
+</div>
+<div class="p-space-xs flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Đồi Thông Đà Lạt</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Sương sớm &amp; vé cặp đôi</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-6 rounded-full bg-error"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">5. Chi Tiết UI Dập Nổi &amp; Dụng Cụ Kiosk</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tương Tác Xúc Giác</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-error">Dấu Đỏ: VƯỢT TRẦN</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cảnh báo khi giá vé vượt +30%</span>
+</div>
+<div class="rotate-[-6deg] px-space-sm py-1 rounded-DEFAULT bg-error-container text-on-error-container font-headline-sm text-headline-sm uppercase shadow-sm active:scale-95 transition-all">
+          VƯỢT TRẦN
+        </div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-tertiary">Dấu Xanh: HỢP LỆ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Đã kiểm duyệt quy chuẩn chặng</span>
+</div>
+<div class="rotate-[4deg] px-space-sm py-1 rounded-DEFAULT bg-tertiary-fixed text-on-tertiary-fixed font-headline-sm text-headline-sm uppercase shadow-sm active:scale-95 transition-all">
+          HỢP LỆ
+        </div>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Công Tắc Gỗ ON/OFF</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bật / Tắt nhận diện khách trễ</span>
+</div>
+<button class="w-16 h-9 rounded-full bg-surface-container-high p-1 flex items-center transition-all shadow-inner" id="toggle-wood-switch">
+<div class="w-7 h-7 rounded-full bg-primary shadow-sm transform translate-x-7 transition-all flex items-center justify-center text-on-primary" id="toggle-knob">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+</button>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-lowest text-on-surface shadow-md flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Bộ Đếm Vé Stepper [- 3 +]</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tăng giảm số lượng xuất xưởng</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-xs py-1 rounded-full shadow-inner">
+<button class="w-8 h-8 rounded-full bg-surface-container-highest text-primary flex items-center justify-center shadow-sm active:scale-90 transition-all" id="step-minus">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<span class="font-headline-sm text-headline-sm text-primary px-2 min-w-[24px] text-center" id="step-value">3</span>
+<button class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm active:scale-90 transition-all" id="step-plus">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<div class="p-space-md rounded-DEFAULT bg-surface-container text-on-surface shadow-md flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">palette</span>
+<span class="font-headline-sm text-headline-sm text-primary">Bảng Màu Chủ Đạo Asset Sheet</span>
+</div>
+<div class="grid grid-cols-4 gap-space-xs mt-1">
+<div class="flex flex-col items-center">
+<div class="w-full h-8 rounded-DEFAULT bg-primary"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant mt-1 font-bold">#523828 Espresso</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-full h-8 rounded-DEFAULT bg-secondary"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant mt-1 font-bold">#97472E Terracotta</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-full h-8 rounded-DEFAULT bg-tertiary"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant mt-1 font-bold">#114547 Teal Cổ Điển</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-full h-8 rounded-DEFAULT bg-surface-container-high"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant mt-1 font-bold">#FFE3CE Kraft Kem</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function initAssetSheet() {
+    let gridActive = true;
+    const gridBtn = document.getElementById('btn-toggle-grid');
+    const gridLabel = document.getElementById('grid-status-label');
+    const exportBtn = document.getElementById('btn-export-spec');
+    
+    if (gridBtn && gridLabel) {
+      gridBtn.addEventListener('click', () => {
+        gridActive = !gridActive;
+        gridLabel.textContent = gridActive ? 'Lưới Ô Li: BẬT' : 'Lưới Ô Li: TẮT';
+        gridBtn.classList.toggle('opacity-70', !gridActive);
+      });
+    }
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const originalText = exportBtn.innerHTML;
+        exportBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span> Đã Sao Chép Atlas!';
+        setTimeout(() => {
+          exportBtn.innerHTML = originalText;
+        }, 1800);
+      });
+    }
+
+    let toggleState = true;
+    const toggleSwitch = document.getElementById('toggle-wood-switch');
+    const toggleKnob = document.getElementById('toggle-knob');
+    if (toggleSwitch && toggleKnob) {
+      toggleSwitch.addEventListener('click', () => {
+        toggleState = !toggleState;
+        if (toggleState) {
+          toggleKnob.classList.remove('translate-x-0', 'bg-outline');
+          toggleKnob.classList.add('translate-x-7', 'bg-primary');
+          toggleKnob.innerHTML = '<span class="material-symbols-outlined text-[14px]">check</span>';
+        } else {
+          toggleKnob.classList.remove('translate-x-7', 'bg-primary');
+          toggleKnob.classList.add('translate-x-0', 'bg-outline');
+          toggleKnob.innerHTML = '<span class="material-symbols-outlined text-[14px]">close</span>';
+        }
+      });
+    }
+
+    let count = 3;
+    const stepMinus = document.getElementById('step-minus');
+    const stepPlus = document.getElementById('step-plus');
+    const stepValue = document.getElementById('step-value');
+    if (stepMinus && stepPlus && stepValue) {
+      stepMinus.addEventListener('click', () => {
+        if (count > 1) {
+          count--;
+          stepValue.textContent = count;
+        }
+      });
+      stepPlus.addEventListener('click', () => {
+        if (count < 99) {
+          count++;
+          stepValue.textContent = count;
+        }
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.06)]" data-active-classes="bg-primary text-on-primary shadow-[0_4px_0_#2b1608]"><div class="flex justify-around items-center h-20 px-space-xs"><a class="flex flex-col items-center justify-center gap-1 min-w-[70px] h-14 rounded-DEFAULT px-space-xs text-on-surface-variant transition-all" data-path="kho-ve" href="#"><span class="material-symbols-outlined text-[24px]">inventory_2</span><span class="font-label-sm text-label-sm font-bold">Kho Vé</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[70px] h-14 rounded-DEFAULT px-space-xs text-on-surface-variant transition-all" data-path="quay-ve" href="#"><span class="material-symbols-outlined text-[24px]">confirmation_number</span><span class="font-label-sm text-label-sm font-bold">Quầy Vé</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[70px] h-14 rounded-DEFAULT px-space-xs text-on-surface-variant transition-all" data-path="tong-ket" href="#"><span class="material-symbols-outlined text-[24px]">receipt_long</span><span class="font-label-sm text-label-sm font-bold">Tổng Kết</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[70px] h-14 rounded-DEFAULT px-space-xs text-on-surface-variant transition-all" data-path="cua-hang" href="#"><span class="material-symbols-outlined text-[24px]">storefront</span><span class="font-label-sm text-label-sm font-bold">Cửa Hàng</span></a></div></nav></body></html>

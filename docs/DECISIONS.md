@@ -165,3 +165,9 @@ Kết quả `SEEDS=200 QUIET=1 npm run sim` sau khi chỉnh (mục tiêu PLAN §
 
 Thí nghiệm giá (40–100 seed): bot hoàn hảo lời nhất ở giá −10%…+15%, +30% kém hơn một chút vì khách đông hơn mà bot phục vụ không xuể; +45% (vượt trần) sụp đổ (tiền ngày 30 giảm từ ~2,2M xuống ~65k). Bot trung bình lời nhất ở +15%…+30% (ít khách → ít quá tải). Ngày lễ: ROI nâng giá +30% ở tuyến nóng = 130.9% so với 112.8% khi chỉ +15% — nâng giá ngày lễ có lợi thật.
 Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 triệu k) — chưa có khoản chi lớn để tiêu ở cuối game (cần backlog PLAN §17: mua máy bay, thuê nhân viên).
+
+## 2026-10-04 — Quầy làm việc nhiều vùng (thay luồng 4 bước)
+- Quyết định: Counter dùng `CustomerCard` (avatar tròn + khung yêu cầu từng dòng) và `CounterDesk` (kho vé thường/thương gia, chỗ đặt vé, khay con dấu điểm đến + giờ bay, sơ đồ ghế 2-2 không cuộn, cân hành lý, khay vé dịch vụ). Vé chỉ xác định chuyến khi đã đóng đủ hai con dấu.
+- Sơ đồ ghế: hạng phổ thông 10 hàng (32 ghế), mọi ghế còn bán được đều chọn được (`holdSeat` gán lại đơn vị ghế dự phòng). Khách khó tính (từ ngày 7) đòi vị trí đầu/giữa/cuối, cửa sổ, lối đi.
+- Lý do: yêu cầu của chủ dự án sau khi test; giảm cuộn, giảm số bước.
+- Đã loại: giữ StepIndicator/FlightList (đã xoá). Lệnh BUILD_GOTO_STEP còn trong domain nhưng UI không dùng.
