@@ -46,7 +46,7 @@ export const STRINGS = {
     gotIt: 'Hiểu rồi',
     prepDay1: 'Đây là Kho. Chạm + ở một chuyến để nhập ghế, rồi bấm "Xác nhận nhập ghế". Ngày đầu thử nhập vài ghế Đà Nẵng nhé, xong bấm "Mở cửa".',
     counterDay1: 'Đọc đơn của khách, chọn đúng chuyến, chọn ghế, bấm Tiếp hai lần, rồi In vé và kéo vé lên trao cho khách. Khách đầu tiên rất kiên nhẫn, cứ thong thả.',
-    baggageDay2: 'Từ hôm nay khách có hành lý. Bấm giữ vào thanh hành lý để cân: số kg chạy qua lại, thả tay đúng số khách yêu cầu (lệch 1 kg vẫn được).',
+    baggageDay2: 'Từ hôm nay khách có hành lý. Bấm giữ vào thanh hành lý để cân: số kg chạy từ 0 lên 30 rồi quay lại, thả tay đúng số khách yêu cầu (lệch 1 kg vẫn được). Muốn cân lại thì bấm giữ lần nữa.',
     seatPrefDay3: 'Có khách thích ghế cửa sổ hoặc lối đi. Nhìn biểu tượng trong đơn rồi chọn đúng loại ghế.',
     businessDay4: 'Khách thương gia khó tính hơn nhưng tip rất hậu. Trao vé đúng hạng và thật nhanh để được tip.',
     timeAndExtrasDay5: 'Khách có thể chọn khung giờ Tối hoặc Khuya, và thêm dịch vụ như suất ăn chay. Đọc kỹ đơn nha.',

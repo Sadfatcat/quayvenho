@@ -48,6 +48,8 @@ async function bootstrap(): Promise<void> {
 
   registerBackButton(() => game.events.emit(BACK_PRESSED_EVENT));
 
+  if (import.meta.env.DEV) window.__game = game;
+
   const tabLock = watchTabLock({
     onSecondTabDetected: () => game.events.emit(SECOND_TAB_LOCK_EVENT, () => tabLock.requestTakeover()),
     onTakenOver: () => {

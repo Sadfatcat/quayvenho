@@ -6,7 +6,7 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 
 - **5 file ảnh bị hỏng** (nội dung là trang báo lỗi, chỉ 28 byte, không đọc được): `c_a_h_ng_n_ng_c_p_qu_y_v` (Shop), `kho_v_u_ng_y_allotment_prep` (Kho cũ), `m_n_16_t_ng_k_t_ca_tr_c_ng_y` (Tổng kết), `m_n_9_13_qu_y_ph_c_v_trao_v` (Quầy + trao vé), `qu_y_ph_c_v_b_n_v_m_y_bay`, `s_gh_ch_n_ch_kh_ch_h_ng` (chọn ghế). → Cần bạn xuất lại ảnh để dựng UI các màn này.
 - **Chưa dựng lại bố cục theo thiết kế** cho các màn có ảnh hợp lệ (Title, Onboarding, Kho + chỉnh giá, soi hộ chiếu/thông báo ngày lễ, tutorial, cửa hàng quầy). Hiện game dùng đúng bảng màu, font, nút 3D, thẻ đùn đáy nhưng bố cục vẫn là bản cũ. Lý do: mỗi màn là một lượt dựng lại lớn, và nhiều phần cần quyết định của bạn (mục 2).
-- **Chưa có hình ảnh thật:** logo, mascot Béo, avatar khách minh hoạ, icon, ảnh các tuyến bay, ảnh nâng cấp. Game đang dùng avatar vẽ bằng code. Cần bạn xuất ảnh/asset từ Stitch (prompt ở `docs/STITCH_PROMPTS.md`, mục 21) rồi đặt vào `public/assets/`; tôi gom thành atlas.
+- **Chưa có hình ảnh thật:** logo, mascot Béo, avatar khách minh hoạ, icon, ảnh các tuyến bay, ảnh nâng cấp. Game đang dùng avatar vẽ bằng code. Cần bạn xuất ảnh/asset từ Stitch (prompt ở `docs/PROMPT_ANH.md`) rồi đặt vào `public/assets/`; tôi gom thành atlas.
 - **Chưa làm các chi tiết mockup:** nút nhanh "Gốc / +15% / +30%" cạnh thanh giá, dòng "Doanh thu ước tính", tag giảm giá "−5% Sỉ" trên thẻ chuyến, biểu tượng trong ô thông tin đơn, vân giấy nền, đuôi bong bóng thoại, khía vé, chip nhãn tuyến.
 
 ## 2. Quyết định cần bạn (ảnh hưởng thiết kế/luật)
@@ -22,7 +22,7 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Deploy Cloudflare Pages:** cần tài khoản của bạn, làm theo `docs/DEPLOY.md`.
 - **Kiểm điện thoại thật** (điền `tests/e2e-manual.md`): xoay ngang, bàn phím ảo che ô nhập, cài PWA Android/iOS, audio trên Safari iOS, 60 fps Android, cảm giác nhịp ngày chơi.
 - **Nghe thử audio:** SFX và nhạc là tổng hợp bằng code, chưa biết nghe có dễ chịu không.
-- **Cân hành lý bấm giữ:** đã làm (giữ thanh, số kg chạy 0⇄30 kg, thả tay để chốt) nhưng chưa xem chạy thật trên trình duyệt/điện thoại; có thể phải chỉnh tốc độ `BAGGAGE_HOLD_SPEED_KG_PER_S` (đang 7 kg/giây).
+- **Cân hành lý bấm giữ:** đã làm và đã kiểm trên trình duyệt (giữ 2 giây → 10 kg; mỗi lần bấm cân lại từ 0; thả ngoài thanh vẫn chốt). Chưa thử bằng ngón tay thật trên điện thoại; tốc độ chỉnh ở `BAGGAGE_HOLD_SPEED_KG_PER_S` (đang 5 kg/giây).
 
 ## 4. Nội dung cá nhân hoá
 
