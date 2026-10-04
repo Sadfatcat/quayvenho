@@ -68,6 +68,24 @@ describe('storage', () => {
     expect(result.ok && result.value.money).toBe(0);
   });
 
+  it('không ghi save khi đang giữa ca (OPEN/CLOSING)', () => {
+    const state = createNewGame(1);
+    writeSave(state);
+    const midShift = { ...state, phase: 'OPEN' as const, money: 999 };
+    writeSave(midShift);
+    const loaded = loadSave();
+    expect(loaded.ok && loaded.value.money).toBe(state.money);
+  });
+
+  it('save giữa ca đã nằm sẵn trong localStorage thì rơi về bản sao lưu hợp lệ', () => {
+    const good = createNewGame(1);
+    writeSave(good);
+    writeSave({ ...good, money: good.money + 1 });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...good, phase: 'OPEN' }));
+    const loaded = loadSave();
+    expect(loaded).toMatchObject({ ok: true, recoveredFromBackup: true });
+  });
+
   it('clearSave xoá cả save chính lẫn backup', () => {
     writeSave(createNewGame(1));
     writeSave(createNewGame(2));

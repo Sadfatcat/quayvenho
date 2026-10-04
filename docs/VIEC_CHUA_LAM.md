@@ -55,3 +55,9 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Còn dùng ảnh cũ độ phân giải thấp:** 2 khách VIP, Béo (6 tư thế), logo. Cần tạo lại theo `docs/PROMPT_ANH_V2.md` mục 1 (Béo), 2 (VIP), 3 (logo).
 - **Chưa có:** nền màn hình (Quầy, Kho, Tổng kết, Shop, Title), icon, nút/bảng UI, bưu thiếp tuyến bay.
 - Ghi chú: thứ tự gán c01–c16 theo `CUSTOMER_FILES` trong `tools/buildAtlas.mjs` (c10 là người đàn ông kính râm vest).
+
+## 9. Béo độ phân giải cao (đã nhận 2026-10-04)
+
+- **Đã dùng:** 9 tư thế (chào, phấn khích, tinh nghịch, lo lắng, chỉ tay, tự hào, buồn, suy nghĩ, bust) ở atlas riêng `public/assets/atlas/beo.*`. Onboarding và tutorial dùng tư thế theo từng bước.
+- **Còn dùng ảnh cũ độ phân giải thấp:** 2 khách VIP, logo.
+- **Lỗi đã sửa kèm theo:** save bị ghi giữa ca (cờ tutorial/cài đặt) làm nút "Chơi tiếp" không vào được; nay không ghi save giữa ca và save hỏng như vậy tự rơi về bản sao lưu.

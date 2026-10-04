@@ -1,7 +1,7 @@
 // Gom sprite nhân vật từ sheet asset thành 1 atlas Phaser: node tools/buildAtlas.mjs
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { crop, readPng, writePng } from './pngtool.mjs';
-import { processTriple } from './processTriple.mjs';
+import { extractBand, processTriple } from './processTriple.mjs';
 
 const SHEET = 'DESIGN/stitch_chibi_game_ui_design/ảnh/ChatGPT Image 11_04_03 4 thg 10, 2026.png';
 const OUT_DIR = 'public/assets/atlas';
@@ -9,6 +9,7 @@ const ALPHA_MIN = 40;
 const MERGE_RADIUS = 3;
 const PAD = 2;
 const ATLAS_WIDTH = 1536;
+const BEO_ATLAS_WIDTH = 1700;
 const CUSTOMER_DIR = 'DESIGN/stitch_chibi_game_ui_design/ảnh';
 const CUSTOMER_FRAME_HEIGHT = 192;
 /** Mỗi file = 1 khách × 3 biểu cảm (happy, neutral, angry); thứ tự = c01, c02, … c16. */
@@ -118,14 +119,24 @@ CUSTOMER_IDS.forEach((id, index) => {
   });
 });
 windows.push(
-  { name: 'beo_greeting', x: 672, y: 50, w: 124, h: 146 },
-  { name: 'beo_excited', x: 800, y: 50, w: 132, h: 146 },
-  { name: 'beo_sly', x: 953, y: 50, w: 96, h: 146 },
-  { name: 'beo_worried', x: 1070, y: 50, w: 104, h: 146 },
-  { name: 'beo_pointing', x: 1188, y: 50, w: 112, h: 146 },
-  { name: 'beo_bust', x: 795, y: 240, w: 130, h: 148 },
   { name: 'logo_lockup', x: 10, y: 46, w: 196, h: 176 },
 );
+
+/** Béo: mỗi file có 1–3 biến thể cùng tư thế; `pick` = dải (trái → phải) được chọn. */
+const BEO_FRAME_HEIGHT = 420;
+const BEO_BUST_HEIGHT = 256;
+const BEO_FILES = [
+  { name: 'beo_bust', file: 'beo_bust.pn.png', pick: 0, height: BEO_BUST_HEIGHT },
+  { name: 'beo_excited', file: 'beo_excited.png.png', pick: 0, height: BEO_FRAME_HEIGHT },
+  { name: 'beo_greeting', file: 'beo_greeting.png.png', pick: 1, height: BEO_FRAME_HEIGHT, minGap: 6 },
+  { name: 'beo_pointing', file: 'beo_pointing.png.png', pick: 1, height: BEO_FRAME_HEIGHT },
+  { name: 'beo_proud', file: 'beo_proud.png.png', pick: 2, height: BEO_FRAME_HEIGHT },
+  { name: 'beo_sad', file: 'beo_sad.png.png', pick: 2, height: BEO_FRAME_HEIGHT },
+  { name: 'beo_sly', file: 'beo_sly.png.png', pick: 0, height: BEO_FRAME_HEIGHT },
+  { name: 'beo_thinking', file: 'beo_thinking.png.png', pick: 1, height: BEO_FRAME_HEIGHT },
+  { name: 'beo_worried', file: 'beo_worried.png.png', pick: 0, height: BEO_FRAME_HEIGHT },
+];
+const beoSprites = BEO_FILES.map(({ name, file, pick, height, minGap }) => ({ name, img: extractBand(readPng(`${CUSTOMER_DIR}/${file}`), pick, height, minGap) }));
 
 const MOOD_NAMES = ['happy', 'neutral', 'angry'];
 const newCustomerSprites = CUSTOMER_FILES.flatMap((file, index) => {
@@ -136,26 +147,30 @@ const newCustomerSprites = CUSTOMER_FILES.flatMap((file, index) => {
 const sprites = windows.map((window) => {
   const cut = defringe(crop(sheet, window.x, window.y, window.w, window.h));
   return { name: window.name, img: isolate(cut) };
-}).concat(newCustomerSprites);
+}).concat(newCustomerSprites, beoSprites);
 
-// Xếp kệ (shelf packing) vào atlas.
-let x = PAD, y = PAD, rowHeight = 0;
-const placed = [];
-for (const sprite of sprites.sort((a, b) => b.img.height - a.img.height)) {
-  if (x + sprite.img.width + PAD > ATLAS_WIDTH) { x = PAD; y += rowHeight + PAD; rowHeight = 0; }
-  placed.push({ ...sprite, x, y });
-  x += sprite.img.width + PAD;
-  rowHeight = Math.max(rowHeight, sprite.img.height);
-}
-const atlasHeight = y + rowHeight + PAD;
-const atlas = { width: ATLAS_WIDTH, height: atlasHeight, px: Buffer.alloc(ATLAS_WIDTH * atlasHeight * 4) };
-const frames = {};
-for (const sprite of placed) {
-  for (let row = 0; row < sprite.img.height; row++) sprite.img.px.copy(atlas.px, ((sprite.y + row) * ATLAS_WIDTH + sprite.x) * 4, row * sprite.img.width * 4, (row + 1) * sprite.img.width * 4);
-  const { width: w, height: h } = sprite.img;
-  frames[sprite.name] = { frame: { x: sprite.x, y: sprite.y, w, h }, rotated: false, trimmed: false, sourceSize: { w, h }, spriteSourceSize: { x: 0, y: 0, w, h } };
-}
-mkdirSync(OUT_DIR, { recursive: true });
-writePng(`${OUT_DIR}/characters.png`, atlas);
-writeFileSync(`${OUT_DIR}/characters.json`, JSON.stringify({ frames, meta: { image: 'characters.png', size: { w: ATLAS_WIDTH, h: atlasHeight }, scale: '1' } }));
-console.log(`atlas ${ATLAS_WIDTH}x${atlasHeight}, ${placed.length} frames`);
+// Xếp kệ (shelf packing) vào atlas; Béo ở atlas riêng (ảnh to hơn) để khách và logo tải nhẹ hơn.
+const packAtlas = (list, name, atlasWidth) => {
+  let x = PAD, y = PAD, rowHeight = 0;
+  const placed = [];
+  for (const sprite of [...list].sort((a, b) => b.img.height - a.img.height)) {
+    if (x + sprite.img.width + PAD > atlasWidth) { x = PAD; y += rowHeight + PAD; rowHeight = 0; }
+    placed.push({ ...sprite, x, y });
+    x += sprite.img.width + PAD;
+    rowHeight = Math.max(rowHeight, sprite.img.height);
+  }
+  const atlasHeight = y + rowHeight + PAD;
+  const atlas = { width: atlasWidth, height: atlasHeight, px: Buffer.alloc(atlasWidth * atlasHeight * 4) };
+  const frames = {};
+  for (const sprite of placed) {
+    for (let row = 0; row < sprite.img.height; row++) sprite.img.px.copy(atlas.px, ((sprite.y + row) * atlasWidth + sprite.x) * 4, row * sprite.img.width * 4, (row + 1) * sprite.img.width * 4);
+    const { width: w, height: h } = sprite.img;
+    frames[sprite.name] = { frame: { x: sprite.x, y: sprite.y, w, h }, rotated: false, trimmed: false, sourceSize: { w, h }, spriteSourceSize: { x: 0, y: 0, w, h } };
+  }
+  mkdirSync(OUT_DIR, { recursive: true });
+  writePng(`${OUT_DIR}/${name}.png`, atlas);
+  writeFileSync(`${OUT_DIR}/${name}.json`, JSON.stringify({ frames, meta: { image: `${name}.png`, size: { w: atlasWidth, h: atlasHeight }, scale: '1' } }));
+  console.log(`${name}: ${atlasWidth}x${atlasHeight}, ${placed.length} frames`);
+};
+packAtlas(sprites.filter((sprite) => !sprite.name.startsWith('beo_')), 'characters', ATLAS_WIDTH);
+packAtlas(sprites.filter((sprite) => sprite.name.startsWith('beo_')), 'beo', BEO_ATLAS_WIDTH);

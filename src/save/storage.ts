@@ -10,6 +10,8 @@ export type LoadSaveReason = 'EMPTY' | 'CORRUPTED' | 'FUTURE_VERSION';
 type RawLoadResult = { ok: true; value: GameState } | { ok: false; reason: LoadSaveReason };
 export type LoadSaveResult = { ok: true; value: GameState; recoveredFromBackup: boolean } | { ok: false; reason: LoadSaveReason };
 
+const isMidShift = (phase: GameState['phase']): boolean => phase === 'OPEN' || phase === 'CLOSING';
+
 export const parseSaveJson = (json: string): RawLoadResult => {
   let raw: unknown;
   try {
@@ -32,6 +34,8 @@ export const parseSaveJson = (json: string): RawLoadResult => {
   if (!parsed.success) {
     return { ok: false, reason: 'CORRUPTED' };
   }
+  // Save giữa ca (OPEN/CLOSING) không bao giờ hợp lệ: GameSession từ chối nạp (PLAN §6.6) — coi như hỏng để rơi về bản sao lưu.
+  if (isMidShift(parsed.data.phase)) return { ok: false, reason: 'CORRUPTED' };
   return { ok: true, value: parsed.data as GameState };
 };
 
@@ -61,6 +65,8 @@ export const loadSave = (): LoadSaveResult => {
 
 /** Ghi save mới; bản cũ (nếu có) được giữ lại làm backup trước khi ghi đè. */
 export const writeSave = (state: GameState): void => {
+  // PLAN §6.6: không lưu giữa ca; cờ/cài đặt đổi trong ca sẽ được lưu ở mốc cuối ngày.
+  if (isMidShift(state.phase)) return;
   try {
     const previous = localStorage.getItem(SAVE_KEY);
     if (previous !== null) {

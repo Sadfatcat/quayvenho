@@ -1,7 +1,7 @@
 import { devError } from '@platform/logger';
 import { STRINGS } from '@data/strings';
 import { Button } from '@ui/Button';
-import { ATLAS_KEY } from '@ui/CustomerAvatar';
+import { ATLAS_KEY, BEO_ATLAS_KEY } from '@ui/CustomerAvatar';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { FONT_LOAD_SPECS } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
@@ -22,6 +22,7 @@ export class PreloadScene extends BaseScene {
   /** Tải atlas nhân vật (khách, Béo, logo); lỗi tải được báo ở `onCreate` bằng nút "Thử lại". */
   preload(): void {
     this.load.atlas(ATLAS_KEY, 'assets/atlas/characters.png', 'assets/atlas/characters.json');
+    this.load.atlas(BEO_ATLAS_KEY, 'assets/atlas/beo.png', 'assets/atlas/beo.json');
   }
 
   protected onCreate(): void {
@@ -32,7 +33,7 @@ export class PreloadScene extends BaseScene {
   private async loadFonts(): Promise<void> {
     try {
       await Promise.all(FONT_LOAD_SPECS.map((spec) => document.fonts.load(spec, 'Việt')));
-      if (!this.textures.exists(ATLAS_KEY)) throw new Error('atlas nhân vật không tải được');
+      if (!this.textures.exists(ATLAS_KEY) || !this.textures.exists(BEO_ATLAS_KEY)) throw new Error('atlas nhân vật không tải được');
     } catch (error) {
       this.showRetry(error);
       return;

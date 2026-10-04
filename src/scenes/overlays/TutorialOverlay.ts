@@ -5,7 +5,7 @@ import { scriptedMomentsFor } from '@domain/personal';
 import { TUTORIAL_FLAG_PREFIX, TUTORIAL_STEPS, type TutorialScene } from '@data/tutorial';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
-import { addBeoFigure } from '@ui/BeoFigure';
+import { addBeoFigure, type BeoPose } from '@ui/BeoFigure';
 import { SpeechBubble } from '@ui/SpeechBubble';
 import { GAME_WIDTH } from '../../config';
 import { sessionBridge } from '../sessionBridge';
@@ -17,12 +17,25 @@ const BEO_X = 190;
 const BEO_BOTTOM_Y = 1100;
 const BEO_HEIGHT = 400;
 const BUTTON_Y = BUBBLE_Y + 190;
+/** Tư thế Béo theo từng bước hướng dẫn (mặc định: chào). */
+const TUTORIAL_POSES: Readonly<Record<string, BeoPose>> = {
+  prepDay1: 'greeting',
+  counterDay1: 'pointing',
+  baggageDay2: 'pointing',
+  seatPrefDay3: 'thinking',
+  businessDay4: 'proud',
+  timeAndExtrasDay5: 'thinking',
+  passportDay6: 'sly',
+  priceDay2: 'thinking',
+  rushFirst: 'excited',
+  weatherFirst: 'worried',
+};
 
 /** Một lời thoại của Béo (PLAN §10.11): bong bóng thoại + nút "Hiểu rồi". Đóng thì ghi cờ `flag` để không lặp lại. */
 class BeoMessageOverlay extends BaseOverlay {
-  constructor(scene: Phaser.Scene, message: string, flag: string | null, onDone: () => void) {
+  constructor(scene: Phaser.Scene, message: string, flag: string | null, pose: BeoPose, onDone: () => void) {
     super(scene, { closeOnBackdropTap: false });
-    const speaker = addBeoFigure(scene, BEO_X, BEO_BOTTOM_Y, BEO_HEIGHT, 'greeting');
+    const speaker = addBeoFigure(scene, BEO_X, BEO_BOTTOM_Y, BEO_HEIGHT, pose);
     const bubble = new SpeechBubble(scene, GAME_WIDTH / 2, BUBBLE_Y, { width: BUBBLE_WIDTH, text: message, speaker: STRINGS.tutorial.speaker, tailX: BUBBLE_TAIL_X });
     const confirm = new Button(scene, GAME_WIDTH / 2, BUTTON_Y, {
       width: 280,
@@ -54,7 +67,7 @@ export const showPendingTutorials = (scene: Phaser.Scene, sceneKey: TutorialScen
       return;
     }
     const message = STRINGS.tutorial[step.id as keyof typeof STRINGS.tutorial] ?? '';
-    new BeoMessageOverlay(scene, message, `${TUTORIAL_FLAG_PREFIX}${step.id}`, () => showNext(index + 1));
+    new BeoMessageOverlay(scene, message, `${TUTORIAL_FLAG_PREFIX}${step.id}`, TUTORIAL_POSES[step.id] ?? 'greeting', () => showNext(index + 1));
   };
   showNext(0);
 };
@@ -76,7 +89,7 @@ export const showScriptedMoments = (scene: Phaser.Scene, at: ScriptedMoment['at'
       releasePause();
       return;
     }
-    new BeoMessageOverlay(scene, entry.line, entry.flag, () => showNext(index + 1));
+    new BeoMessageOverlay(scene, entry.line, entry.flag, 'greeting', () => showNext(index + 1));
   };
   showNext(0);
 };

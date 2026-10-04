@@ -17,11 +17,14 @@ const hashSpriteId = (spriteId: string): number =>
 export type AvatarMood = 'happy' | 'neutral' | 'angry';
 
 export const ATLAS_KEY = 'characters';
+/** Béo ở atlas riêng (ảnh lớn hơn khách). */
+export const BEO_ATLAS_KEY = 'beo';
 /** Tỉ lệ chiều cao ảnh so với bán kính: ảnh bust cao hơn hình tròn vẽ bằng code một chút. */
 const IMAGE_HEIGHT_PER_RADIUS = 2.6;
 const SPEAKER_FRAME_BY_ID: Record<string, string> = { beo: 'beo_bust' };
 
 const frameFor = (spriteId: string, mood: AvatarMood): string => SPEAKER_FRAME_BY_ID[spriteId] ?? `cus_${spriteId}_${mood}`;
+const atlasFor = (spriteId: string): string => (spriteId in SPEAKER_FRAME_BY_ID ? BEO_ATLAS_KEY : ATLAS_KEY);
 
 export class CustomerAvatar extends Phaser.GameObjects.Container {
   private readonly image: Phaser.GameObjects.Image | null = null;
@@ -31,8 +34,9 @@ export class CustomerAvatar extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.spriteId = spriteId;
     const frame = frameFor(spriteId, mood);
-    if (scene.textures.exists(ATLAS_KEY) && scene.textures.get(ATLAS_KEY).has(frame)) {
-      const image = scene.add.image(0, 0, ATLAS_KEY, frame);
+    const atlas = atlasFor(spriteId);
+    if (scene.textures.exists(atlas) && scene.textures.get(atlas).has(frame)) {
+      const image = scene.add.image(0, 0, atlas, frame);
       image.setScale((radius * IMAGE_HEIGHT_PER_RADIUS) / image.height);
       this.image = image;
       this.add(image);

@@ -108,3 +108,38 @@ export const processTriple = (img, targetHeight) => {
     return downscale(frame, factor);
   });
 };
+
+/** Tất cả các dải nét vẽ tách nhau bởi khoảng trống ≥ MIN_GAP_PX (trái → phải), dùng cho ảnh có số biến thể không cố định. */
+export const findBands = (cut, minGap = MIN_GAP_PX) => {
+  const occ = columnOccupancy(cut);
+  const bands = [];
+  let start = -1;
+  let gap = 0;
+  for (let x = 0; x <= cut.width; x++) {
+    const filled = x < cut.width && occ[x] === 1;
+    if (filled) {
+      if (start < 0) start = x;
+      gap = 0;
+    } else if (start >= 0) {
+      gap++;
+      if (gap >= minGap || x === cut.width) {
+        bands.push([start, x - gap]);
+        start = -1;
+        gap = 0;
+      }
+    }
+  }
+  return bands;
+};
+
+/** Lấy dải thứ `pick` trong ảnh (đã tách nền), cắt sát và thu nhỏ về chiều cao `targetHeight`. */
+export const extractBand = (img, pick, targetHeight, minGap = MIN_GAP_PX) => {
+  const cut = removeWhiteBackground(img);
+  const bands = findBands(cut, minGap);
+  const band = bands[pick];
+  if (!band) throw new Error(`ảnh chỉ có ${bands.length} dải, cần dải ${pick}`);
+  const [x0, x1] = band;
+  const [top, bottom] = rowBounds(cut, x0, x1);
+  const frame = crop(cut, x0, top, x1 - x0 + 1, bottom - top + 1);
+  return downscale(frame, targetHeight / frame.height);
+};
