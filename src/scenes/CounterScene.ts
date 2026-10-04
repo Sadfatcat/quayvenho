@@ -11,6 +11,7 @@ import type {
   Customer,
   DomainEvent,
   GameState,
+  Mood,
   Order,
   ScoreResult,
   TicketDraft,
@@ -31,7 +32,7 @@ import { showFloatingText } from '@ui/FloatingText';
 import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
 import { SpeechBubble } from '@ui/SpeechBubble';
-import { CustomerAvatar } from '@ui/CustomerAvatar';
+import { CustomerAvatar, type AvatarMood } from '@ui/CustomerAvatar';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { buttonRow, MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
 import { BUILD_STEP_ORDER, StepIndicator } from '@ui/StepIndicator';
@@ -48,6 +49,8 @@ import { sessionBridge } from './sessionBridge';
 
 const COUNTER_SURFACE_Y = 650;
 const SHAKE_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['POOR', 'FAILED', 'SOLD_INVALID', 'REFUSED_WRONG']);
+const MOOD_TO_AVATAR: Record<Mood, AvatarMood> = { HAPPY: 'happy', NEUTRAL: 'neutral', IMPATIENT: 'angry' };
+const COUNTER_AVATAR_RADIUS = 62;
 const SPECIAL_LINE_WIDTH = 520;
 const SPECIAL_PATIENCE_BAR_Y = 570;
 const SPECIAL_TOAST_MS = 3000;
@@ -100,6 +103,7 @@ export class CounterScene extends BaseScene {
   private unsubscribeVisibility: (() => void) | null = null;
 
   private lastQueueSignature = '';
+  private counterAvatar: CustomerAvatar | null = null;
   private lastBuildSignature = '';
 
   constructor() {
@@ -211,6 +215,7 @@ export class CounterScene extends BaseScene {
     this.lastQueueSignature = signature;
     this.customerArea.removeAll(true);
     this.patienceBar = null;
+    this.counterAvatar = null;
 
     const counter = counterCustomer(state.today);
     if (counter) this.renderCounterCustomer(counter);
@@ -224,7 +229,8 @@ export class CounterScene extends BaseScene {
   private renderCounterCustomer(customer: Customer): void {
     const centerX = GAME_WIDTH / 2;
     const bubble = new SpeechBubble(this, centerX, 320, { width: 480, text: formatOrderSummary(customer.order) });
-    const avatar = new CustomerAvatar(this, centerX, 440, 55, customer.order.spriteId);
+    const avatar = new CustomerAvatar(this, centerX, 440, COUNTER_AVATAR_RADIUS, customer.order.spriteId, MOOD_TO_AVATAR[customer.mood]);
+    this.counterAvatar = avatar;
     const arriveLine = specialLinesOf(customer.order.special?.id)?.arrive;
     if (arriveLine) this.customerArea.add(this.add.text(centerX, 500, arriveLine, { ...TEXT_STYLES.label, align: 'center', wordWrap: { width: SPECIAL_LINE_WIDTH } }).setOrigin(0.5, 0));
     this.patienceBar = new PatienceBar(this, centerX - 100, arriveLine ? SPECIAL_PATIENCE_BAR_Y : 520, { width: 200, height: 16 });
@@ -244,6 +250,7 @@ export class CounterScene extends BaseScene {
     if (counter && this.patienceBar) {
       this.patienceBar.setProgress(patienceRatioOf(counter));
       this.patienceBar.setMood(counter.mood);
+      this.counterAvatar?.setMood(MOOD_TO_AVATAR[counter.mood] ?? 'happy');
     }
   }
 

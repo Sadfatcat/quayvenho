@@ -41,3 +41,10 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - Bot hoàn hảo cuối game có ~2,2 triệu k (2,2 tỉ đồng): chưa có khoản chi lớn để tiêu. PLAN §17 (mua máy bay, thuê nhân viên, nợ/vay) là chỗ giải quyết; cần bạn mô tả luật nếu muốn làm.
 - Người chơi chậm hoặc hay sai (POOR) gần như đứng yên ở ~10k, không mở thêm tuyến. Nếu muốn dễ hơn cho người mới: nâng `STARTING_MONEY` hoặc giảm `SEAT_COST_FACTOR` thêm.
 - Kết quả sim phụ thuộc bot; người thật có thể chơi khác. Nên chơi thử và báo cảm giác (quá dễ/khó ở ngày nào) để chỉnh tiếp.
+
+## 7. Ảnh đã nhận (sheet ChatGPT) — đã dùng / chưa dùng
+
+- **Đã dùng** (atlas `public/assets/atlas`, tạo bằng `node tools/buildAtlas.mjs`): 16 khách + 2 VIP × 3 biểu cảm (đổi theo tâm trạng ở Quầy), Béo (bust dùng cho tutorial; 5 tư thế còn lại đã vào atlas, chưa gắn vào màn nào), logo ở màn Title.
+- **Chưa dùng:** icon/nút/bảng/nền trong sheet (mỗi ảnh chỉ ~100×100 px, nền 170×140 px — quá nhỏ cho màn 720×1280). Cần ảnh độ phân giải cao hơn (prompt ở `docs/PROMPT_ANH.md`; nên xuất từng nhóm 2048 px, không gộp một sheet).
+- **Chất lượng:** biểu cảm "angry" của khách chưa rõ giận (vẫn như đang cười); nên tạo lại 3 biểu cảm với nhấn mạnh "furrowed brows, frown, no smile". Béo là hà mã (mô tả trong prompt là gấu) — vẫn dùng được, bạn xác nhận giữ hà mã.
+- Chưa có: Béo biểu cảm khác trong atlas (sheet 9 biểu cảm quá nhỏ), icon tuyến bay, ảnh nâng cấp, ảnh bưu thiếp.

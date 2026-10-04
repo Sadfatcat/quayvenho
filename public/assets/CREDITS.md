@@ -7,3 +7,9 @@
 | Gương mặt khách | Vẽ bằng code (`src/ui/CustomerAvatar.ts`), không dùng ảnh ngoài | Thuộc dự án |
 
 Ghi chú: font tải từ Google Fonts một lần rồi tự host ở `public/assets/fonts/` để chạy offline. Chưa có atlas hình ảnh; bộ mockup Stitch (`.scratch/.../stitch_chibi_game_ui_design`) chỉ dùng làm tham chiếu phong cách, không nhúng vào game.
+
+## Ảnh nhân vật (atlas `public/assets/atlas/characters.*`)
+
+| Asset | Nguồn | Ghi chú |
+|---|---|---|
+| 16 khách + 2 VIP (3 biểu cảm), Béo (Hà Mã) 6 tư thế, logo "Quầy Vé Nhỏ" | Do chủ dự án tạo bằng ChatGPT (sheet `DESIGN/stitch_chibi_game_ui_design/ảnh/ChatGPT Image 11_04_03 4 thg 10, 2026.png`), cắt bằng `tools/buildAtlas.mjs` | Quyền sử dụng theo điều khoản của công cụ tạo ảnh; ảnh gốc độ phân giải thấp (~70×95 px mỗi khách) |

@@ -112,7 +112,7 @@ export const STRINGS = {
   },
   preload: {
     loading: 'Đang tải...',
-    failed: 'Không tải được phông chữ.',
+    failed: 'Không tải được tài nguyên của game.',
     retry: 'Thử lại',
   },
   prep: {

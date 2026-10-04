@@ -3,6 +3,7 @@ import { GameSession } from '@domain/game';
 import type { DayPhase, GameState } from '@domain/models';
 import { clearSave, type LoadSaveResult } from '@save/storage';
 import { Button } from '@ui/Button';
+import { ATLAS_KEY } from '@ui/CustomerAvatar';
 import { createGameSeed } from '@platform/seed';
 import { formatMoney } from '@ui/format';
 import { TEXT_STYLES } from '@ui/textStyles';
@@ -17,17 +18,32 @@ import { sessionBridge } from './sessionBridge';
 const BUTTON_WIDTH = 420;
 const BUTTON_HEIGHT = 100;
 
+const LOGO_FRAME = 'logo_lockup';
+const LOGO_WIDTH = 340;
+const LOGO_Y = 270;
+const TITLE_TEXT_Y = 280;
+
 /** PLAN §10.3. `loadResult` is stashed on the registry by BootScene. */
 export class TitleScene extends BaseScene {
   constructor() {
     super('Title');
   }
 
+  /** Logo ảnh nếu atlas đã tải, không thì chữ tiêu đề. */
+  private addTitleLogo(): void {
+    if (!this.textures.exists(ATLAS_KEY) || !this.textures.get(ATLAS_KEY).has(LOGO_FRAME)) {
+      this.add.text(GAME_WIDTH / 2, TITLE_TEXT_Y, STRINGS.gameTitle, TEXT_STYLES.title).setOrigin(0.5);
+      return;
+    }
+    const logo = this.add.image(GAME_WIDTH / 2, LOGO_Y, ATLAS_KEY, LOGO_FRAME);
+    logo.setScale(LOGO_WIDTH / logo.width);
+  }
+
   protected onCreate(): void {
     promptForPwaUpdate(this);
     const loadResult = this.registry.get('loadResult') as LoadSaveResult | undefined;
 
-    this.add.text(GAME_WIDTH / 2, 280, STRINGS.gameTitle, TEXT_STYLES.title).setOrigin(0.5);
+    this.addTitleLogo();
 
     let y = 560;
     if (loadResult?.ok && loadResult.value.profile) {

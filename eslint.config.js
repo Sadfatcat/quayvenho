@@ -13,7 +13,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['scripts/**/*.ts'],
+    files: ['scripts/**/*.ts', 'scripts/**/*.mjs', 'tools/**/*.mjs'],
     rules: {
       'no-console': 'off',
     },
