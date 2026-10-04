@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import type { CabinClass, Extra, SeatId } from '@domain/models';
 import { formatMoney } from './format';
+import { markImageKey } from './itemImages';
 import { Panel } from './Panel';
 import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
 import { EXTRA_FEES } from '@data/balance';
@@ -13,6 +14,8 @@ export interface DeskTicketOptions {
   passengerName: string;
   /** Chữ con dấu đã đóng (null = ô còn trống). */
   destinationStamp: string | null;
+  /** Mã icon tuyến (route.icon) để lấy ảnh vết đóng dấu; null = chỉ hiện chữ. */
+  destinationIcon: string | null;
   timeStamp: string | null;
   flightMissing: boolean;
   seat: SeatId | null;
@@ -30,6 +33,9 @@ const SLOT_GAP = 14;
 const STAMP_ANGLE_DEG = -5;
 const STAMP_POP_MS = 160;
 const STAMP_START_SCALE = 1.5;
+const IMAGE_CENTER_RATIO = 0.22;
+const IMAGE_TEXT_OFFSET_RATIO = 0.16;
+const IMAGE_TEXT_WIDTH_RATIO = 0.5;
 
 /** Vé trên bàn: hai ô con dấu (điểm đến, giờ bay), ghế, hành lý và vé dịch vụ đã kẹp vào. */
 export class DeskTicket extends Phaser.GameObjects.Container {
@@ -56,8 +62,8 @@ export class DeskTicket extends Phaser.GameObjects.Container {
 
     const slotWidth = (width - PADDING * 2 - SLOT_GAP) / 2;
     const slotTop = -height / 2 + HEADER_HEIGHT + 14;
-    this.addSlot(scene, -width / 2 + PADDING, slotTop, slotWidth, STRINGS.counter.desk.slotDestination, options.destinationStamp, COLORS.accentDark, options.freshStamp === 'destination');
-    this.addSlot(scene, -width / 2 + PADDING + slotWidth + SLOT_GAP, slotTop, slotWidth, STRINGS.counter.desk.slotTime, options.timeStamp, COLORS.tealDark, options.freshStamp === 'time');
+    this.addSlot(scene, -width / 2 + PADDING, slotTop, slotWidth, STRINGS.counter.desk.slotDestination, options.destinationStamp, COLORS.accentDark, options.freshStamp === 'destination', options.destinationIcon ? markImageKey(options.destinationIcon) : null);
+    this.addSlot(scene, -width / 2 + PADDING + slotWidth + SLOT_GAP, slotTop, slotWidth, STRINGS.counter.desk.slotTime, options.timeStamp, COLORS.tealDark, options.freshStamp === 'time', null);
 
     const infoY = slotTop + SLOT_HEIGHT + 24;
     const seatText = options.seat ?? '—';
@@ -75,7 +81,7 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  private addSlot(scene: Phaser.Scene, left: number, top: number, width: number, caption: string, stamped: string | null, inkColor: number, fresh: boolean): void {
+  private addSlot(scene: Phaser.Scene, left: number, top: number, width: number, caption: string, stamped: string | null, inkColor: number, fresh: boolean, imageKey: string | null): void {
     const frame = scene.add.graphics();
     frame.lineStyle(3, COLORS.textMuted, stamped ? 0.25 : 0.9);
     frame.strokeRoundedRect(left, top + 16, width, SLOT_HEIGHT - 16, 10);
@@ -84,20 +90,27 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     if (!stamped) return;
     const centerX = left + width / 2;
     const centerY = top + 16 + (SLOT_HEIGHT - 16) / 2;
+    const showImage = imageKey !== null && scene.textures.exists(imageKey);
     const ink = scene.add
-      .text(0, 0, stamped, {
+      .text(showImage ? width * IMAGE_TEXT_OFFSET_RATIO : 0, 0, stamped, {
         fontFamily: HEADING_FONT_FAMILY,
-        fontSize: '24px',
+        fontSize: showImage ? '18px' : '24px',
         fontStyle: 'bold',
         color: toCssColor(inkColor),
         align: 'center',
-        wordWrap: { width: width - 16 },
+        wordWrap: { width: showImage ? width * IMAGE_TEXT_WIDTH_RATIO : width - 16 },
       })
       .setOrigin(0.5);
     const ring = scene.add.graphics();
     ring.lineStyle(4, inkColor, 0.85);
     ring.strokeRoundedRect(-width / 2 + 4, -(SLOT_HEIGHT - 24) / 2, width - 8, SLOT_HEIGHT - 24, 8);
-    const holder = scene.add.container(centerX, centerY, [ink, ring]).setAngle(STAMP_ANGLE_DEG);
+    const parts: Phaser.GameObjects.GameObject[] = [ink, ring];
+    if (showImage && imageKey) {
+      const image = scene.add.image(-width * IMAGE_CENTER_RATIO, 0, imageKey);
+      image.setScale((SLOT_HEIGHT - 20) / image.height);
+      parts.unshift(image);
+    }
+    const holder = scene.add.container(centerX, centerY, parts).setAngle(STAMP_ANGLE_DEG);
     this.add(holder);
     if (fresh) {
       holder.setAlpha(0).setScale(STAMP_START_SCALE);

@@ -11,6 +11,8 @@ export interface CardOptions {
   priceLabel: string;
   /** Empty when buyable; otherwise shown instead of the buy button (e.g. "Đã mua", "Chưa đủ tiền"). */
   statusLabel: string;
+  /** Ảnh minh hoạ bên trái (khoá texture); bỏ trống thì thẻ chỉ có chữ. */
+  imageKey?: string;
   buttonLabel: string;
   buttonEnabled: boolean;
   onBuy: () => void;
@@ -18,27 +20,37 @@ export interface CardOptions {
 
 const BUTTON_WIDTH = 140;
 const BUTTON_HEIGHT = 64;
+const IMAGE_SIZE = 110;
+const IMAGE_MARGIN = 20;
+const TEXT_GAP_AFTER_IMAGE = 16;
 
 /** Reused by ShopScene for both upgrade and route cards (5.1). */
 export class Card extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number, options: CardOptions) {
     super(scene, x, y);
+    const hasImage = !!options.imageKey && scene.textures.exists(options.imageKey);
+    const textLeft = hasImage ? IMAGE_MARGIN + IMAGE_SIZE + TEXT_GAP_AFTER_IMAGE : 24;
     const panel = new Panel(scene, options.width / 2, options.height / 2, { width: options.width, height: options.height });
     const title = scene.add
-      .text(24, 18, options.title, { fontFamily: FONT_FAMILY, fontSize: '26px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
+      .text(textLeft, 18, options.title, { fontFamily: FONT_FAMILY, fontSize: '26px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
       .setOrigin(0, 0);
     const description = scene.add
-      .text(24, 54, options.description, {
+      .text(textLeft, 54, options.description, {
         fontFamily: FONT_FAMILY,
         fontSize: '20px',
         color: toCssColor(COLORS.textMuted),
-        wordWrap: { width: options.width - BUTTON_WIDTH - 60 },
+        wordWrap: { width: options.width - BUTTON_WIDTH - textLeft - 36 },
       })
       .setOrigin(0, 0);
     const priceText = scene.add
-      .text(24, options.height - 30, options.priceLabel, { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
+      .text(textLeft, options.height - 30, options.priceLabel, { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) })
       .setOrigin(0, 0.5);
     this.add([panel, title, description, priceText]);
+    if (hasImage && options.imageKey) {
+      const image = scene.add.image(IMAGE_MARGIN + IMAGE_SIZE / 2, options.height / 2, options.imageKey);
+      image.setScale(Math.min(IMAGE_SIZE / image.width, IMAGE_SIZE / image.height));
+      this.add(image);
+    }
 
     const actionX = options.width - BUTTON_WIDTH / 2 - 20;
     const actionY = options.height - BUTTON_HEIGHT / 2 - 16;

@@ -8,6 +8,8 @@ export interface StampButtonOptions {
   height: number;
   label: string;
   color: number;
+  /** Ảnh con dấu (khoá texture); có ảnh thì chữ hiện thành dòng tiêu đề bên dưới. */
+  imageKey?: string;
   /** Con dấu đang được đóng lên vé (viền nổi). */
   active: boolean;
   onTap: () => void;
@@ -17,6 +19,9 @@ const HANDLE_HEIGHT = 16;
 const HANDLE_WIDTH_RATIO = 0.42;
 const PRESS_SINK_PX = 8;
 const PRESS_MS = 70;
+const IMAGE_LABEL_HEIGHT = 28;
+const IMAGE_LABEL_FONT_PX = 13;
+const ACTIVE_BACKDROP_ALPHA = 0.35;
 
 /** Con dấu cao su: cán cầm ở trên, mặt dấu có chữ; bấm vào thì dấu "nhấn xuống" rồi đóng lên vé. */
 export class StampButton extends Phaser.GameObjects.Container {
@@ -26,6 +31,57 @@ export class StampButton extends Phaser.GameObjects.Container {
 
   constructor(scene: Phaser.Scene, x: number, y: number, options: StampButtonOptions) {
     super(scene, x, y);
+    const { width, height } = options;
+    if (options.imageKey && scene.textures.exists(options.imageKey)) {
+      this.stamp = this.buildImageStamp(scene, options, options.imageKey);
+    } else {
+      this.stamp = this.buildDrawnStamp(scene, options);
+    }
+    const hit = scene.add.zone(0, 0, width, height).setInteractive({ useHandCursor: true });
+    this.add([this.stamp, hit]);
+    this.setSize(width, height);
+    scene.add.existing(this);
+
+    hit.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.downX = pointer.x;
+      this.downY = pointer.y;
+    });
+    hit.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (Math.hypot(pointer.x - this.downX, pointer.y - this.downY) > DRAG_TAP_THRESHOLD_PX) return;
+      audio.playSfx('click');
+      scene.tweens.add({ targets: this.stamp, y: PRESS_SINK_PX, duration: PRESS_MS, yoyo: true });
+      options.onTap();
+    });
+  }
+
+  private buildImageStamp(scene: Phaser.Scene, options: StampButtonOptions, imageKey: string): Phaser.GameObjects.Container {
+    const { width, height } = options;
+    const imageAreaHeight = height - IMAGE_LABEL_HEIGHT;
+    const image = scene.add.image(0, -height / 2 + imageAreaHeight / 2, imageKey);
+    image.setScale(Math.min(width / image.width, imageAreaHeight / image.height));
+    const parts: Phaser.GameObjects.GameObject[] = [];
+    if (options.active) {
+      const backdrop = scene.add.graphics();
+      backdrop.fillStyle(COLORS.success, ACTIVE_BACKDROP_ALPHA);
+      backdrop.fillRoundedRect(-width / 2, -height / 2, width, height, 10);
+      backdrop.lineStyle(4, COLORS.success, 1);
+      backdrop.strokeRoundedRect(-width / 2, -height / 2, width, height, 10);
+      parts.push(backdrop);
+    }
+    const caption = scene.add
+      .text(0, height / 2 - IMAGE_LABEL_HEIGHT / 2 + 2, options.label, {
+        fontFamily: FONT_FAMILY,
+        fontSize: `${IMAGE_LABEL_FONT_PX}px`,
+        fontStyle: 'bold',
+        color: toCssColor(COLORS.text),
+        align: 'center',
+        wordWrap: { width: width - 4 },
+      })
+      .setOrigin(0.5);
+    return scene.add.container(0, 0, [...parts, image, caption]);
+  }
+
+  private buildDrawnStamp(scene: Phaser.Scene, options: StampButtonOptions): Phaser.GameObjects.Container {
     const { width, height, color } = options;
     const bodyHeight = height - HANDLE_HEIGHT;
     const g = scene.add.graphics();
@@ -47,21 +103,6 @@ export class StampButton extends Phaser.GameObjects.Container {
         wordWrap: { width: width - 16 },
       })
       .setOrigin(0.5);
-    this.stamp = scene.add.container(0, 0, [g, label]);
-    const hit = scene.add.zone(0, 0, width, height).setInteractive({ useHandCursor: true });
-    this.add([this.stamp, hit]);
-    this.setSize(width, height);
-    scene.add.existing(this);
-
-    hit.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      this.downX = pointer.x;
-      this.downY = pointer.y;
-    });
-    hit.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-      if (Math.hypot(pointer.x - this.downX, pointer.y - this.downY) > DRAG_TAP_THRESHOLD_PX) return;
-      audio.playSfx('click');
-      scene.tweens.add({ targets: this.stamp, y: PRESS_SINK_PX, duration: PRESS_MS, yoyo: true });
-      options.onTap();
-    });
+    return scene.add.container(0, 0, [g, label]);
   }
 }

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { ROUTES } from '@data/routes';
 import { UPGRADES } from '@data/upgrades';
+import { stampImageKey, upgradeImageKey } from '@ui/itemImages';
 import { shopContext } from '@domain/dayCycle';
 import type { Command, GameState, Route, UpgradeDef } from '@domain/models';
 import { checkRouteUnlock, checkUpgrade, type RouteUnlockError, type UpgradeError } from '@domain/upgrades';
@@ -130,6 +131,7 @@ export class ShopScene extends BaseScene {
         description: upgradeText.description.replace('{minTravelViet}', String(item.upgrade.minTravelViet ?? '')),
         priceLabel: formatMoney(item.upgrade.cost),
         statusLabel: owned ? STRINGS.shop.owned : result.ok ? '' : this.upgradeStatusText(result.reason, item.upgrade.minDay),
+        imageKey: upgradeImageKey(item.upgrade.id),
         buttonLabel: STRINGS.shop.buy,
         buttonEnabled: result.ok,
         onBuy: () => this.confirmPurchase(upgradeText.name, { type: 'SHOP_BUY_UPGRADE', upgradeId: item.upgrade.id }),
@@ -146,6 +148,7 @@ export class ShopScene extends BaseScene {
       description: item.route.flavorText ?? '',
       priceLabel: formatMoney(cost),
       statusLabel: unlocked ? STRINGS.shop.unlocked : result.ok ? '' : this.routeStatusText(result.reason, item.route.unlock?.minTravelViet ?? null),
+      imageKey: stampImageKey(item.route.icon),
       buttonLabel: STRINGS.shop.buy,
       buttonEnabled: result.ok,
       onBuy: () => this.confirmPurchase(item.route.name, { type: 'SHOP_UNLOCK_ROUTE', routeId: item.route.id }),

@@ -11,6 +11,7 @@ import { getRoute } from '@domain/routes';
 import { BaggageSlider } from './BaggageSlider';
 import { audio } from '@platform/audio';
 import { DeskTicket } from './DeskTicket';
+import { hasItemImage, serviceImageKey, stampImageKey, ticketStackImageKey, timeStampImageKey } from './itemImages';
 import { DragController } from './DragController';
 import { formatMoney } from './format';
 import { MiniSeatMap } from './MiniSeatMap';
@@ -22,7 +23,7 @@ import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
 const LAYOUT = {
   dispenser: { x: 24, y: 440, width: 226, gap: 14 },
   ticketSpot: { x: 266, y: 432, width: 430, height: 208 },
-  stampTray: { x: 24, y: 654, width: 416, height: 320 },
+  stampTray: { x: 24, y: 654, width: 416, height: 346 },
   seatPanel: { x: 456, y: 654, width: 240, height: 320 },
   baggage: { x: 60, y: 1050, width: 340 },
   services: { x: 456, y: 990, width: 240, height: 136 },
@@ -34,12 +35,16 @@ const STACK_LAYER_OFFSET = 7;
 const STACK_CARD_HEIGHT = 96;
 const STACK_TOP_PADDING = 6;
 const STACK_HEIGHT = STACK_TOP_PADDING + STACK_CARD_HEIGHT + STACK_LAYER_OFFSET * (STACK_LAYERS - 1) + 8;
-const STAMP_HEIGHT = 62;
-const MIN_STAMP_HEIGHT = 44;
-const TIME_SECTION_HEIGHT = 92;
+const STAMP_HEIGHT = 78;
+const MIN_STAMP_HEIGHT = 56;
+const TIME_SECTION_HEIGHT = 110;
 const STAMP_ROW_GAP = 6;
 const STAMP_GAP = 8;
-const DEST_COLUMNS = 3;
+const DEST_COLUMNS_BY_ROUTE_COUNT = [{ upTo: 6, columns: 3 }, { upTo: 8, columns: 4 }, { upTo: Infinity, columns: 5 }] as const;
+const DEST_MAX_HEIGHT = 96;
+const columnsForRouteCount = (routeCount: number): number => DEST_COLUMNS_BY_ROUTE_COUNT.find((tier) => routeCount <= tier.upTo)?.columns ?? 3;
+const STACK_IMAGE_HEIGHT = 140;
+const SERVICE_IMAGE_HEIGHT = 56;
 const TRAY_PADDING = 12;
 const TRAY_TITLE_HEIGHT = 32;
 const SERVICE_ICON: Record<Extra, string> = { VEG_MEAL: '🥗', WHEELCHAIR: '♿', INSURANCE: '🛡️' };
@@ -135,7 +140,10 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       const selected = draft?.cabin === cabin;
       const g = scene.add.graphics();
       const baseTop = y + STACK_TOP_PADDING;
-      for (let layer = STACK_LAYERS - 1; layer >= 0; layer--) {
+      const stackImageKey = ticketStackImageKey(cabin);
+      const stackImage = hasItemImage(scene, stackImageKey) ? scene.add.image(left + stackWidth / 2, y + STACK_HEIGHT / 2, stackImageKey) : null;
+      stackImage?.setScale(Math.min((stackWidth - 8) / stackImage.width, STACK_IMAGE_HEIGHT / stackImage.height));
+      for (let layer = stackImage ? -1 : STACK_LAYERS - 1; layer >= 0; layer--) {
         const top = baseTop + layer * STACK_LAYER_OFFSET;
         g.fillStyle(layer === 0 ? color : COLORS.cloud, 1);
         g.fillRoundedRect(left + 4, top, stackWidth - 8, STACK_CARD_HEIGHT, 10);
@@ -147,7 +155,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
         g.strokeRoundedRect(left - 2, y, stackWidth + 4, STACK_HEIGHT, 14);
       }
       const centerX = left + stackWidth / 2;
-      const mark = scene.add.text(centerX, baseTop + STACK_CARD_HEIGHT / 2, '🎫', { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
+      const mark = stackImage ?? scene.add.text(centerX, baseTop + STACK_CARD_HEIGHT / 2, '🎫', { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
       const caption = scene.add
         .text(centerX, y + STACK_HEIGHT + 22, label, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: stackWidth } })
         .setOrigin(0.5);
@@ -185,6 +193,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       cabin: draft.cabin,
       passengerName: customer.order.passport.bookedName,
       destinationStamp: routeStampName,
+      destinationIcon: draft.routeStamp ? getRoute(draft.routeStamp).icon : null,
       timeStamp: timeStampLabel,
       flightMissing: draft.routeStamp !== null && draft.timeStamp !== null && !flight,
       seat: draft.seat,
@@ -242,20 +251,22 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     parent.add(scene.add.text(x + TRAY_PADDING + 4, y + 20, STRINGS.counter.desk.stampTray, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5));
 
     const routes = ROUTES.filter((route) => state.unlockedRoutes.includes(route.id));
-    const destRows = Math.max(1, Math.ceil(routes.length / DEST_COLUMNS));
+    const columns = columnsForRouteCount(routes.length);
+    const destRows = Math.max(1, Math.ceil(routes.length / columns));
     const destAreaHeight = height - TRAY_TITLE_HEIGHT - TIME_SECTION_HEIGHT - TRAY_PADDING;
-    const destHeight = Math.max(MIN_STAMP_HEIGHT, Math.min(STAMP_HEIGHT, destAreaHeight / destRows - STAMP_ROW_GAP));
+    const destHeight = Math.max(MIN_STAMP_HEIGHT, Math.min(DEST_MAX_HEIGHT, destAreaHeight / destRows - STAMP_ROW_GAP));
     const innerWidth = width - TRAY_PADDING * 2;
-    const destWidth = (innerWidth - STAMP_GAP * (DEST_COLUMNS - 1)) / DEST_COLUMNS;
+    const destWidth = (innerWidth - STAMP_GAP * (columns - 1)) / columns;
     routes.forEach((route, index) => {
-      const column = index % DEST_COLUMNS;
-      const row = Math.floor(index / DEST_COLUMNS);
+      const column = index % columns;
+      const row = Math.floor(index / columns);
       parent.add(
         new StampButton(scene, x + TRAY_PADDING + destWidth / 2 + column * (destWidth + STAMP_GAP), y + TRAY_TITLE_HEIGHT + 4 + destHeight / 2 + row * (destHeight + STAMP_ROW_GAP), {
           width: destWidth,
           height: destHeight,
           label: route.name,
           color: COLORS.accent,
+          imageKey: stampImageKey(route.icon),
           active: draft?.routeStamp === route.id,
           onTap: () => this.dispatch({ type: 'BUILD_STAMP_ROUTE', routeId: route.id }),
         }),
@@ -273,6 +284,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
           height: STAMP_HEIGHT,
           label: formatClock(departAt),
           color: COLORS.teal,
+          imageKey: timeStampImageKey(departAt),
           active: draft?.timeStamp === departAt,
           onTap: () => this.dispatch({ type: 'BUILD_STAMP_TIME', departAt }),
         }),
@@ -313,6 +325,14 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     );
   }
 
+  private serviceIcon(x: number, y: number, extra: Extra): Phaser.GameObjects.GameObject {
+    const key = serviceImageKey(extra);
+    if (!hasItemImage(this.scene, key)) return this.scene.add.text(x, y, SERVICE_ICON[extra], { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
+    const image = this.scene.add.image(x, y, key);
+    image.setScale(SERVICE_IMAGE_HEIGHT / image.height);
+    return image;
+  }
+
   private drawServices(parent: Phaser.GameObjects.Container, state: GameState): void {
     if (!isMechanicOpen('extras', state.day)) return;
     const scene = this.scene;
@@ -326,7 +346,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       const cx = x + cardWidth / 2 + index * (cardWidth + gap);
       const cy = y + 14 + (height - 14) / 2;
       const card = new Panel(scene, cx, cy, { width: cardWidth, height: height - 24, fill: chosen ? COLORS.success : COLORS.cloud, strokeColor: chosen ? COLORS.successDark : COLORS.primary });
-      const icon = scene.add.text(cx, cy - 22, SERVICE_ICON[extra], { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
+      const icon = this.serviceIcon(cx, cy - 22, extra);
       const name = scene.add.text(cx, cy + 14, STRINGS.counter.extras[extra], { fontFamily: FONT_FAMILY, fontSize: '14px', fontStyle: 'bold', color: toCssColor(chosen ? COLORS.cloud : COLORS.text), align: 'center', wordWrap: { width: cardWidth - 8 } }).setOrigin(0.5);
       const price = scene.add.text(cx, cy + 40, `+${formatMoney(EXTRA_FEES[extra])}`, { fontFamily: FONT_FAMILY, fontSize: '14px', color: toCssColor(chosen ? COLORS.cloud : COLORS.textMuted) }).setOrigin(0.5);
       const hit = scene.add.zone(cx, cy, cardWidth, height - 24).setInteractive({ useHandCursor: true });
