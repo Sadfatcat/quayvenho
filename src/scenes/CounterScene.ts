@@ -12,7 +12,6 @@ import type {
   DomainEvent,
   GameState,
   Mood,
-  Order,
   ScoreResult,
   TicketDraft,
 } from '@domain/models';
@@ -28,6 +27,7 @@ import { FlightList } from '@ui/FlightList';
 import { audio } from '@platform/audio';
 import { burstCoins } from '@ui/CoinBurst';
 import { formatMoney } from '@ui/format';
+import { formatOrderRequest } from '@ui/orderRequest';
 import { showFloatingText } from '@ui/FloatingText';
 import { PatienceBar } from '@ui/PatienceBar';
 import { SeatMapView } from '@ui/SeatMapView';
@@ -51,6 +51,10 @@ const COUNTER_SURFACE_Y = 650;
 const SHAKE_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['POOR', 'FAILED', 'SOLD_INVALID', 'REFUSED_WRONG']);
 const MOOD_TO_AVATAR: Record<Mood, AvatarMood> = { HAPPY: 'happy', NEUTRAL: 'neutral', IMPATIENT: 'angry' };
 const COUNTER_AVATAR_RADIUS = 62;
+const REQUEST_BUBBLE_WIDTH = 520;
+const REQUEST_FONT_SIZE = 24;
+const REQUEST_TAIL_TIP_Y = 392;
+const REQUEST_TAIL_HEIGHT = 34;
 const SPECIAL_LINE_WIDTH = 520;
 const SPECIAL_PATIENCE_BAR_Y = 570;
 const SPECIAL_TOAST_MS = 3000;
@@ -62,19 +66,6 @@ const TICKET_SLIDE_FROM_PX = -160;
 const TICKET_SLIDE_MS = 350;
 const BUILD_AREA_ORIGIN = { x: 40, y: 775 };
 const BUILD_AREA_WIDTH = GAME_WIDTH - 80;
-
-const formatOrderSummary = (order: Order): string => {
-  const route = getRoute(order.routeId);
-  const parts = [`✈ ${route.name}`];
-  if (order.cabin === 'BUSINESS') parts.push(STRINGS.counter.cabin.BUSINESS);
-  if (order.baggageKg > 0) parts.push(`🧳${order.baggageKg}${STRINGS.counter.baggageUnit}`);
-  const seatIcon = STRINGS.counter.seatPrefIcon[order.seatPref];
-  if (seatIcon) parts.push(seatIcon);
-  const timeLabel = STRINGS.counter.timePrefLabel[order.timePref];
-  if (timeLabel) parts.push(timeLabel);
-  for (const extra of order.extras) parts.push(STRINGS.counter.extraIcon[extra]);
-  return parts.join(' · ');
-};
 
 const nextStepOf = (step: BuildStep): BuildStep =>
   BUILD_STEP_ORDER[Math.min(BUILD_STEP_ORDER.indexOf(step) + 1, BUILD_STEP_ORDER.length - 1)] as BuildStep;
@@ -108,6 +99,7 @@ export class CounterScene extends BaseScene {
 
   constructor() {
     super('Counter');
+    this.backgroundTheme = 'counter';
     this.musicTrack = 'busy';
   }
 
@@ -228,7 +220,15 @@ export class CounterScene extends BaseScene {
 
   private renderCounterCustomer(customer: Customer): void {
     const centerX = GAME_WIDTH / 2;
-    const bubble = new SpeechBubble(this, centerX, 320, { width: 480, text: formatOrderSummary(customer.order) });
+    const bubble = new SpeechBubble(this, centerX, 0, {
+      width: REQUEST_BUBBLE_WIDTH,
+      text: formatOrderRequest(customer.order),
+      speaker: customer.order.passport.bookedName,
+      tailX: 0,
+      fontSize: REQUEST_FONT_SIZE,
+    });
+    // Đuôi bong bóng chạm đỉnh đầu khách: đặt khung ngay trên đầu, bất kể câu nói dài mấy dòng.
+    bubble.setY(REQUEST_TAIL_TIP_Y - REQUEST_TAIL_HEIGHT - bubble.frameHeight / 2);
     const avatar = new CustomerAvatar(this, centerX, 440, COUNTER_AVATAR_RADIUS, customer.order.spriteId, MOOD_TO_AVATAR[customer.mood]);
     this.counterAvatar = avatar;
     const arriveLine = specialLinesOf(customer.order.special?.id)?.arrive;

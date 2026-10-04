@@ -43,6 +43,7 @@ export class ShopScene extends BaseScene {
 
   constructor() {
     super('Shop');
+    this.backgroundTheme = 'shop';
     this.musicTrack = 'calm';
   }
 

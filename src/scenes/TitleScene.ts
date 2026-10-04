@@ -27,6 +27,7 @@ const TITLE_TEXT_Y = 280;
 export class TitleScene extends BaseScene {
   constructor() {
     super('Title');
+    this.backgroundTheme = 'title';
   }
 
   /** Logo ảnh nếu atlas đã tải, không thì chữ tiêu đề. */

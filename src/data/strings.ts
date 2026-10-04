@@ -155,9 +155,9 @@ export const STRINGS = {
   },
   onboarding: {
     introLines: [
-      'Béo: Ê, tỉnh chưa? Nghe vụ này chưa — vé bay đêm ế queo, mà dân đi bụi, dân về quê gấp thì cần rẻ.',
-      'Béo: Hãng bán sỉ ghế giá bèo cho đại lý. Mình dựng quầy, săn vé, bán lại đúng người cần — ăn chênh lệch, không ai thiệt.',
-      'Béo: Giờ xưng danh đi. Tên cậu, rồi tên cái quầy này, cho nó chất!',
+      'Ê, tỉnh chưa? Nghe vụ này chưa — vé bay đêm ế queo, mà dân đi bụi, dân về quê gấp thì cần rẻ.',
+      'Hãng bán sỉ ghế giá bèo cho đại lý. Mình dựng quầy, săn vé, bán lại đúng người cần — ăn chênh lệch, không ai thiệt.',
+      'Giờ xưng danh đi. Tên cậu, rồi tên cái quầy này, cho nó chất!',
     ],
     tapToContinue: 'Chạm để tiếp',
     playerNameLabel: 'Tên của bạn',
@@ -165,7 +165,10 @@ export const STRINGS = {
     brandNameLabel: 'Tên thương hiệu quầy',
     brandNamePlaceholder: 'Nhập tên quầy...',
     next: 'Tiếp',
-    brandConfirmPrefix: 'Béo: "',
+    brandConfirmPrefix: '"',
+    speaker: 'Béo',
+    playerNamePrompt: 'Tên cậu là gì nè?',
+    brandNamePrompt: 'Còn cái quầy thì đặt tên là gì?',
     brandConfirmSuffix: '" nghe được đó! Mở quầy thôi!',
   },
   playground: {
@@ -205,6 +208,16 @@ export const STRINGS = {
     kmPerHour: 'giờ',
     rejectedPrefix: 'Không thể: ',
     rejectedFallback: 'Thao tác không hợp lệ lúc này.',
+    request: {
+      intro: 'Cho mình vé đi {route}',
+      business: ', hạng thương gia',
+      baggage: ', mang theo {kg}kg hành lý',
+      seat: { WINDOW: ', ngồi cạnh cửa sổ', AISLE: ', ngồi ở lối đi', ANY: '' },
+      time: { NIGHT: ', chuyến tối', LATE: ', chuyến khuya', ANY: '' },
+      extrasIntro: '. Cho mình thêm {list}',
+      extras: { VEG_MEAL: 'suất ăn chay', WHEELCHAIR: 'xe lăn hỗ trợ', INSURANCE: 'bảo hiểm' },
+      end: '.',
+    },
     cabin: {
       ECONOMY: 'Phổ thông',
       BUSINESS: 'Thương gia',

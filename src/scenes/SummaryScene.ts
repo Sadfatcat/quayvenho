@@ -42,6 +42,7 @@ export class SummaryScene extends BaseScene {
 
   constructor() {
     super('Summary');
+    this.backgroundTheme = 'summary';
   }
 
   protected onCreate(): void {

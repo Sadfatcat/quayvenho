@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { audio, type MusicTrack } from '@platform/audio';
 import { BaseOverlay } from '@ui/BaseOverlay';
+import { addSceneBackground, type BackgroundTheme } from '@ui/SceneBackground';
 import { RotateOverlay } from './overlays/RotateOverlay';
 import { sessionBridge } from './sessionBridge';
 import { Button } from '@ui/Button';
@@ -22,13 +23,15 @@ export abstract class BaseScene extends Phaser.Scene {
   private tabLockOverlay: BaseOverlay | null = null;
   /** Nhạc nền của scene (PLAN §11.3): Kho/Shop 'calm', Quầy 'busy'; null = giữ nhạc hiện tại. */
   protected musicTrack: MusicTrack | null = null;
+  /** Nền trang trí của màn (xem `ui/SceneBackground.ts`). */
+  protected backgroundTheme: BackgroundTheme = 'prep';
 
   constructor(key: string) {
     super(key);
   }
 
   create(): void {
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.sky).setOrigin(0).setScrollFactor(0);
+    addSceneBackground(this, this.backgroundTheme);
 
     if (this.registry.get('storageUnavailable') === true) {
       this.add

@@ -49,6 +49,7 @@ export class PrepScene extends BaseScene {
 
   constructor() {
     super('Prep');
+    this.backgroundTheme = 'prep';
     this.musicTrack = 'calm';
   }
 

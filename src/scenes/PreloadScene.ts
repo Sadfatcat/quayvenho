@@ -16,6 +16,7 @@ const RETRY_BUTTON_Y_OFFSET = 140;
 export class PreloadScene extends BaseScene {
   constructor() {
     super('Preload');
+    this.backgroundTheme = 'title';
   }
 
   /** Tải atlas nhân vật (khách, Béo, logo); lỗi tải được báo ở `onCreate` bằng nút "Thử lại". */
