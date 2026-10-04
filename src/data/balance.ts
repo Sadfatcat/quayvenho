@@ -37,7 +37,7 @@ export const BAGGAGE_TOLERANCE_KG = 1;
 export const BAGGAGE_MARKS: readonly BaggageKg[] = [15, 20, 30];
 export const BAGGAGE_MAX_KG = 30;
 /** Cân hành lý bấm giữ: số kg chạy 0 → 30 → 0 với tốc độ này (kg/giây). */
-export const BAGGAGE_HOLD_SPEED_KG_PER_S = 5;
+export const BAGGAGE_HOLD_SPEED_KG_PER_S = 12.5;
 
 export const OUTCOME_STARS: Record<ScoreOutcome, Stars> = {
   PERFECT: 5,
