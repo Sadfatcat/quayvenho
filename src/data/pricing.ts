@@ -5,6 +5,11 @@ export const PRICE_MAX_PCT = 60;
 export const PRICE_CAP_PCT = 30;
 export const PRICE_STEP_PCT = 5;
 
+/** Giá vé gốc tăng theo bậc (mỗi `FARE_RISE_EVERY_DAYS` ngày một bậc): giá bán nhanh hơn giá vốn ghế để lãi hằng ngày tăng dần. */
+export const FARE_RISE_EVERY_DAYS = 3;
+export const FARE_RISE_PER_STEP = 0.08;
+export const COST_RISE_PER_STEP = 0.04;
+
 /** Mỗi +1% giá làm số khách tuyến đó giảm `slope`%; ngày lễ khách ít nhạy giá hơn. */
 export const PRICE_ELASTICITY_NORMAL = 1.5;
 export const PRICE_ELASTICITY_HOLIDAY = 0.5;

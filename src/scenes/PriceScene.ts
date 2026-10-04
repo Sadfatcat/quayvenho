@@ -3,7 +3,7 @@ import { PRICE_CAP_PCT, PRICE_MAX_PCT, PRICE_MIN_PCT, PRICE_STEP_PCT } from '@da
 import { ROUTES } from '@data/routes';
 import { STRINGS } from '@data/strings';
 import type { Route } from '@domain/models';
-import { fareOf } from '@domain/economy';
+import { fareOf, routeOnDay } from '@domain/economy';
 import { isHolidayEvent, isOverCap, priceDemandFactor } from '@domain/pricing';
 import { Button } from '@ui/Button';
 import { formatMoney } from '@ui/format';
@@ -87,6 +87,7 @@ export class PriceScene extends BaseScene {
   private renderRow(scene: Phaser.Scene, route: Route): Phaser.GameObjects.Container {
     const state = sessionBridge.current.state;
     const holiday = isHolidayEvent(state.today.event);
+    const listed = routeOnDay(route, state.day);
     const hot = state.today.event.type === 'RUSH' && state.today.event.hotRoutes.includes(route.id);
     const currentPct = state.today.priceAdjustPct[route.id] ?? 0;
     const row = scene.add.container(0, 0);
@@ -95,7 +96,7 @@ export class PriceScene extends BaseScene {
     const base = scene.add.text(
       ROW_PADDING,
       48,
-      STRINGS.priceBoard.basePrices.replace('{eco}', formatMoney(route.price.ECONOMY)).replace('{biz}', formatMoney(route.price.BUSINESS)),
+      STRINGS.priceBoard.basePrices.replace('{eco}', formatMoney(listed.price.ECONOMY)).replace('{biz}', formatMoney(listed.price.BUSINESS)),
       { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) },
     );
     const selling = scene.add.text(ROW_PADDING, SLIDER_Y + 40, '', { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) });
@@ -105,8 +106,8 @@ export class PriceScene extends BaseScene {
     const refresh = (pct: number): void => {
       selling.setText(
         STRINGS.priceBoard.selling
-          .replace('{eco}', formatMoney(fareOf(route, 'ECONOMY', pct)))
-          .replace('{biz}', formatMoney(fareOf(route, 'BUSINESS', pct)))
+          .replace('{eco}', formatMoney(fareOf(listed, 'ECONOMY', pct)))
+          .replace('{biz}', formatMoney(fareOf(listed, 'BUSINESS', pct)))
           .replace('{pct}', formatPct(pct)),
       );
       selling.setColor(toCssColor(zoneColor(pct)));

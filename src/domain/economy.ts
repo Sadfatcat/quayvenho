@@ -4,6 +4,7 @@ import {
   BUSINESS_TIP_RATIO,
   EXTRA_FEES,
 } from '@data/balance';
+import { COST_RISE_PER_STEP, FARE_RISE_EVERY_DAYS, FARE_RISE_PER_STEP } from '@data/pricing';
 import { sum } from './common/math';
 import type {
   CabinClass,
@@ -24,6 +25,22 @@ export const bulkDiscountRate = (qty: number): number =>
 
 export const purchaseCost = (unitCost: number, qty: number): number =>
   roundMoney(unitCost * qty * (1 - bulkDiscountRate(qty)));
+
+/** Bậc lạm phát của ngày: ngày 1–3 là 0, 4–6 là 1, … */
+export const inflationStep = (day: number): number => Math.floor((Math.max(1, day) - 1) / FARE_RISE_EVERY_DAYS);
+
+/** Giá bảng (bán và vốn) của tuyến vào một ngày cụ thể, đã tăng theo bậc lạm phát; làm tròn ở đây. */
+export const routeOnDay = (route: Route, day: number): Route => {
+  const step = inflationStep(day);
+  if (step === 0) return route;
+  const fareScale = (1 + FARE_RISE_PER_STEP) ** step;
+  const costScale = (1 + COST_RISE_PER_STEP) ** step;
+  return {
+    ...route,
+    price: { ECONOMY: roundMoney(route.price.ECONOMY * fareScale), BUSINESS: roundMoney(route.price.BUSINESS * fareScale) },
+    cost: { ECONOMY: roundMoney(route.cost.ECONOMY * costScale), BUSINESS: roundMoney(route.cost.BUSINESS * costScale) },
+  };
+};
 
 /** Giá bán thực tế = giá gốc × (1 + % người chơi chỉnh), làm tròn một chỗ duy nhất (đơn vị k). */
 export const fareOf = (route: Route, cabin: CabinClass, pricePct: number): number =>

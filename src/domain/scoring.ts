@@ -9,7 +9,7 @@ import {
   PERFECT_MIN_SPEED,
 } from '@data/balance';
 import { matchesTimePref } from './clock';
-import { businessTip, clampPenalty, fareOf, ticketRevenue } from './economy';
+import { businessTip, clampPenalty, fareOf, routeOnDay, ticketRevenue } from './economy';
 import type { CabinClass, Extra, Flight, MistakeCode, Order, Passport, ScoreOutcome, ScoreResult, SeatId, Stars } from './models';
 import { isOverCap } from './pricing';
 import { getRoute } from './routes';
@@ -102,7 +102,7 @@ const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
   const outcome = outcomeOf(accuracy, input.patienceRatio);
   if (outcome === 'POOR') return result('POOR', mistakes);
 
-  const route = getRoute(order.routeId);
+  const route = routeOnDay(getRoute(order.routeId), input.day);
   const revenue = ticketRevenue(order, route, input.pricePct);
   const tip =
     outcome === 'PERFECT' && order.cabin === 'BUSINESS'
@@ -125,7 +125,7 @@ export const scoreCustomer = (input: ScoreInput): ScoreResult => {
   const stars = Math.max(result.stars, SPECIAL_MIN_STARS) as Stars;
   const tip =
     result.outcome === SPECIAL_TIP_OUTCOME && input.action.type === 'DELIVER'
-      ? businessTip(fareOf(getRoute(input.order.routeId), input.order.cabin, input.pricePct), input.tipMult * special.tipMultiplier)
+      ? businessTip(fareOf(routeOnDay(getRoute(input.order.routeId), input.day), input.order.cabin, input.pricePct), input.tipMult * special.tipMultiplier)
       : result.tip;
   return { ...result, stars, tip, penalty: 0, specialId: special.id };
 };

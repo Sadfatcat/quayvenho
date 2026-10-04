@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { formatClock } from '@domain/clock';
-import { bulkDiscountRate, purchaseCost } from '@domain/economy';
+import { bulkDiscountRate, purchaseCost, routeOnDay } from '@domain/economy';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '@domain/inventory';
 import type { CabinClass, Flight, GameState, TodayState } from '@domain/models';
 import { getRoute } from '@domain/routes';
@@ -117,7 +117,7 @@ export class PrepScene extends BaseScene {
     this.bannerText.setText(this.bannerFor(state));
     this.flightList.setItems([...state.today.flights]);
 
-    const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights);
+    const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights, state.day);
     this.totalText.setText(`${STRINGS.prep.estimateLabel}: ${total > 0 ? '−' : ''}${formatMoney(total)} · ${STRINGS.prep.moneyAfterLabel}: ${formatMoney(state.money - total)}`);
 
     const hasPending = Object.keys(state.today.pendingPurchase).length > 0;
@@ -170,7 +170,7 @@ ${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
   private renderCabinRow(flight: Flight, cabin: CabinClass, y: number, today: TodayState): Phaser.GameObjects.GameObject[] {
     const key = pendingKey(flight.id, cabin);
     const qty = today.pendingPurchase[key] ?? 0;
-    const unitCost = getRoute(flight.routeId).cost[cabin];
+    const unitCost = routeOnDay(getRoute(flight.routeId), sessionBridge.current.state.day).cost[cabin];
     const discount = bulkDiscountRate(qty);
     const label = cabin === 'ECONOMY' ? STRINGS.counter.ecoShort : STRINGS.counter.bizShort;
 
@@ -198,8 +198,9 @@ ${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
     if (seatLimit === 0) return 0;
     const key = pendingKey(flight.id, cabin);
     const currentQty = today.pendingPurchase[key] ?? 0;
-    const unitCost = getRoute(flight.routeId).cost[cabin];
-    const otherPendingCost = pendingTotalCost(today.pendingPurchase, today.flights) - purchaseCost(unitCost, currentQty);
+    const day = sessionBridge.current.state.day;
+    const unitCost = routeOnDay(getRoute(flight.routeId), day).cost[cabin];
+    const otherPendingCost = pendingTotalCost(today.pendingPurchase, today.flights, day) - purchaseCost(unitCost, currentQty);
     const moneyLeft = money - otherPendingCost;
     let qty = currentQty;
     while (qty < seatLimit && purchaseCost(unitCost, qty + 1) <= moneyLeft) qty++;

@@ -4,10 +4,12 @@ import {
   businessTip,
   clampPenalty,
   fareOf,
+  inflationStep,
   makeTx,
   moneyBalances,
   purchaseCost,
   refundFor,
+  routeOnDay,
   roundMoney,
   summarizeDay,
   ticketRevenue,
@@ -122,5 +124,27 @@ describe('economy', () => {
       day: 1, moneyStart: 0, moneyEnd: 0, transactions: [], seats: [], results: [], turnedAway: 0, travelVietAfter: null,
     });
     expect(summary.avgStars).toBe(0);
+  });
+});
+
+describe('routeOnDay (lạm phát giá vé mỗi 3 ngày)', () => {
+  const route = getRoute('HAN-DAD');
+
+  it('giữ nguyên giá bảng ở ngày 1–3', () => {
+    expect(routeOnDay(route, 1)).toEqual(route);
+    expect(routeOnDay(route, 3)).toEqual(route);
+  });
+
+  it('tăng giá bán 8% và giá vốn 4% mỗi bậc, làm tròn số nguyên', () => {
+    const day4 = routeOnDay(route, 4);
+    expect(day4.price.ECONOMY).toBe(Math.round(route.price.ECONOMY * 1.08));
+    expect(day4.cost.ECONOMY).toBe(Math.round(route.cost.ECONOMY * 1.04));
+    const day10 = routeOnDay(route, 10);
+    expect(day10.price.BUSINESS).toBe(Math.round(route.price.BUSINESS * 1.08 ** 3));
+    expect(day10.cost.BUSINESS).toBe(Math.round(route.cost.BUSINESS * 1.04 ** 3));
+  });
+
+  it('bậc lạm phát đổi đúng ở ngày 4, 7, 10', () => {
+    expect([1, 3, 4, 6, 7, 10].map(inflationStep)).toEqual([0, 0, 1, 1, 2, 3]);
   });
 });

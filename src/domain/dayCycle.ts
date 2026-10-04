@@ -112,7 +112,7 @@ const createToday = (
 });
 
 const applySafetyNet = (state: GameState): DomainEvent[] => {
-  if (!needsSupport(state.money, state.unlockedRoutes)) return [];
+  if (!needsSupport(state.money, state.unlockedRoutes, state.day)) return [];
   const { today } = state;
   const gift = supportGift(state.seed, state.day, today.flights, today.seats, state.unlockedRoutes);
   if (!gift || !gift.seats.length) return [];
@@ -265,6 +265,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
         money: state.money,
         bias: today.seatBias,
         rng: rngFor(state.seed, state.day, `purchase:${today.purchaseCount}`),
+        day: state.day,
       });
       if (!result.ok) return reject(result.reason);
       today.seats = result.value.seats;

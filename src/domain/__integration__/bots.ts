@@ -8,6 +8,8 @@ import { customersForDay, travelVietScore } from '../demand';
 import { matchesTimePref } from '../clock';
 import { invariant } from '../common/invariant';
 import type { GameSession } from '../game';
+import { COST_RISE_PER_STEP } from '@data/pricing';
+import { inflationStep } from '../economy';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '../inventory';
 import type { CabinClass, Command, DayEvent, DomainEvent, GameState, Order, RouteId, SeatId } from '../models';
 import { dayDemandProfile } from '../pricing';
@@ -126,7 +128,7 @@ export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1,
     const key = pendingKey(unit.flightId, unit.cabin);
     const next = (pending[key] ?? 0) + 1;
     if (next > maxPurchasable(flight, unit.cabin, today.seats)) continue;
-    if (pendingTotalCost({ ...pending, [key]: next }, today.flights) > budget) continue;
+    if (pendingTotalCost({ ...pending, [key]: next }, today.flights, state.day) > budget) continue;
     pending[key] = next;
   }
   for (const [key, qty] of Object.entries(pending)) {
@@ -204,7 +206,12 @@ const DEFAULT_RESERVE = 3750;
 /** Ước lượng tiền cần để nhập đủ ghế cho ngày mai (giữ lại, không đem đi mua nâng cấp). */
 const AVERAGE_SEAT_COST = 950;
 const nextDayStockBudget = (state: Readonly<GameState>): number =>
-  Math.ceil(customersForDay({ seed: state.seed, day: state.day + 1, rating: travelVietScore(state.starHistory), rush: false }) * AVERAGE_SEAT_COST * STOCK_RESERVE_MARGIN);
+  Math.ceil(
+    customersForDay({ seed: state.seed, day: state.day + 1, rating: travelVietScore(state.starHistory), rush: false }) *
+      AVERAGE_SEAT_COST *
+      (1 + COST_RISE_PER_STEP) ** inflationStep(state.day + 1) *
+      STOCK_RESERVE_MARGIN,
+  );
 const STOCK_RESERVE_MARGIN = 1.1;
 
 /** Thí nghiệm kinh tế nhân viên (bot thuê khi còn đủ tiền dự trữ); tắt khi chạy chuẩn. */

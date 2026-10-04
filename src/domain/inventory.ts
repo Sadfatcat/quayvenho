@@ -6,6 +6,7 @@ import { purchaseCost } from './economy';
 import type { CabinClass, Flight, OwnedSeat, OwnedSeatState, SeatBias, SeatId } from './models';
 import type { Rng } from './rng';
 import { getRoute } from './routes';
+import { routeOnDay } from './economy';
 import { findFlight } from './schedule';
 import { isWindow, seatsOfCabin } from './seatMap';
 
@@ -37,15 +38,16 @@ export const maxPurchasable = (flight: Flight, cabin: CabinClass, seats: readonl
         ),
       );
 
-const unitCostOf = (flight: Flight, cabin: CabinClass): number => getRoute(flight.routeId).cost[cabin];
+const unitCostOf = (flight: Flight, cabin: CabinClass, day: number): number => routeOnDay(getRoute(flight.routeId), day).cost[cabin];
 
-export const pendingTotalCost = (pending: Readonly<Record<string, number>>, flights: readonly Flight[]): number =>
+/** `day` quyết định bậc lạm phát giá vốn ghế (mặc định ngày 1 = giá bảng). */
+export const pendingTotalCost = (pending: Readonly<Record<string, number>>, flights: readonly Flight[], day = 1): number =>
   sum(
     Object.entries(pending).map(([key, qty]) => {
       const { flightId, cabin } = parsePendingKey(key);
       const flight = findFlight(flights, flightId);
       invariant(flight, `pending on unknown flight ${flightId}`);
-      return purchaseCost(unitCostOf(flight, cabin), qty);
+      return purchaseCost(unitCostOf(flight, cabin, day), qty);
     }),
   );
 
@@ -86,6 +88,7 @@ export const purchasePending = (input: {
   money: number;
   bias: SeatBias;
   rng: Rng;
+  day?: number;
 }): Result<{ seats: OwnedSeat[]; purchases: Purchase[]; totalCost: number }, PurchaseError> => {
   const entries = Object.entries(input.pending)
     .filter(([, qty]) => qty > 0)
@@ -100,13 +103,13 @@ export const purchasePending = (input: {
     if (qty > maxPurchasable(flight, cabin, input.seats)) return err('OVER_LIMIT');
     plan.push({ flight, cabin, qty });
   }
-  const totalCost = sum(plan.map(({ flight, cabin, qty }) => purchaseCost(unitCostOf(flight, cabin), qty)));
+  const totalCost = sum(plan.map(({ flight, cabin, qty }) => purchaseCost(unitCostOf(flight, cabin, input.day ?? 1), qty)));
   if (totalCost > input.money) return err('NOT_ENOUGH_MONEY');
 
   const seats = [...input.seats];
   const purchases = plan.map(({ flight, cabin, qty }) => {
     const picked = pickSeats(freeSeatsFor(flight, cabin, seats), qty, input.bias, input.rng);
-    const unitCost = unitCostOf(flight, cabin);
+    const unitCost = unitCostOf(flight, cabin, input.day ?? 1);
     seats.push(...picked.map((seat) => ({ flightId: flight.id, seat, cabin, unitCost, state: 'AVAILABLE' as const })));
     return { flightId: flight.id, cabin, seats: picked, cost: purchaseCost(unitCost, qty) };
   });

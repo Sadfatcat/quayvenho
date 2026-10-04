@@ -15,7 +15,7 @@ const score = (patch: Partial<ScoreInput> = {}, orderPatch: Partial<Order> = {},
     order: order(orderPatch),
     action: { type: 'DELIVER', ticket: ticket(ticketPatch) },
     patienceRatio: 0.8,
-    day: 6,
+    day: 3,
     pricePct: 0,
     tipMult: 1,
     money: 100000,
@@ -78,7 +78,7 @@ describe('scoreCustomer', () => {
 
   it('SOLD_INVALID when selling to a bad passport', () => {
     const expired = { passport: { name: 'A', bookedName: 'A', expiresDay: 5 } };
-    expect(score({}, expired)).toMatchObject({ outcome: 'SOLD_INVALID', stars: 1, penalty: 600, revenue: 0 });
+    expect(score({ day: 6 }, expired)).toMatchObject({ outcome: 'SOLD_INVALID', stars: 1, penalty: 600, revenue: 0 });
   });
 
   it('refusals: correct, no stock, wrong', () => {

@@ -4,12 +4,14 @@ import type { Flight, OwnedSeat, RouteId } from './models';
 import { rngFor } from './rng';
 import { getRoute } from './routes';
 
-const cheapestRoute = (unlockedRoutes: readonly RouteId[]) =>
-  unlockedRoutes.map(getRoute).reduce((best, route) => (route.cost.ECONOMY < best.cost.ECONOMY ? route : best));
+import { routeOnDay } from './economy';
+
+const cheapestRoute = (unlockedRoutes: readonly RouteId[], day: number) =>
+  unlockedRoutes.map((routeId) => routeOnDay(getRoute(routeId), day)).reduce((best, route) => (route.cost.ECONOMY < best.cost.ECONOMY ? route : best));
 
 /** §3.10: checked at the start of PREP. */
-export const needsSupport = (money: number, unlockedRoutes: readonly RouteId[]): boolean =>
-  money < SAFETY_NET_ECO_COST_MULT * cheapestRoute(unlockedRoutes).cost.ECONOMY;
+export const needsSupport = (money: number, unlockedRoutes: readonly RouteId[], day = 1): boolean =>
+  money < SAFETY_NET_ECO_COST_MULT * cheapestRoute(unlockedRoutes, day).cost.ECONOMY;
 
 /** 3 free ECONOMY seats on the earliest flight of the cheapest route. */
 export const supportGift = (
@@ -19,7 +21,7 @@ export const supportGift = (
   seats: readonly OwnedSeat[],
   unlockedRoutes: readonly RouteId[],
 ): { flight: Flight; seats: OwnedSeat[] } | null => {
-  const route = cheapestRoute(unlockedRoutes);
+  const route = cheapestRoute(unlockedRoutes, day);
   const flight = flights
     .filter((candidate) => candidate.routeId === route.id && candidate.status === 'SCHEDULED')
     .reduce<Flight | null>((earliest, candidate) => (!earliest || candidate.departAt < earliest.departAt ? candidate : earliest), null);
