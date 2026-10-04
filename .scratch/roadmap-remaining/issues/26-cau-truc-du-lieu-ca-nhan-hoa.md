@@ -6,6 +6,6 @@
 
 **Status:** resolved
 
-- [ ] `data/personal.ts` mới, đúng shape `PersonalConfig` trong PLAN §16
-- [ ] `enabled = false` mặc định — game chạy y hệt như không có tính năng này khi tắt
-- [ ] Không điền sẵn nội dung cá nhân nào (chủ dự án tự điền ở ticket 28)
+- [x] `data/personal.ts` mới, đúng shape `PersonalConfig` trong PLAN §16
+- [x] `enabled = false` mặc định — game chạy y hệt như không có tính năng này khi tắt
+- [x] Không điền sẵn nội dung cá nhân nào (chủ dự án tự điền ở ticket 28)

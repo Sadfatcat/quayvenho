@@ -6,7 +6,7 @@
 
 **Status:** resolved (review code + Playwright một phần xong; mục chờ chủ dự án ghi ở ROADMAP 6.R)
 
-- [ ] `code-reviewer` subagent 1 lần
+
 - [ ] Playwright kiểm 1 lượt toàn bộ trải nghiệm mới (asset thật, juice, audio, tutorial, văn bản thật)
 - [ ] Cập nhật `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/DECISIONS.md`
 - [ ] Commit + push

@@ -178,3 +178,10 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Nhân viên (`src/data/staff.ts`, `src/domain/staff.ts`): thuê một lần + lương mỗi ngày trừ lúc tổng kết (không âm quỹ). Nhân viên rảnh nhận khách đầu tiên trong hàng chờ mà họ xử lý được (không dịch vụ thêm, hộ chiếu đúng, không khách đặc biệt; tập sự không xử lý khách đòi vị trí ghế), bán ngay ghế khớp đơn, chấm điểm sau `serveMs`, sai cân hành lý theo `accuracyPct`.
 - Save v3: thêm `staff`, `today.staffTasks`, `lastSummary.staffWages` + migration v2→v3 và test.
 - Sim (`HIRE=1 npm run sim`): bot trung bình +25% tiền ngày 30, bot hoàn hảo −22% (lương tốn hơn lợi) — số tiền thuê/lương/độ chính xác mới ước lượng, chưa cân kỹ.
+
+## 2026-10-04 — Nhân viên v4: phụ việc, lương tăng chia 3, lạm phát giá vé
+- Quyết định: nhân viên không còn tự bán trọn vé (bản v3 bị bỏ). Mỗi bậc phụ trách việc riêng trên vé nháp của khách đang ở quầy (Junior: hạng vé; Middle: dấu điểm đến + giờ bay và cân hành lý, sai 40%; Senior: chọn ghế và vé dịch vụ); người chơi luôn tự in và giao vé. Tối đa 2 nhân viên quầy; marketing không tính vào 2 chỗ. Cho nghỉ miễn phí, thuê lại trả đủ tiền thuê.
+- Lương: mỗi 3 ngày, lương mỗi người tăng thêm 40% phần lợi nhuận/ngày vừa tăng thêm, **chia đều cho 3 người** (2 nhân viên quầy + marketing) để tổng quỹ lương tối đa chỉ tăng 40% lợi nhuận tăng thêm. Lý do: không chia thì 3 người ăn tới ~120% lợi nhuận, bot trong sim phá sản (đã đo bằng `HIRE=1 npm run sim`). Phương án đã loại: mỗi người tăng 40% độc lập.
+- Lạm phát: giá bán +8%, giá vốn ghế +4% mỗi 3 ngày (`routeOnDay` làm tròn một chỗ trong `economy.ts`); chi phí mở tuyến, nâng cấp, thuê nhân viên không đổi theo.
+- Nghỉ ngẫu nhiên (ốm 4%, gia đình 3%, thai sản 0,5% nghỉ 5 ngày) quyết lúc tổng kết cho ngày mai, báo đích danh nhân viên và việc phụ trách; ngày nghỉ không lương, không tính ngày công.
+- Save v4: `staff` là danh sách thực thể, thêm `staffSerial`, `wageRaise`, `profitHistory`, `lastSummary.staffNotices`; bỏ `today.staffTasks`.

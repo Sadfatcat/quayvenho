@@ -12,7 +12,7 @@
 - [x] Lợi nhuận âm: Béo đưa một mẹo ngẫu nhiên
 - [x] Cuối ngày 10: có màn giới thiệu TravelViet trước khi sang ngày 11
 - [x] Nút "Tiếp tục" khoá ngay khi bấm (khoá theo save thật sẽ nối ở ticket 03)
-- [ ] Kiểm bằng Playwright — dời sang ticket 04 (Review Giai đoạn 4)
+- [x] Kiểm bằng Playwright — dời sang ticket 04 (Review Giai đoạn 4) *(đã kiểm ở review giai đoạn 4, 4.R)*
 
 ## Answer
 

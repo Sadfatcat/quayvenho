@@ -6,11 +6,11 @@
 
 **Status:** resolved
 
-- [ ] Khách đặc biệt thay đúng slot `atCustomerIndex` của đúng ngày; nếu vượt số khách trong ngày thì thành khách cuối
-- [ ] Không có ghế phù hợp: domain tự thêm ghế, không tính tiền, không ghi transaction chi
-- [ ] Làm sai đơn khách đặc biệt: không phạt, tối thiểu 3 sao, dùng thoại `fail` riêng
-- [ ] Ngày có khách đặc biệt/scripted moment không sinh thêm sự kiện ngẫu nhiên
-- [ ] Test đơn vị cho toàn bộ luật trên với `enabled = true` và dữ liệu giả lập
+- [x] Khách đặc biệt thay đúng slot `atCustomerIndex` của đúng ngày; nếu vượt số khách trong ngày thì thành khách cuối
+- [x] Không có ghế phù hợp: domain tự thêm ghế, không tính tiền, không ghi transaction chi
+- [x] Làm sai đơn khách đặc biệt: không phạt, tối thiểu 3 sao, dùng thoại `fail` riêng
+- [x] Ngày có khách đặc biệt/scripted moment không sinh thêm sự kiện ngẫu nhiên
+- [x] Test đơn vị cho toàn bộ luật trên với `enabled = true` và dữ liệu giả lập
 
 ## Kết quả
 - [x] `domain/personal.ts` (thuần, nhận `PersonalConfig` qua `Session.personal`/`GameSession(state, personal)`): chọn khách đặc biệt theo `day` + `atCustomerIndex` (vượt số khách → khách cuối, bỏ qua giới hạn hàng đợi), dựng đơn + hộ chiếu hợp lệ, tự thêm 1 ghế miễn phí (unitCost 0, không transaction) nếu chưa phục vụ được.

@@ -9,7 +9,7 @@
 - [x] Chạy được `npm run sim`, in bảng đúng format PLAN §13.3 (theo ngày, median; phần đối chiếu mục tiêu riêng)
 - [x] Có đủ 3 hồ sơ bot PERFECT/AVERAGE/POOR (PLAN chỉ yêu cầu tối thiểu 2, đã làm đủ cả 3) — mở rộng `bots.ts`: `makeErrorProneDecide` (tỉ lệ lỗi nhẹ/nặng/bỏ đi có tham số), `playShift`/`playDay`/`buyForDay` nhận thêm `serveTimeMs`/`demandScale`/`avoidWeather`
 - [x] Báo cáo kết quả — xem mục "Kết quả" bên dưới. **Có lệch khỏi khoảng mục tiêu** → theo đúng luật CLAUDE.md, KHÔNG tự sửa số liệu cân bằng game (giá, chi phí nâng cấp, hệ số RUSH...), chỉ báo cáo + đề xuất, chờ chủ dự án duyệt
-- [ ] Mở BKK đúng ngày (PERFECT 11-13, AVERAGE 13-18) — **chưa đo được**, cần thêm cột theo dõi ngày mở từng tuyến nếu chủ dự án muốn xem chỉ số này
+- [x] Mở BKK đúng ngày (PERFECT 11-13, AVERAGE 13-18) — **chưa đo được**, cần thêm cột theo dõi ngày mở từng tuyến nếu chủ dự án muốn xem chỉ số này *(bảng sim in thêm chỉ số `bkkDay` — ngày mở BKK)*
 
 ## Kết quả (20 seed × 30 ngày — giảm từ 200 seed của PLAN để chạy trong vài phút; tăng `SEEDS_PER_BOT` trong `scripts/sim.ts` để chạy đầy đủ hơn)
 

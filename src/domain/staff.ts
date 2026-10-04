@@ -8,6 +8,7 @@ import {
   STAFF_JOB_DELAY_MS,
   STAFF_KINDS,
   WAGE_RAISE_PROFIT_SHARE,
+  WAGE_RAISE_SPLIT,
 } from '@data/staff';
 import { STAFF_NAMES } from '@data/staffNames';
 import { BAGGAGE_MARKS } from '@data/balance';
@@ -178,12 +179,12 @@ export const clearFinishedAbsences = (staff: StaffMember[], day: number): void =
 const WAGE_WINDOW_DAYS = 3;
 const average = (values: readonly number[]): number => values.reduce((a, b) => a + b, 0) / values.length;
 
-/** Lợi nhuận/ngày trung bình 3 ngày gần nhất so với 3 ngày trước đó; chỉ phần tăng thêm mới làm lương tăng. */
+/** Lợi nhuận/ngày trung bình 3 ngày gần nhất so với 3 ngày trước đó; chỉ phần tăng thêm mới làm lương tăng, chia đều cho tối đa 3 người. */
 export const wageRaiseIncrement = (profitHistory: readonly number[]): number => {
   if (profitHistory.length < WAGE_WINDOW_DAYS * 2) return 0;
   const recent = average(profitHistory.slice(-WAGE_WINDOW_DAYS));
   const previous = average(profitHistory.slice(-WAGE_WINDOW_DAYS * 2, -WAGE_WINDOW_DAYS));
-  return Math.max(0, Math.round(WAGE_RAISE_PROFIT_SHARE * (recent - previous)));
+  return Math.max(0, Math.round((WAGE_RAISE_PROFIT_SHARE * (recent - previous)) / WAGE_RAISE_SPLIT));
 };
 
 /** Giữ 6 ngày lợi nhuận gần nhất. */

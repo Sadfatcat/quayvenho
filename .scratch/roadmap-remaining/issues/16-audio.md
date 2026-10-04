@@ -6,10 +6,10 @@
 
 **Status:** resolved — âm thanh tổng hợp bằng Web Audio (không file asset), chưa nghe thử trên Safari iOS thật (ticket 23)
 
-- [ ] `platform/audio.ts`, `platform/haptics.ts` mới
-- [ ] Nhạc nền + hiệu ứng cho các sự kiện chính (bán vé thành công, sai, mở cửa, tổng kết...)
+- [x] `platform/audio.ts`, `platform/haptics.ts` mới
+- [x] Nhạc nền + hiệu ứng cho các sự kiện chính (bán vé thành công, sai, mở cửa, tổng kết...)
 - [ ] Chạy đúng trên Safari iOS sau lần chạm đầu tiên trong game (TitleScene, theo PLAN §10.3)
-- [ ] Tôn trọng cài đặt âm lượng/rung từ ticket 10
+- [x] Tôn trọng cài đặt âm lượng/rung từ ticket 10
 
 ## Kết quả
 - `platform/audio.ts` (SFX + nhạc nền lofi 2 nhịp calm/busy, crossfade 800ms, tổng hợp bằng oscillator nên không cần file), `platform/haptics.ts`, `scenes/audioBridge.ts` nối sự kiện domain → SFX/rung và mở khoá audio ở lần `pointerdown` đầu tiên (mọi nơi, kể cả Title).

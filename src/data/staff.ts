@@ -33,6 +33,8 @@ export const PROMOTED_WAGE_RATIO = 0.6;
 
 /** Cứ mỗi `WAGE_RAISE_EVERY_DAYS` ngày, lương mỗi người tăng thêm `WAGE_RAISE_PROFIT_SHARE` × phần lợi nhuận/ngày vừa tăng thêm. */
 export const WAGE_RAISE_EVERY_DAYS = 3;
+/** Phần tăng lương được chia đều cho tối đa 3 người (2 nhân viên quầy + marketing) để tổng quỹ lương chỉ tăng 40% lợi nhuận tăng thêm. */
+export const WAGE_RAISE_SPLIT = 3;
 export const WAGE_RAISE_PROFIT_SHARE = 0.4;
 
 export const ABSENCES: readonly { reason: AbsenceReason; chancePct: number; days: number }[] = [

@@ -6,10 +6,10 @@
 
 **Status:** resolved — chưa đo được 60fps trên Android thật (cần máy, thuộc ticket 23)
 
-- [ ] Tween cho: nhấn nút, chọn ghế, vé trượt ra khỏi máy in, đồng xu bay lên, sao hiện lần lượt
-- [ ] Rung màn hình nhẹ khi chấm điểm sai
+- [x] Tween cho: nhấn nút, chọn ghế, vé trượt ra khỏi máy in, đồng xu bay lên, sao hiện lần lượt
+- [x] Rung màn hình nhẹ khi chấm điểm sai
 - [ ] Đo được 60fps ổn định trên máy Android tầm trung khi các hiệu ứng chạy cùng lúc
-- [ ] Coin particle có pooling (yêu cầu bắt buộc duy nhất về hiệu năng theo PLAN §11.4)
+- [x] Coin particle có pooling (yêu cầu bắt buộc duy nhất về hiệu năng theo PLAN §11.4)
 
 ## Kết quả
 - [x] Nhấn nút: mặt nút lún xuống đáy (`ui/Button.ts`); chọn ghế: ghế "nảy" 1.2× (`SeatMapView`); vé trượt xuống từ máy in (`CounterScene.renderReadyToDeliver`); đồng xu bay lên (`ui/CoinBurst.ts`); sao Tổng kết hiện lần lượt (`SummaryScene.showStars`).

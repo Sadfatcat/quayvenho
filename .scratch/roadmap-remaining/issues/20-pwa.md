@@ -6,10 +6,10 @@
 
 **Status:** resolved — chưa cài thử trên điện thoại thật (ticket 23)
 
-- [ ] `vite.config.ts` cấu hình `vite-plugin-pwa`; `platform/pwa.ts` mới nếu cần logic riêng
+- [x] `vite.config.ts` cấu hình `vite-plugin-pwa`; `platform/pwa.ts` mới nếu cần logic riêng
 - [ ] Installable trên điện thoại thật (Android Chrome, iOS Safari "Add to Home Screen")
 - [ ] Chơi được offline sau lần load đầu tiên
-- [ ] Icon PWA 192/512/maskable ở `public/icons`
+- [x] Icon PWA 192/512/maskable ở `public/icons`
 
 ## Kết quả
 - [x] `vite.config.ts` cấu hình `vite-plugin-pwa` (`registerType: 'prompt'`, manifest standalone/portrait, precache js/css/html/png/woff2); `platform/pwa.ts` + `scenes/overlays/UpdatePrompt.ts` hỏi "Có bản mới — Tải lại?" chỉ ở Title/Summary/Shop.

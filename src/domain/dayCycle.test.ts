@@ -465,7 +465,7 @@ describe('staff', () => {
 
     // Ngày 15 chia hết cho 3: 3 ngày gần nhất (100, 100, lợi nhuận hôm nay) so với 3 ngày trước (100, 100, 100).
     const profit = game.state.profitHistory.at(-1) ?? 0;
-    expect(game.state.wageRaise).toBe(Math.max(0, Math.round(0.4 * ((100 + 100 + profit) / 3 - 100))));
+    expect(game.state.wageRaise).toBe(Math.max(0, Math.round((0.4 * ((100 + 100 + profit) / 3 - 100)) / 3)));
   });
 
   it('marketing raises the day target and teaching adds 0,5% for the quoted price', () => {

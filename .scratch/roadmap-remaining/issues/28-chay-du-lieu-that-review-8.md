@@ -8,9 +8,9 @@
 
 - [ ] Chủ dự án điền `specialCustomers`/`scriptedMoments`/`customRoutes` thật (việc [TAY], không phải Claude Code bịa)
 - [ ] Chơi lại đúng các ngày đặc biệt, không lỗi console, không vỡ luồng
-- [ ] `code-reviewer` subagent 1 lần cho phần domain đọc `personal.ts`
-- [ ] Cập nhật `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/DECISIONS.md` lần cuối — đóng toàn bộ ROADMAP
-- [ ] Commit + push
+- [x] `code-reviewer` subagent 1 lần cho phần domain đọc `personal.ts` *(xong ở 8.R; 8.3 còn chờ chủ dự án điền nội dung)*
+- [x] Cập nhật `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/DECISIONS.md` lần cuối — đóng toàn bộ ROADMAP *(xong ở 8.R; 8.3 còn chờ chủ dự án điền nội dung)*
+- [x] Commit + push *(xong ở 8.R; 8.3 còn chờ chủ dự án điền nội dung)*
 
 ## Kết quả một phần
 - [x] Review code domain bằng `code-reviewer` (đã sửa P1 trùng slot, thêm test) — ghi ở ROADMAP 8.R.

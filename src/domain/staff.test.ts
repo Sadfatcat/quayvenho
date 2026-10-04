@@ -176,9 +176,9 @@ describe('end-of-day staff rules', () => {
     expect(staff[0]?.absentUntilDay).toBe(12);
   });
 
-  it('raises wages by 40% of the profit growth between the last two 3-day windows, never below zero', () => {
+  it('raises each wage by 40% of the profit growth (split across 3 people) between the last two 3-day windows, never below zero', () => {
     expect(wageRaiseIncrement([100, 100, 100])).toBe(0);
-    expect(wageRaiseIncrement([100, 100, 100, 400, 400, 400])).toBe(120);
+    expect(wageRaiseIncrement([100, 100, 100, 400, 400, 400])).toBe(40);
     expect(wageRaiseIncrement([500, 500, 500, 100, 100, 100])).toBe(0);
   });
 

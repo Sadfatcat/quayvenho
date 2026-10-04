@@ -10,7 +10,7 @@
 - [x] Không lưu khi đang mở quầy hoặc đang đóng quầy (checkpoint theo whitelist command/event, OPEN/CLOSING không nằm trong danh sách)
 - [x] "Chơi tiếp" mở đúng màn theo phase đã lưu (đã có từ 4.3: PREP/SUMMARY→Prep/Summary; SHOP→'Shop', chờ ticket 05); `profile = null` → EMPTY → Onboarding
 - [x] Refresh giữa ca: `sessionBridge.dispatch`/`tick` ghi save ngay sau mỗi checkpoint nên state trên đĩa luôn khớp state trong bộ nhớ tại mốc gần nhất
-- [ ] Kiểm tay/Playwright toàn bộ acceptance Phase 3 — dời sang ticket 04 (Review Giai đoạn 4)
+- [x] Kiểm tay/Playwright toàn bộ acceptance Phase 3 — dời sang ticket 04 (Review Giai đoạn 4) *(đã kiểm ở review giai đoạn 4, 4.R)*
 - [x] Acceptance PLAN §12 Phase 3 bổ sung 2 điểm: JSON hỏng → khôi phục + toast (`recoveredFromBackup` mới thêm vào `LoadSaveResult`), mở tab thứ hai → toast bất kỳ scene nào đang mở (chuyển từ registry sang `game.events`, xem `BaseScene.ts`)
 
 ## Answer

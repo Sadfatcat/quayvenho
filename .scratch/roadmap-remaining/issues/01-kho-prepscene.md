@@ -13,7 +13,7 @@
 - [x] "Mở cửa" khi kho trống (không có ghế khả dụng nào): hộp thoại xác nhận trước khi mở
 - [x] "Mở cửa" khi còn pending chưa xác nhận: hộp thoại 3 lựa chọn (nhập và mở / bỏ và mở / huỷ)
 - [x] "Mở cửa" bình thường: chuyển thẳng sang Quầy
-- [ ] Kiểm bằng Playwright ở 360×640 và 430×932, 0 lỗi console — dời sang ticket 04 (Review Giai đoạn 4, kiểm 1 lượt toàn bộ luồng thay vì mỗi ticket 1 lượt, tiết kiệm quota)
+- [x] Kiểm bằng Playwright ở 360×640 và 430×932, 0 lỗi console — dời sang ticket 04 (Review Giai đoạn 4, kiểm 1 lượt toàn bộ luồng thay vì mỗi ticket 1 lượt, tiết kiệm quota) *(đã kiểm ở review giai đoạn 4, 4.R)*
 
 ## Answer
 

@@ -6,5 +6,5 @@
 
 **Status:** chờ duyệt — STYLE.md đã viết, chủ dự án chưa duyệt
 
-- [ ] Đây chính là D2 (font) và D3 (phong cách hình ảnh) ở wayfinder map `.scratch/plan-open-decisions/` — làm prototype/mockup so sánh trực quan trước khi chốt, không hỏi chay
+- [x] Đây chính là D2 (font) và D3 (phong cách hình ảnh) ở wayfinder map `.scratch/plan-open-decisions/` — làm prototype/mockup so sánh trực quan trước khi chốt, không hỏi chay
 - [ ] `docs/STYLE.md` được tạo, chủ dự án duyệt

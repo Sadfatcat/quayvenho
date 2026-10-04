@@ -227,6 +227,24 @@ Ghi chú review (8.R): code-reviewer báo 1 P1 thật (nhiều khách đặc bi�
 
 ---
 
+## Giai đoạn 9 — Làm lại Quầy, màn quản lý, nhân viên, lạm phát (theo yêu cầu chủ dự án sau khi chơi thử)
+
+Nguồn: các yêu cầu trực tiếp của chủ dự án ở phiên làm việc 2026-10-04 (không nằm trong PLAN gốc). Đặc tả nhân viên ở `docs/PLAN_NHAN_VIEN.md`; quyết định ở `docs/DECISIONS.md`.
+
+| # | Bước | File chính | Xong khi |
+|---|---|---|---|
+| [x] 9.1 | Quầy nhiều vùng | `ui/CounterDesk.ts`, `CustomerCard.ts`, `DeskTicket.ts`, `MiniSeatMap.ts`, `StampButton.ts`, `QueueStrip.ts`, `scenes/CounterScene.ts` | Chọn vé từ chồng, đóng dấu điểm đến + giờ bay, sơ đồ ghế 2-2 không cuộn chọn được mọi ghế, kéo thả giao vé |
+| [x] 9.2 | Khách khó tính đòi vị trí ghế | `domain/seatMap.ts`, `orderGen.ts` | Đầu/giữa/cuối/cửa sổ/lối đi từ ngày 7 |
+| [x] 9.3 | Ảnh vật phẩm | `tools/sliceSheet.mjs`, `public/assets/items/*`, `ui/itemImages.ts` | Con dấu, chồng vé, vé dịch vụ, icon nâng cấp hiện trong game, có dự phòng khi thiếu ảnh |
+| [x] 9.4 | Màn quản lý 4 mục | `ui/ManagementTabs.ts`, `scenes/managementChrome.ts`, `PrepScene`, `PriceScene`, `ShopScene`, `StaffScene` | Mua vé / Giá vé / Đồ hỗ trợ / Nhân viên chuyển qua lại; mua đồ và thuê người được cả ở PREP lẫn SHOP |
+| [x] 9.5 | Lạm phát giá vé | `domain/economy.ts` (`routeOnDay`), `data/pricing.ts` | Giá bán +8% và giá vốn +4% mỗi 3 ngày |
+| [x] 9.6 | Nhân viên 4 bậc + marketing | `domain/staff.ts`, `data/staff.ts`, `dayCycle.ts`, `save/*` (v4) | Phụ việc theo bậc, trần 2 người, nghỉ ngẫu nhiên, thực tập sinh lên Junior sau 30 ngày, lương tăng theo lợi nhuận, marketing tăng khách và dạy việc |
+| [x] 9.7 | Khách ngày đầu +20% | `data/demand.ts`, `domain/demand.ts` | Ngày 1–10 nhân 1,2 |
+| [ ] 9.8 | Cân bằng nhân viên/lạm phát | `scripts/sim.ts` (`HIRE=1`) | Chủ dự án chơi thử rồi duyệt số (xem `docs/PLAN_NHAN_VIEN.md` mục 12) |
+| [ ] 9.9 | Ảnh nhân viên + tutorial nhân viên | `docs/PLAN_NHAN_VIEN.md` mục 13 | Chờ ảnh từ chủ dự án |
+
+---
+
 ## Registry — common component
 
 Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng hoặc đã lên kế hoạch dùng.
@@ -271,11 +289,15 @@ Cập nhật ở mỗi bước Review. "Dùng ở" ghi các nơi đã dùng ho�
 | PauseOverlay | `scenes/overlays/PauseOverlay.ts` | mọi scene gameplay; nút ⚙ ở Kho tạm mở PauseOverlay (SettingsOverlay thật ở 5.6) | 2.6 | xong |
 | TopBar | `ui/TopBar.ts` | Quầy, Kho | 3.1 | xong |
 | SpeechBubble | `ui/SpeechBubble.ts` | khách (Quầy), Béo (Onboarding — thoại tạm); Tutorial (6.5) chưa làm | 3.2 | xong |
-| StepIndicator | `ui/StepIndicator.ts` | Quầy | 3.3 | xong |
-| FlightList | `ui/FlightList.ts` | Quầy Bước A, có cờ `readOnly` | 3.3 | xong |
+| StepIndicator | `ui/StepIndicator.ts` | _(đã xoá ở 9.1, thay bằng vùng làm việc CounterDesk)_ | 3.3 | bỏ |
+| FlightList | `ui/FlightList.ts` | _(đã xoá ở 9.1: chọn chuyến bằng hai con dấu)_ | 3.3 | bỏ |
 | PatienceBar | `ui/PatienceBar.ts` | Quầy | 3.2 | xong |
 | debug hook | `dev/debug.ts` | test Playwright (đọc `window.__sessionBridge`) | 3.R | xong |
 | SegmentedControl | `ui/SegmentedControl.ts` | Shop (tab); Kho (seat bias, khi có AIRLINE_RELATIONS) chưa làm | 5.1 | xong ở Shop |
-| Card | `ui/Card.ts` | Shop (nâng cấp + tuyến bay) | 5.1 | xong |
+| Card | `ui/Card.ts` | Shop (nâng cấp + tuyến bay, có ảnh), Nhân viên (thẻ thuê) | 5.1 | xong |
+| ManagementTabs + `managementChrome` | `ui/ManagementTabs.ts`, `scenes/managementChrome.ts` | Prep, Price, Shop, Staff (thanh mục, thanh trên, nút Mở cửa/Ngày tiếp theo) | 9.4 | xong |
+| StampButton | `ui/StampButton.ts` | CounterDesk (dấu điểm đến, giờ bay) | 9.1 | xong |
+| QueueStrip | `ui/QueueStrip.ts` | CounterScene (thanh khách chờ) | 9.1 | xong |
+| itemImages | `ui/itemImages.ts` | StampButton, CounterDesk, DeskTicket, Card | 9.3 | xong |
 
 Component chỉ dùng ở một màn (FlightList, SeatMapView, BaggageSlider, ExtrasToggles, TicketView, PassportCard, Stepper, StepIndicator, TextInput, Toggle, Slider) không nằm trong Registry cho tới khi có chỗ dùng thứ hai.

@@ -1,7 +1,10 @@
 # STATUS
 
-- Giai đoạn hiện tại: 8 — code xong (8.1, 8.2); chờ chủ dự án điền nội dung thật vào `src/data/personal.ts` (8.3). Các giai đoạn trước còn mục chờ chủ dự án — xem ROADMAP 5.7/6.R/7.R.
-- Đã xong 5.1–5.7 + Review (xem ghi chú review trong `docs/ROADMAP.md`). typecheck/lint/test(134) xanh.
-- Cần chủ dự án quyết: sau khi chỉnh bot (phương án A) còn lệch mục tiêu — TravelViet ngày 20 (PERFECT 3.7, AVERAGE 3.2), ngày lỗ ~43%, POOR kích hoạt lưới an toàn 7 lần. Cần chọn B (giá ghế/vé) hoặc C (hệ số TravelViet). Chi tiết ở ticket 11.
-- Đã sửa 2 lỗi bố cục phát hiện qua Playwright (input Onboarding, panel Cài đặt). Chưa kiểm UI: TravelViet ngày 10, thời tiết SEVERE.
-- Ticket 13–14: STYLE.md đã áp dụng (theme, font tự host, nút 3D, avatar vẽ bằng code). Chưa có atlas ảnh — cần tranh từ chủ dự án.
+Cập nhật: 2026-10-04.
+
+- **Giai đoạn hiện tại:** 9 (làm lại Quầy, màn quản lý 4 mục, nhân viên, lạm phát giá vé) — code xong 9.1–9.7. Còn 9.8 (chủ dự án chơi thử rồi duyệt số cân bằng) và 9.9 (ảnh + tutorial nhân viên, chờ ảnh).
+- **Roadmap giai đoạn 1–8:** mọi bước làm được bằng code đã xong. Các ô còn mở đều cần chủ dự án hoặc thiết bị thật: duyệt `docs/STYLE.md` (13) và văn bản `docs/STORY_DRAFT.md` (18), đo 60 fps/audio Safari/cài PWA/bàn phím ảo trên điện thoại thật (15, 16, 20, 21, 23), deploy Cloudflare Pages (24), điền `src/data/personal.ts` rồi chơi lại các ngày đặc biệt (28).
+- **Chất lượng:** typecheck, lint, test (225) xanh. Save version 4 (migration v0→v4 có test).
+- **Cần chủ dự án quyết:** số cân bằng nhân viên/lạm phát (`docs/PLAN_NHAN_VIEN.md` mục 12); nâng cấp `SEARCH_FILTER` không còn tác dụng ở Quầy mới (bỏ hay đổi tác dụng).
+- **Blocker:** không có blocker kỹ thuật; xem danh sách chi tiết ở `docs/VIEC_CHUA_LAM.md`.
+- Playwright chỉ dùng cho các bước kiểm UI cần thiết (theo yêu cầu chủ dự án, hạn chế dùng).
