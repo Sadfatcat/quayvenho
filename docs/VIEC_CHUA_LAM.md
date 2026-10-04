@@ -74,5 +74,5 @@ Cập nhật: 2026-10-04. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Ảnh nhân viên:** chưa có (prompt ở `docs/PLAN_NHAN_VIEN.md` mục 13). Thẻ nhân viên đang dùng chữ cái đầu tên làm ảnh đại diện.
 - **Tutorial nhân viên:** chưa có thẻ Béo giới thiệu mục Nhân viên và lần tăng giá vé gốc đầu tiên (ngày 4).
 - **Nhân viên chưa hiện hiệu ứng nhìn thấy được trên Quầy** ngoài chip tròn ở góc và thông báo ngắn khi họ làm xong một việc (chưa có hoạt ảnh vé bay ra, dấu tự đóng).
-- **Nâng cấp `SEARCH_FILTER`** không còn tác dụng ở Quầy mới (không có danh sách chuyến): bỏ hoặc đổi tác dụng.
+- ~~Nâng cấp `SEARCH_FILTER`~~ đã bỏ (2026-10-04).
 - **Kiểm UI chưa làm lần cuối** (theo yêu cầu hạn chế Playwright): mục Nhân viên sau khi chỉnh cỡ chữ nút, thông báo nhân viên nghỉ/lên bậc ở màn Tổng kết, banner nhân viên nghỉ ở Kho, chip nhân viên ở Quầy.

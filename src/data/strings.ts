@@ -71,7 +71,6 @@ export const STRINGS = {
     COMFY_CHAIRS: { name: 'Ghế chờ êm', description: 'Khách kiên nhẫn hơn 20%.' },
     FAN: { name: 'Quạt mát', description: 'Khách kiên nhẫn hơn 10%.' },
     FAST_PRINTER: { name: 'Máy in nhanh', description: 'In vé nhanh hơn.' },
-    SEARCH_FILTER: { name: 'Ô lọc chuyến', description: 'Thêm ô lọc điểm đến ở Bước A.' },
     AIRLINE_RELATIONS: { name: 'Quan hệ hãng bay', description: 'Chọn được thiên hướng ghế (cửa sổ/lối đi) khi nhập kho.' },
     REFUND_POLICY: { name: 'Chính sách hoàn ghế', description: 'Hoàn 30% giá vốn ghế ế mỗi ngày.' },
     BIGGER_COUNTER: { name: 'Quầy rộng', description: 'Hàng đợi chứa được nhiều khách hơn.' },
@@ -107,7 +106,7 @@ export const STRINGS = {
     statusAlreadyHired: 'Đã thuê',
     confirmTitle: 'Xác nhận thuê',
     kinds: {
-      INTERN: { name: 'Thực tập sinh', description: 'Chăm chỉ nhưng chưa làm được gì cả. Có khi nuôi lâu rồi sẽ khác.' },
+      INTERN: { name: 'Thực tập sinh', description: 'Chăm chỉ nhưng chưa làm được gì cả. Có khi nuôi lâu rồi sẽ khác. Sau 30 ngày sẽ có bất ngờ đấy!' },
       JUNIOR: { name: 'Nhân viên Junior', description: 'Rút đúng vé thường hay thương gia theo đơn của khách.' },
       MIDDLE: { name: 'Nhân viên Middle', description: 'Đóng dấu điểm đến + giờ bay đúng chuyến và cân hành lý (hay sai khoảng 40%).' },
       SENIOR: { name: 'Nhân viên Senior', description: 'Chọn ghế đúng yêu cầu vị trí của khách và đưa vé dịch vụ.' },

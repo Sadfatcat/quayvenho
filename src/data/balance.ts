@@ -82,7 +82,6 @@ export const BASE_MODIFIERS: Modifiers = {
   queueMax: 4,
   refundRate: 0,
   seatBias: false,
-  searchFilter: false,
 };
 
 // Lưới an toàn

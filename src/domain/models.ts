@@ -213,7 +213,6 @@ export interface Modifiers {
   queueMax: number;
   refundRate: number;
   seatBias: boolean;
-  searchFilter: boolean;
 }
 
 export interface UpgradeDef {
