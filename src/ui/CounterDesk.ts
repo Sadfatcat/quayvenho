@@ -35,6 +35,8 @@ const STACK_CARD_HEIGHT = 96;
 const STACK_TOP_PADDING = 6;
 const STACK_HEIGHT = STACK_TOP_PADDING + STACK_CARD_HEIGHT + STACK_LAYER_OFFSET * (STACK_LAYERS - 1) + 8;
 const STAMP_HEIGHT = 62;
+const MIN_STAMP_HEIGHT = 44;
+const TIME_SECTION_HEIGHT = 92;
 const STAMP_ROW_GAP = 6;
 const STAMP_GAP = 8;
 const DEST_COLUMNS = 3;
@@ -240,15 +242,18 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     parent.add(scene.add.text(x + TRAY_PADDING + 4, y + 20, STRINGS.counter.desk.stampTray, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5));
 
     const routes = ROUTES.filter((route) => state.unlockedRoutes.includes(route.id));
+    const destRows = Math.max(1, Math.ceil(routes.length / DEST_COLUMNS));
+    const destAreaHeight = height - TRAY_TITLE_HEIGHT - TIME_SECTION_HEIGHT - TRAY_PADDING;
+    const destHeight = Math.max(MIN_STAMP_HEIGHT, Math.min(STAMP_HEIGHT, destAreaHeight / destRows - STAMP_ROW_GAP));
     const innerWidth = width - TRAY_PADDING * 2;
     const destWidth = (innerWidth - STAMP_GAP * (DEST_COLUMNS - 1)) / DEST_COLUMNS;
     routes.forEach((route, index) => {
       const column = index % DEST_COLUMNS;
       const row = Math.floor(index / DEST_COLUMNS);
       parent.add(
-        new StampButton(scene, x + TRAY_PADDING + destWidth / 2 + column * (destWidth + STAMP_GAP), y + TRAY_TITLE_HEIGHT + 4 + STAMP_HEIGHT / 2 + row * (STAMP_HEIGHT + STAMP_ROW_GAP), {
+        new StampButton(scene, x + TRAY_PADDING + destWidth / 2 + column * (destWidth + STAMP_GAP), y + TRAY_TITLE_HEIGHT + 4 + destHeight / 2 + row * (destHeight + STAMP_ROW_GAP), {
           width: destWidth,
-          height: STAMP_HEIGHT,
+          height: destHeight,
           label: route.name,
           color: COLORS.accent,
           active: draft?.routeStamp === route.id,
@@ -257,8 +262,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       );
     });
 
-    const destRows = Math.max(1, Math.ceil(routes.length / DEST_COLUMNS));
-    const timeTop = y + TRAY_TITLE_HEIGHT + 4 + destRows * (STAMP_HEIGHT + STAMP_ROW_GAP) + 6;
+    const timeTop = y + TRAY_TITLE_HEIGHT + 4 + destRows * (destHeight + STAMP_ROW_GAP) + 6;
     const times = [...new Set(state.today.flights.filter((flight) => state.unlockedRoutes.includes(flight.routeId)).map((flight) => flight.departAt))].sort((a, b) => a - b);
     parent.add(scene.add.text(x + TRAY_PADDING + 4, timeTop - 2, STRINGS.counter.desk.timeStamps, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(0, 0.5));
     const timeWidth = Math.min(destWidth, (innerWidth - STAMP_GAP * (times.length - 1)) / Math.max(1, times.length));

@@ -117,8 +117,6 @@ export const STRINGS = {
   },
   prep: {
     dayLabel: 'Ngày',
-    ownedEco: 'ECO đã có',
-    ownedBiz: 'BIZ đã có',
     estimateLabel: 'Dự tính',
     moneyAfterLabel: 'Còn lại',
     confirmPurchase: 'Xác nhận nhập ghế',

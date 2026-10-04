@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { Button } from './Button';
+import { Panel } from './Panel';
 import { formatMoney } from './format';
 import { SCREEN_MARGIN } from './layout';
 import { COLORS, FONT_FAMILY, toCssColor } from './theme';
 
 const EDGE_PADDING = SCREEN_MARGIN;
 const ICON_BUTTON_SIZE = 72;
+const MONEY_BOX = { width: 210, height: 52 };
 
 export interface TopBarOptions {
   width: number;
@@ -28,8 +30,9 @@ export class TopBar extends Phaser.GameObjects.Container {
       .text(EDGE_PADDING, 0, options.leftLabel, { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
       .setOrigin(0, 0.5);
     this.moneyText = scene.add
-      .text(options.width * 0.42, 0, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.text) })
+      .text(options.width * 0.42, 0, '', { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) })
       .setOrigin(0.5);
+    const moneyBox = new Panel(scene, options.width * 0.42, 0, { width: MONEY_BOX.width, height: MONEY_BOX.height, fill: COLORS.cloud, strokeColor: COLORS.moneyGreen, strokeWidth: 3 });
     this.travelVietText = scene.add
       .text(options.width * 0.68, 0, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.warning) })
       .setOrigin(0.5);
@@ -40,7 +43,7 @@ export class TopBar extends Phaser.GameObjects.Container {
       variant: 'ghost',
       onTap: options.onIconTap,
     });
-    this.add([this.leftText, this.moneyText, this.travelVietText, iconButton]);
+    this.add([this.leftText, moneyBox, this.moneyText, this.travelVietText, iconButton]);
     scene.add.existing(this);
     this.setMoney(options.money);
     this.setTravelViet(options.travelViet);

@@ -26,6 +26,8 @@ import { sessionBridge } from './sessionBridge';
 
 const ROW_HEIGHT = 230;
 const STEPPER_RIGHT_INSET = 120;
+const CABIN_PRICE_GAP = 12;
+const OWNED_RIGHT_INSET = 16;
 const ECONOMY_ROW_Y = 112;
 const BUSINESS_ROW_Y = 184;
 const LIST_Y = 320;
@@ -179,28 +181,37 @@ export class PrepScene extends BaseScene {
     const meta = this.add
       .text(28, 44, `${flight.id} · ${formatClock(flight.departAt)}`, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(0, 0);
-    row.add([panel, title, meta]);
+    const ownedText = this.add
+      .text(panelWidth + 8 - OWNED_RIGHT_INSET, 12, this.ownedSummary(flight, today), { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'right' })
+      .setOrigin(1, 0);
+    row.add([panel, title, meta, ownedText]);
 
     row.add(this.renderCabinRow(flight, 'ECONOMY', ECONOMY_ROW_Y, today));
     row.add(this.renderCabinRow(flight, 'BUSINESS', BUSINESS_ROW_Y, today));
     return row;
   }
 
+  private ownedSummary(flight: Flight, today: TodayState): string {
+    const countOf = (cabin: CabinClass): number => today.seats.filter((seat) => seat.flightId === flight.id && seat.cabin === cabin && seat.state !== 'LOST').length;
+    return `${STRINGS.counter.ecoShort} : ${countOf('ECONOMY')}
+${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
+  }
+
   private renderCabinRow(flight: Flight, cabin: CabinClass, y: number, today: TodayState): Phaser.GameObjects.GameObject[] {
-    const owned = today.seats.filter((seat) => seat.flightId === flight.id && seat.cabin === cabin && seat.state !== 'LOST').length;
     const key = pendingKey(flight.id, cabin);
     const qty = today.pendingPurchase[key] ?? 0;
     const unitCost = getRoute(flight.routeId).cost[cabin];
     const discount = bulkDiscountRate(qty);
     const label = cabin === 'ECONOMY' ? STRINGS.counter.ecoShort : STRINGS.counter.bizShort;
-    const ownedLabel = cabin === 'ECONOMY' ? STRINGS.prep.ownedEco : STRINGS.prep.ownedBiz;
 
-    const text = this.add
-      .text(28, y, `${label} ${formatMoney(unitCost)} · ${ownedLabel} ${owned}${discount > 0 ? ` · −${Math.round(discount * 100)}%` : ''}`, {
-        fontFamily: FONT_FAMILY,
-        fontSize: '18px',
-        color: toCssColor(COLORS.textMuted),
-      })
+    const cabinText = this.add
+      .text(28, y, label, { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(cabin === 'BUSINESS' ? COLORS.danger : COLORS.text) })
+      .setOrigin(0, 0.5);
+    const priceText = this.add
+      .text(cabinText.x + cabinText.width + CABIN_PRICE_GAP, y, formatMoney(unitCost), { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) })
+      .setOrigin(0, 0.5);
+    const discountText = this.add
+      .text(priceText.x + priceText.width + CABIN_PRICE_GAP, y, discount > 0 ? `−${Math.round(discount * 100)}%` : '', { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(0, 0.5);
 
     const stepper = new Stepper(this, GAME_WIDTH - 40 - 16 - STEPPER_RIGHT_INSET, y, {
@@ -209,7 +220,7 @@ export class PrepScene extends BaseScene {
       onChange: (next) => this.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin, qty: next }),
     });
 
-    return [text, stepper];
+    return [cabinText, priceText, discountText, stepper];
   }
 
   private maxAffordableQty(flight: Flight, cabin: CabinClass, today: TodayState, money: number): number {
