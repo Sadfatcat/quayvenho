@@ -228,7 +228,6 @@ export const STRINGS = {
       baggageTitle: 'Cân hành lý',
       printing: 'Đang in...',
       print: 'In vé',
-      deliver: 'Giao vé',
       queueLabel: 'Hàng chờ',
     },
     request: {

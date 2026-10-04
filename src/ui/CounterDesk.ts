@@ -199,7 +199,14 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       const label = scene.add.text(centerX, y + height - 46, STRINGS.counter.desk.printing, { fontFamily: HEADING_FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5);
       parent.add([track, this.printFill, label]);
     }
-    if (counter.state === 'READY_TO_DELIVER') this.makeDeliverable(ticket, centerX, centerY);
+    if (counter.state === 'READY_TO_DELIVER') {
+      this.makeDeliverable(ticket, centerX, centerY);
+      const hint = scene.add
+        .text(centerX, y + height + 14, `⬆ ${STRINGS.counter.deliverHint}`, { fontFamily: HEADING_FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
+        .setOrigin(0.5);
+      scene.tweens.add({ targets: hint, y: hint.y - 8, duration: 500, yoyo: true, repeat: -1 });
+      parent.add(hint);
+    }
     if (!building && counter.state === 'BUILDING') ticket.setAlpha(DIM_ALPHA);
   }
 

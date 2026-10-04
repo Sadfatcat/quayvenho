@@ -172,19 +172,12 @@ export class CounterScene extends BaseScene {
     this.retryButton.setEnabled(canBuild);
     this.refuseButton.setEnabled(canRefuse);
 
-    if (counter.state === 'READY_TO_DELIVER') {
-      this.mainButton.setLabel(STRINGS.counter.desk.deliver);
-      this.mainButton.setEnabled(true);
-      return;
-    }
     this.mainButton.setLabel(STRINGS.counter.print);
     this.mainButton.setEnabled(canBuild && !!draft?.cabin && !!draft.flightId && !!draft.seat);
   }
 
   private onMainAction(): void {
-    const counterState = sessionBridge.current.state.today.counter.state;
-    if (counterState === 'READY_TO_DELIVER') this.dispatch({ type: 'DELIVER_TICKET' });
-    else if (counterState === 'BUILDING') this.dispatch({ type: 'PRINT_TICKET' });
+    if (sessionBridge.current.state.today.counter.state === 'BUILDING') this.dispatch({ type: 'PRINT_TICKET' });
   }
 
   // ---------- events, pause, summary ----------
