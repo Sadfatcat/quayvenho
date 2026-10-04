@@ -77,7 +77,8 @@ export class CounterDesk extends Phaser.GameObjects.Container {
   /** Gọi mỗi khung hình: chỉ dựng lại khi trạng thái quầy thay đổi, còn lại cập nhật thanh in. */
   renderFrame(state: GameState): void {
     const signature = this.signatureOf(state);
-    if (signature !== this.lastSignature) {
+    // Đang chạm/giữ (thanh cân, con dấu…) thì hoãn dựng lại đến lúc nhả để không huỷ nút giữa cử chỉ.
+    if (signature !== this.lastSignature && !this.scene.input.activePointer.isDown) {
       this.lastSignature = signature;
       this.rebuild(state);
     }

@@ -200,6 +200,8 @@ export const STRINGS = {
     emptyStockMessage: 'Khách sẽ không mua được vé. Vẫn mở cửa?',
     emptyStockConfirm: 'Vẫn mở cửa',
     emptyStockCancel: 'Huỷ',
+    cannotOpenTitle: 'Chưa mở cửa được',
+    cannotOpenMessage: 'Tiền hiện không đủ để nhập số ghế đang chờ. Vào mục Mua vé để giảm số ghế rồi mở cửa lại.',
     pendingTitle: 'Chưa xác nhận nhập ghế',
     pendingMessagePrefix: 'Bạn chưa xác nhận nhập ',
     pendingMessageSuffix: ' ghế. Nhập luôn?',

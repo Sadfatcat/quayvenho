@@ -167,7 +167,7 @@ export class StaffScene extends BaseScene {
       width: GAME_WIDTH - 40,
       height: CARD_HEIGHT,
       title: text.name,
-      description: `${text.description}\n${T.wagePerDay}: ${formatMoney(def.baseWage)}`,
+      description: `${text.description}\n${T.wagePerDay}: ${formatMoney(def.baseWage + state.wageRaise)}`,
       priceLabel: `${T.hireCost}: ${def.hireCost === 0 ? T.free : formatMoney(def.hireCost)}`,
       statusLabel: result.ok ? '' : hireStatusText(result.reason, def),
       buttonLabel: T.hire,

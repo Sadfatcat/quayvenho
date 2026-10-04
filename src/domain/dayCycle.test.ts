@@ -486,3 +486,32 @@ describe('staff', () => {
     expect(boosted.state.today.targetCustomers).toBeGreaterThan(baseTarget);
   });
 });
+
+describe('staff and shop spending after the summary (phase SHOP)', () => {
+  it('hiring in SHOP is charged now but booked on tomorrow, and the money invariant still holds on the next day', () => {
+    const state = createNewGame(seedWithDay1Event('NONE'));
+    state.day = 15;
+    state.money = 500_000;
+    state.today.moneyStart = 500_000;
+    const game = new GameSession(state);
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000);
+    game.dispatch({ type: 'GO_TO_SHOP' });
+    const moneyBefore = game.state.money;
+
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    game.dispatch({ type: 'TEACH_MARKETING' });
+
+    expect(game.state.money).toBe(moneyBefore - 30_000);
+    expect(game.state.nextDayTransactions).toContainEqual({ type: 'STAFF_HIRE', amount: -30_000, day: 16, minute: null, ref: 's0' });
+    expect(rejected(game.dispatch({ type: 'TEACH_MARKETING' }))).toMatchObject({ reason: 'NO_MARKETING' });
+
+    game.dispatch({ type: 'NEXT_DAY' });
+    expect(game.state.day).toBe(16);
+    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -30_000, day: 16, minute: null, ref: 's0' });
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    expect(() => tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000)).not.toThrow();
+  });
+});

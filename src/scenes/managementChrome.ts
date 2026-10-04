@@ -1,7 +1,7 @@
 import type Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
-import type { GameState } from '@domain/models';
+import type { DomainEvent, GameState } from '@domain/models';
 import { Button } from '@ui/Button';
 import { MANAGEMENT_TAB_SCENE, ManagementTabs, type ManagementTab } from '@ui/ManagementTabs';
 import { TopBar } from '@ui/TopBar';
@@ -72,8 +72,22 @@ export const addManagementChrome = (scene: Phaser.Scene, active: ManagementTab, 
   };
 };
 
+const wasRejected = (events: readonly DomainEvent[]): boolean => events.some((event) => event.type === 'COMMAND_REJECTED');
+
+const showCannotOpen = (scene: Phaser.Scene): void => {
+  new DialogOverlay(scene, {
+    title: STRINGS.prep.cannotOpenTitle,
+    message: STRINGS.prep.cannotOpenMessage,
+    buttons: [{ label: STRINGS.priceBoard.done, variant: 'primary', onTap: () => {} }],
+  });
+};
+
+/** Chỉ sang Quầy khi domain thực sự mở cửa; bị từ chối (vd. còn ghế chờ vượt tiền) thì ở lại và báo lý do. */
 const startCounter = (scene: Phaser.Scene): void => {
-  sessionBridge.dispatch({ type: 'OPEN_COUNTER' });
+  if (wasRejected(sessionBridge.dispatch({ type: 'OPEN_COUNTER' }))) {
+    showCannotOpen(scene);
+    return;
+  }
   scene.scene.start('Counter');
 };
 
@@ -99,7 +113,10 @@ export const requestOpenCounter = (scene: Phaser.Scene): void => {
           label: STRINGS.prep.pendingConfirmAndOpen,
           variant: 'primary',
           onTap: () => {
-            sessionBridge.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+            if (wasRejected(sessionBridge.dispatch({ type: 'PREP_CONFIRM_PURCHASE' }))) {
+              showCannotOpen(scene);
+              return;
+            }
             startCounter(scene);
           },
         },
