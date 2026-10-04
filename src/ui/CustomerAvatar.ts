@@ -18,7 +18,7 @@ export type AvatarMood = 'happy' | 'neutral' | 'angry';
 
 export const ATLAS_KEY = 'characters';
 /** Tỉ lệ chiều cao ảnh so với bán kính: ảnh bust cao hơn hình tròn vẽ bằng code một chút. */
-const IMAGE_HEIGHT_PER_RADIUS = 2.3;
+const IMAGE_HEIGHT_PER_RADIUS = 2.6;
 const SPEAKER_FRAME_BY_ID: Record<string, string> = { beo: 'beo_bust' };
 
 const frameFor = (spriteId: string, mood: AvatarMood): string => SPEAKER_FRAME_BY_ID[spriteId] ?? `cus_${spriteId}_${mood}`;

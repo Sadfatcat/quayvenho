@@ -1,13 +1,35 @@
 // Gom sprite nhân vật từ sheet asset thành 1 atlas Phaser: node tools/buildAtlas.mjs
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { crop, readPng, writePng } from './pngtool.mjs';
+import { processTriple } from './processTriple.mjs';
 
 const SHEET = 'DESIGN/stitch_chibi_game_ui_design/ảnh/ChatGPT Image 11_04_03 4 thg 10, 2026.png';
 const OUT_DIR = 'public/assets/atlas';
 const ALPHA_MIN = 40;
 const MERGE_RADIUS = 3;
 const PAD = 2;
-const ATLAS_WIDTH = 640;
+const ATLAS_WIDTH = 1536;
+const CUSTOMER_DIR = 'DESIGN/stitch_chibi_game_ui_design/ảnh';
+const CUSTOMER_FRAME_HEIGHT = 192;
+/** Mỗi file = 1 khách × 3 biểu cảm (happy, neutral, angry); thứ tự = c01, c02, … c16. */
+const CUSTOMER_FILES = [
+  '1.png',
+  '2.png',
+  'cô gái tóc dài đen, tai nghe hồng, áo cardigan vàng nghệ.png',
+  'chàng trai đội mũ len xanh rêu, áo khoác ô-liu, khăn quàng.png',
+  'cô gái đội mũ bê-rê màu gạch, tóc nâu dài.png',
+  'cậu bé tóc vàng xoăn, áo hoodie xanh cổ vịt.png',
+  'cô gái tóc bob nâu, kính tròn, áo len hồng.png',
+  'chàng trai tóc đen ngắn, áo hoodie xanh đậm.png',
+  'cô gái đội mũ bucket kem, tóc nâu dài, áo blouse hồng nhạt.png',
+  'người đàn ông kính râm đen, vest xanh navy, cà vạt.png',
+  'cô gái tóc nâu gợn sóng dài, áo khoác hồng nhạt.png',
+  'cậu bé đội mũ lưỡi trai xanh lá, áo hoodie đậm.png',
+  'cô gái kính râm đẩy lên tóc, áo măng tô màu đào.png',
+  'cậu bé tóc xoăn nâu đậm, áo polo xanh, tàn nhang.png',
+  'cô gái tóc đen thẳng có mái, áo cardigan xám be.png',
+  'cô gái đội mũ len kem, tóc đen, áo sơ mi trắng.png',
+];
 
 const sheet = readPng(SHEET);
 
@@ -81,12 +103,14 @@ const isolate = (img) => {
 const COL_X = [21, 106, 192, 288, 367, 448, 539, 619, 700];
 const ROW_Y = [310, 450, 589, 730, 870, 1010];
 const CUSTOMER_IDS = ['c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08', 'c09', 'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'vip1', 'vip2'];
+const OLD_SHEET_CUSTOMER_IDS = new Set(['vip1', 'vip2']);
 const MOODS = ['happy', 'neutral', 'angry'];
 const FACE_W = 76;
 const FACE_H = 95;
 
 const windows = [];
 CUSTOMER_IDS.forEach((id, index) => {
+  if (!OLD_SHEET_CUSTOMER_IDS.has(id)) return;
   const row = Math.floor(index / 3);
   const group = index % 3;
   MOODS.forEach((mood, moodIndex) => {
@@ -103,10 +127,16 @@ windows.push(
   { name: 'logo_lockup', x: 10, y: 46, w: 196, h: 176 },
 );
 
+const MOOD_NAMES = ['happy', 'neutral', 'angry'];
+const newCustomerSprites = CUSTOMER_FILES.flatMap((file, index) => {
+  const id = CUSTOMER_IDS[index];
+  return processTriple(readPng(`${CUSTOMER_DIR}/${file}`), CUSTOMER_FRAME_HEIGHT).map((img, moodIndex) => ({ name: `cus_${id}_${MOOD_NAMES[moodIndex]}`, img }));
+});
+
 const sprites = windows.map((window) => {
   const cut = defringe(crop(sheet, window.x, window.y, window.w, window.h));
   return { name: window.name, img: isolate(cut) };
-});
+}).concat(newCustomerSprites);
 
 // Xếp kệ (shelf packing) vào atlas.
 let x = PAD, y = PAD, rowHeight = 0;

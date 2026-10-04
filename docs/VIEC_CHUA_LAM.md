@@ -48,3 +48,10 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Chưa dùng:** icon/nút/bảng/nền trong sheet (mỗi ảnh chỉ ~100×100 px, nền 170×140 px — quá nhỏ cho màn 720×1280). Cần ảnh độ phân giải cao hơn (prompt ở `docs/PROMPT_ANH.md`; nên xuất từng nhóm 2048 px, không gộp một sheet).
 - **Chất lượng:** biểu cảm "angry" của khách chưa rõ giận (vẫn như đang cười); nên tạo lại 3 biểu cảm với nhấn mạnh "furrowed brows, frown, no smile". Béo là hà mã (mô tả trong prompt là gấu) — vẫn dùng được, bạn xác nhận giữ hà mã.
 - Chưa có: Béo biểu cảm khác trong atlas (sheet 9 biểu cảm quá nhỏ), icon tuyến bay, ảnh nâng cấp, ảnh bưu thiếp.
+
+## 8. Ảnh khách độ phân giải cao (đã nhận 2026-10-04)
+
+- **Đã dùng:** 16 khách thường × 3 biểu cảm (c01–c16, nền đã tách, khung 192 px cao) thay hoàn toàn bản cũ. Tạo atlas: `node tools/buildAtlas.mjs`.
+- **Còn dùng ảnh cũ độ phân giải thấp:** 2 khách VIP, Béo (6 tư thế), logo. Cần tạo lại theo `docs/PROMPT_ANH_V2.md` mục 1 (Béo), 2 (VIP), 3 (logo).
+- **Chưa có:** nền màn hình (Quầy, Kho, Tổng kết, Shop, Title), icon, nút/bảng UI, bưu thiếp tuyến bay.
+- Ghi chú: khách c10 trong game là người đàn ông kính râm vest; thứ tự gán c01–c16 theo  trong .

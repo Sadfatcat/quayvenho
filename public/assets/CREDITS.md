@@ -12,4 +12,5 @@ Ghi chú: font tải từ Google Fonts một lần rồi tự host ở `public/a
 
 | Asset | Nguồn | Ghi chú |
 |---|---|---|
-| 16 khách + 2 VIP (3 biểu cảm), Béo (Hà Mã) 6 tư thế, logo "Quầy Vé Nhỏ" | Do chủ dự án tạo bằng ChatGPT (sheet `DESIGN/stitch_chibi_game_ui_design/ảnh/ChatGPT Image 11_04_03 4 thg 10, 2026.png`), cắt bằng `tools/buildAtlas.mjs` | Quyền sử dụng theo điều khoản của công cụ tạo ảnh; ảnh gốc độ phân giải thấp (~70×95 px mỗi khách) |
+| 16 khách thường (3 biểu cảm, ảnh độ phân giải cao, mỗi file 1 khách × 3 mặt) | Do chủ dự án tạo bằng AI (Gemini/ChatGPT), cắt bằng `tools/processTriple.mjs` | Quyền sử dụng theo điều khoản của công cụ tạo ảnh |
+| 2 khách VIP, Béo (Hà Mã) 6 tư thế, logo "Quầy Vé Nhỏ" | Do chủ dự án tạo bằng ChatGPT (sheet `DESIGN/stitch_chibi_game_ui_design/ảnh/ChatGPT Image 11_04_03 4 thg 10, 2026.png`), cắt bằng `tools/buildAtlas.mjs` | Quyền sử dụng theo điều khoản của công cụ tạo ảnh; ảnh gốc độ phân giải thấp (~70×95 px mỗi khách) |
