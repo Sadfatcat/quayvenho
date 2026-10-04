@@ -313,49 +313,176 @@ describe('shift', () => {
 });
 
 describe('staff', () => {
-  const gameOnDay8 = () => {
+  const richGame = (day: number) => {
     const state = createNewGame(seedWithDay1Event('NONE'));
-    state.day = 8;
-    state.money = 100_000;
-    state.today.moneyStart = 100_000;
+    state.day = day;
+    state.money = 500_000;
+    state.today.moneyStart = 500_000;
     return new GameSession(state);
   };
 
-  it('hiring in PREP charges the hire cost immediately and records it today', () => {
-    const game = gameOnDay8();
-
-    game.dispatch({ type: 'HIRE_STAFF', staffId: 'TRAINEE' });
-
-    expect(game.state.staff).toEqual(['TRAINEE']);
-    expect(game.state.money).toBe(100_000 - 4500);
-    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -4500, day: 8, minute: null, ref: 'TRAINEE' });
-    expect(rejected(game.dispatch({ type: 'HIRE_STAFF', staffId: 'TRAINEE' }))).toMatchObject({ reason: 'ALREADY_HIRED' });
-  });
-
-  it('rejects hiring during a shift', () => {
-    const game = gameOnDay8();
+  const stockAllFlights = (game: GameSession) => {
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
-    game.dispatch({ type: 'OPEN_COUNTER' });
-
-    expect(rejected(game.dispatch({ type: 'HIRE_STAFF', staffId: 'TRAINEE' }))).toMatchObject({ reason: 'WRONG_PHASE' });
-  });
-
-  it('serves customers on their own and the wage is charged in the day summary', () => {
-    const game = gameOnDay8();
-    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
-    game.dispatch({ type: 'HIRE_STAFF', staffId: 'VETERAN' });
     for (const flight of game.state.today.flights) {
       game.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin: 'ECONOMY', qty: 8 });
       game.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin: 'BUSINESS', qty: 3 });
     }
     game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+  };
+
+  const tickToFirstCustomer = (game: GameSession) => {
+    tickUntil(game, () => game.state.today.counter.state === 'BUILDING');
+    return game.state.today.queue[0]?.order;
+  };
+
+  it('hiring in PREP charges the hire cost now, records it today and names the member', () => {
+    const game = richGame(15);
+
+    const events = game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
+
+    expect(events).toEqual([{ type: 'STAFF_HIRED', staffId: 's0', kind: 'SENIOR' }]);
+    expect(game.state.money).toBe(500_000 - 50_000);
+    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -50_000, day: 15, minute: null, ref: 's0' });
+    expect(game.state.staff[0]).toMatchObject({ id: 's0', kind: 'SENIOR', daysWorked: 0 });
+  });
+
+  it('rejects hiring a third counter staff, hiring too early and hiring during a shift', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'INTERN' });
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    expect(rejected(game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' }))).toMatchObject({ reason: 'STAFF_FULL' });
+    expect(rejected(richGame(2).dispatch({ type: 'HIRE_STAFF', kind: 'INTERN' }))).toMatchObject({ reason: 'DAY_TOO_EARLY' });
+
+    game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    expect(rejected(game.dispatch({ type: 'HIRE_STAFF', kind: 'MARKETING' }))).toMatchObject({ reason: 'WRONG_PHASE' });
+  });
+
+  it('firing is free and re-hiring pays the full hire cost again', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    const afterHire = game.state.money;
+
+    game.dispatch({ type: 'FIRE_STAFF', staffId: 's0' });
+    expect(game.state.money).toBe(afterHire);
+    expect(game.state.staff).toEqual([]);
+
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    expect(game.state.money).toBe(afterHire - 30_000);
+    expect(game.state.staff[0]?.id).toBe('s1');
+  });
+
+  it('Junior takes the right ticket cabin but never prints or delivers', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const order = tickToFirstCustomer(game);
+    expect(game.state.today.counter.draft?.cabin).toBeNull();
+
+    tickUntil(game, () => game.state.today.counter.draft?.cabin !== null, 200);
+
+    expect(game.state.today.counter.draft?.cabin).toBe(order?.cabin);
+    expect(game.state.today.counter.state).toBe('BUILDING');
+  });
+
+  it('Middle stamps the matching flight and weighs baggage; Senior then picks the seat and services', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' });
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const order = tickToFirstCustomer(game);
+    game.dispatch({ type: 'BUILD_TAKE_TICKET', cabin: order?.cabin ?? 'ECONOMY' });
+
+    tickUntil(game, () => game.state.today.counter.draft?.seat !== null, 400);
+
+    const draft = game.state.today.counter.draft;
+    expect(draft?.routeStamp).toBe(order?.routeId);
+    expect(draft?.timeStamp).not.toBeNull();
+    expect(draft?.flightId).not.toBeNull();
+    expect(draft?.seat).not.toBeNull();
+    expect(game.state.today.counter.state).toBe('BUILDING');
+  });
+
+  it('staff do not overwrite a step the player already did, and Reset stops them redoing it', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const order = tickToFirstCustomer(game);
+    const otherCabin = order?.cabin === 'ECONOMY' ? 'BUSINESS' : 'ECONOMY';
+
+    game.dispatch({ type: 'BUILD_TAKE_TICKET', cabin: otherCabin });
+    game.tick(3000);
+    expect(game.state.today.counter.draft?.cabin).toBe(otherCabin);
+
+    game.dispatch({ type: 'BUILD_RESET' });
+    game.tick(5000);
+    expect(game.state.today.counter.draft?.cabin).toBeNull();
+  });
+
+  it('absent staff neither assist nor get paid; wages and work days only count for staff at work', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' });
+    const junior = game.state.staff[0];
+    if (!junior) throw new Error('missing junior');
+    junior.absentUntilDay = 15;
+    junior.absenceReason = 'SICK';
+    stockAllFlights(game);
     game.dispatch({ type: 'OPEN_COUNTER' });
 
     tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000);
 
-    expect(game.state.phase).toBe('SUMMARY');
-    expect(game.state.lastSummary?.staffWages).toBe(1500);
-    expect(game.state.today.staffTasks).toEqual([]);
-    expect(game.state.today.results.some((result) => result.outcome !== 'LEFT')).toBe(true);
+    expect(game.state.lastSummary?.staffWages).toBe(2000);
+    expect(game.state.staff.map((member) => member.daysWorked)).toEqual([0, 1]);
+  });
+
+  it('an intern who reaches 30 days becomes a Junior at 60% pay and the summary carries a notice', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'INTERN' });
+    const intern = game.state.staff[0];
+    if (!intern) throw new Error('missing intern');
+    intern.daysWorked = 29;
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+
+    tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000);
+
+    expect(game.state.staff[0]).toMatchObject({ kind: 'JUNIOR', promoted: true, daysWorked: 30 });
+    expect(game.state.lastSummary?.staffNotices).toContainEqual({ type: 'PROMOTED', staffId: intern.id, name: intern.name });
+  });
+
+  it('wages grow every third day by 40% of the profit growth', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'INTERN' });
+    game.state.profitHistory.push(100, 100, 100, 100, 100);
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+
+    tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000);
+
+    // Ngày 15 chia hết cho 3: 3 ngày gần nhất (100, 100, lợi nhuận hôm nay) so với 3 ngày trước (100, 100, 100).
+    const profit = game.state.profitHistory.at(-1) ?? 0;
+    expect(game.state.wageRaise).toBe(Math.max(0, Math.round(0.4 * ((100 + 100 + profit) / 3 - 100))));
+  });
+
+  it('marketing raises the day target and teaching adds 0,5% for the quoted price', () => {
+    const base = richGame(15);
+    base.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    base.dispatch({ type: 'OPEN_COUNTER' });
+    const baseTarget = base.state.today.targetCustomers;
+
+    const boosted = richGame(15);
+    boosted.dispatch({ type: 'HIRE_STAFF', kind: 'MARKETING' });
+    boosted.dispatch({ type: 'TEACH_MARKETING' });
+    const moneyAfterTeach = boosted.state.money;
+    boosted.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+    boosted.dispatch({ type: 'OPEN_COUNTER' });
+
+    expect(boosted.state.staff[0]?.bonusPct).toBe(10.5);
+    expect(moneyAfterTeach).toBe(500_000 - 20_000 - 2000);
+    expect(boosted.state.today.targetCustomers).toBeGreaterThan(baseTarget);
   });
 });

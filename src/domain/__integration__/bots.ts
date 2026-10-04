@@ -1,5 +1,6 @@
-import { STAFF } from '@data/staff';
-import { checkHire } from '../staff';
+import { BAGGAGE_ERROR_PCT } from '@data/staff';
+import { checkHire, kindDefOf, presentStaff } from '../staff';
+import { rngFor } from '../rng';
 import { ROUTES } from '@data/routes';
 import { UPGRADES } from '@data/upgrades';
 import { counterCustomer, patienceRatioOf } from '../dayCycle';
@@ -11,7 +12,7 @@ import type { GameSession } from '../game';
 import { COST_RISE_PER_STEP } from '@data/pricing';
 import { inflationStep } from '../economy';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '../inventory';
-import type { CabinClass, Command, DayEvent, DomainEvent, GameState, Order, RouteId, SeatId } from '../models';
+import type { CabinClass, Command, DayEvent, DomainEvent, GameState, Order, RouteId, SeatId, StaffJob, StaffKind } from '../models';
 import { dayDemandProfile } from '../pricing';
 import { createRng, type Rng } from '../rng';
 import { matchesSeatPref, seatsOfCabin } from '../seatMap';
@@ -185,13 +186,13 @@ export const playShift = (game: GameSession, decide: Decide, serveTimeMs = 0, de
     const customer = counterCustomer(today);
     if (today.counter.state === 'READY_TO_DELIVER') {
       if (deliverRatio !== null) tickUntilRatio(game, events, deliverRatio);
-      else if (serveTimeMs > 0) tickExtra(game, events, serveTimeMs);
+      else if (serveTimeMs > 0) tickExtra(game, events, Math.max(0, serveTimeMs - staffTimeSavedMs(game.state)));
       // A slow bot can let the customer's patience run out while the ticket sits printed —
       // the domain already fires CUSTOMER_LEFT and resets the counter in that case.
       if (game.state.today.counter.state === 'READY_TO_DELIVER') events.push(...run(game, { type: 'DELIVER_TICKET' }));
     } else if (today.counter.state === 'BUILDING' && customer && !decided.has(customer.order.customerId)) {
       decided.add(customer.order.customerId);
-      const decision = decide(customer.order, servedIndex++, game.state);
+      const decision = withStaffMistakes(game.state, customer.order, decide(customer.order, servedIndex++, game.state));
       if (decision === 'REFUSE') events.push(...run(game, { type: 'REFUSE_CUSTOMER' }));
       else if (decision !== 'IGNORE') buildTicket(game, customer.order, decision);
     }
@@ -220,10 +221,28 @@ export const enableStaffHiring = (): void => {
   hireStaffInSim = true;
 };
 
+/** Thời gian người chơi tự làm mỗi việc (ms): nhân viên làm thay thì tiết kiệm đúng chừng đó cho mỗi khách. */
+const PLAYER_JOB_TIME_MS: Record<StaffJob, number> = { CABIN: 1500, STAMPS: 4000, BAGGAGE: 4000, SEAT: 3000, SERVICES: 2000 };
+
+const presentJobs = (state: Readonly<GameState>): StaffJob[] => presentStaff(state.staff, state.day).flatMap((member) => kindDefOf(member.kind)?.jobs ?? []);
+
+const staffTimeSavedMs = (state: Readonly<GameState>): number => presentJobs(state).reduce((total, job) => total + PLAYER_JOB_TIME_MS[job], 0);
+
+/** Middle cân hành lý sai theo xác suất; bot không kiểm tra lại nên vé bị trừ điểm (mô phỏng người chơi cẩu thả). */
+const withStaffMistakes = (state: Readonly<GameState>, order: Order, decision: Decision): Decision => {
+  if (decision !== 'CORRECT' || order.baggageKg === 0 || !presentJobs(state).includes('BAGGAGE')) return decision;
+  return rngFor(state.seed, state.day, `botstaff:${order.customerId}`).chance(BAGGAGE_ERROR_PCT / 100) ? 'WRONG_BAGGAGE' : decision;
+};
+
+const HIRE_PRIORITY: readonly StaffKind[] = ['MARKETING', 'MIDDLE', 'SENIOR', 'JUNIOR'];
+
 const hireAffordableStaff = (game: GameSession, keepForStock: number): void => {
-  for (const def of STAFF) {
+  for (const kind of HIRE_PRIORITY) {
     const { state } = game;
-    if (checkHire(def.id, state.staff, { day: state.day + 1, money: state.money - keepForStock - def.wagePerDay * 3 }).ok) run(game, { type: 'HIRE_STAFF', staffId: def.id });
+    const def = kindDefOf(kind);
+    if (!def) continue;
+    const spendable = state.money - keepForStock - def.baseWage * 5;
+    if (checkHire(kind, state.staff, { day: state.day + 1, money: spendable }).ok) run(game, { type: 'HIRE_STAFF', kind });
   }
 };
 

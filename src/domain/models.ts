@@ -144,7 +144,8 @@ export type TxType =
   | 'UPGRADE_PURCHASE'
   | 'ROUTE_UNLOCK'
   | 'STAFF_HIRE'
-  | 'STAFF_WAGE';
+  | 'STAFF_WAGE'
+  | 'STAFF_TRAIN';
 
 export interface Transaction {
   type: TxType;
@@ -165,6 +166,8 @@ export interface DaySummary {
   shopCost: number;
   /** Lương nhân viên trả lúc tổng kết ngày. */
   staffWages: number;
+  /** Thông báo cho ngày mai: ai nghỉ, ai được lên bậc. */
+  staffNotices: StaffNotice[];
   expiredSeats: number;
   expiredCost: number;
   refunds: number;
@@ -228,31 +231,40 @@ export interface CounterSlot {
   resolveLeftMs: number;
 }
 
-export type StaffId = string;
+export type StaffKind = 'INTERN' | 'JUNIOR' | 'MIDDLE' | 'SENIOR' | 'MARKETING';
+/** Việc trên vé mà nhân viên làm thay người chơi (người chơi luôn tự in và giao vé). */
+export type StaffJob = 'CABIN' | 'STAMPS' | 'BAGGAGE' | 'SEAT' | 'SERVICES';
+export type AbsenceReason = 'SICK' | 'FAMILY' | 'MATERNITY';
 
-export interface StaffDef {
-  id: StaffId;
+export interface StaffKindDef {
+  kind: StaffKind;
   hireCost: number;
-  wagePerDay: number;
-  /** Thời gian (ms) nhân viên cần để phục vụ xong một khách. */
-  serveMs: number;
-  /** Xác suất (%) ghi đúng cân hành lý; sai thì vé bị trừ điểm. */
-  accuracyPct: number;
+  baseWage: number;
+  jobs: readonly StaffJob[];
   minDay: number;
-  /** Xử lý được cả khách đòi ghế đầu/giữa/cuối. */
-  handlesSeatPositions: boolean;
+  /** Marketing không chiếm chỗ trong giới hạn nhân viên quầy. */
+  countsTowardCap: boolean;
 }
 
-/** Khách đang được nhân viên phục vụ: đã rời hàng chờ, ghế đã bán, chấm điểm khi hết `leftMs`. */
-export interface StaffTask {
-  staffId: StaffId;
-  customer: Customer;
-  leftMs: number;
-  flightId: string;
-  cabin: CabinClass;
-  seat: SeatId;
-  baggageKg: number;
+export interface StaffMember {
+  id: string;
+  kind: StaffKind;
+  name: string;
+  hiredDay: number;
+  /** Số ngày đã đi làm (thực tập sinh đủ ngày thì lên Junior). */
+  daysWorked: number;
+  /** Thực tập sinh đã lên Junior: lương = tỉ lệ của lương Junior. */
+  promoted: boolean;
+  /** Ngày cuối cùng còn nghỉ (tính cả ngày đó); null = đang đi làm. */
+  absentUntilDay: number | null;
+  absenceReason: AbsenceReason | null;
+  /** Marketing: % khách tăng thêm. */
+  bonusPct: number;
 }
+
+export type StaffNotice =
+  | { type: 'ABSENT'; staffId: string; name: string; kind: StaffKind; reason: AbsenceReason; untilDay: number }
+  | { type: 'PROMOTED'; staffId: string; name: string };
 
 export interface TodayState {
   moneyStart: number;
@@ -275,7 +287,6 @@ export interface TodayState {
   counter: CounterSlot;
   results: ScoreResult[];
   turnedAway: number;
-  staffTasks: StaffTask[];
 }
 
 export interface GameState {
@@ -291,8 +302,14 @@ export interface GameState {
   /** Day the route was bought in the shop. */
   routeUnlockedDay: Record<RouteId, number>;
   upgrades: UpgradeId[];
-  /** Nhân viên đã thuê (trả lương mỗi ngày). */
-  staff: StaffId[];
+  /** Nhân viên đang làm (trả lương mỗi ngày đi làm). */
+  staff: StaffMember[];
+  /** Số đếm để đặt id/tên nhân viên mới. */
+  staffSerial: number;
+  /** Lương mỗi người được cộng thêm theo lợi nhuận (k/ngày), tăng mỗi 3 ngày. */
+  wageRaise: number;
+  /** Lợi nhuận kinh doanh 6 ngày gần nhất (không tính lương), mới nhất ở cuối. */
+  profitHistory: number[];
   settings: Settings;
   flags: Record<string, boolean>;
   today: TodayState;
@@ -323,7 +340,9 @@ export type Command =
   | { type: 'GO_TO_SHOP' }
   | { type: 'SHOP_BUY_UPGRADE'; upgradeId: UpgradeId }
   | { type: 'SHOP_UNLOCK_ROUTE'; routeId: RouteId }
-  | { type: 'HIRE_STAFF'; staffId: StaffId }
+  | { type: 'HIRE_STAFF'; kind: StaffKind }
+  | { type: 'FIRE_STAFF'; staffId: string }
+  | { type: 'TEACH_MARKETING' }
   | { type: 'NEXT_DAY' }
   | { type: 'SETTINGS_UPDATE'; patch: Partial<Settings> }
   | { type: 'FLAG_SET'; flag: string };
@@ -349,6 +368,9 @@ export type DomainEvent =
   | { type: 'TRAVELVIET_UNLOCKED' }
   | { type: 'UPGRADE_BOUGHT'; upgradeId: UpgradeId }
   | { type: 'ROUTE_UNLOCKED'; routeId: RouteId }
-  | { type: 'STAFF_HIRED'; staffId: StaffId }
+  | { type: 'STAFF_HIRED'; staffId: string; kind: StaffKind }
+  | { type: 'STAFF_FIRED'; staffId: string }
+  | { type: 'MARKETING_TAUGHT'; bonusPct: number }
+  | { type: 'STAFF_ASSISTED'; staffId: string; kind: StaffKind; job: StaffJob }
   | { type: 'SETTINGS_UPDATED' }
   | { type: 'FLAG_SET'; flag: string };

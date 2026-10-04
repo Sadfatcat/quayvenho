@@ -10,6 +10,7 @@ import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
 import { buttonRow } from '@ui/layout';
+import { absentTodayLines } from '@ui/staffText';
 import { Stepper } from '@ui/Stepper';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { HOLIDAYS } from '@data/holidays';
@@ -132,9 +133,8 @@ export class PrepScene extends BaseScene {
 
   private bannerFor(state: GameState): string {
     const event = state.today.event;
-    if (event.type === 'RUSH') return this.holidayBanner(event.holidayId, event.hotRoutes);
-    if (event.type === 'WEATHER') return STRINGS.prep.bannerWeather;
-    return '';
+    const eventLine = event.type === 'RUSH' ? this.holidayBanner(event.holidayId, event.hotRoutes) : event.type === 'WEATHER' ? STRINGS.prep.bannerWeather : '';
+    return [eventLine, ...absentTodayLines(state)].filter((line) => line !== '').join('\n');
   }
 
   private renderFlightRow(flight: Flight): Phaser.GameObjects.Container {

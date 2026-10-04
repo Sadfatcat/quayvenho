@@ -40,7 +40,7 @@ function migrateV1ToV2(old: RawRecord): RawRecord {
   };
 }
 
-/** v2 → v3: thêm nhân viên (danh sách đã thuê, việc đang làm) và lương trong tổng kết. */
+/** v2 → v3: thêm danh sách nhân viên (dạng id cũ) và lương trong tổng kết. */
 function migrateV2ToV3(old: RawRecord): RawRecord {
   const today = asRecord(old.today);
   const summary = asRecord(old.lastSummary);
@@ -53,6 +53,39 @@ function migrateV2ToV3(old: RawRecord): RawRecord {
   };
 }
 
+/** Nhân viên v3 dùng id cũ (TRAINEE/VETERAN); v4 quy về Junior/Middle với dữ liệu mới. */
+const V3_STAFF_TO_KIND: Record<string, string> = { TRAINEE: 'JUNIOR', VETERAN: 'MIDDLE' };
+const V3_STAFF_NAMES = ['Thảo', 'Minh'];
+
+/** v3 → v4: nhân viên thành thực thể có id/tên/ngày công, thêm lương tăng + lịch sử lợi nhuận + thông báo tổng kết; bỏ việc tự bán của nhân viên. */
+function migrateV3ToV4(old: RawRecord): RawRecord {
+  const today = asRecord(old.today);
+  const summary = asRecord(old.lastSummary);
+  const oldStaff = Array.isArray(old.staff) ? old.staff : [];
+  const todayWithoutTasks: RawRecord = { ...today };
+  delete todayWithoutTasks.staffTasks;
+  return {
+    ...old,
+    version: 4,
+    staff: oldStaff.map((id, index) => ({
+      id: `s${index}`,
+      kind: V3_STAFF_TO_KIND[String(id)] ?? 'JUNIOR',
+      name: V3_STAFF_NAMES[index] ?? 'Nhân viên',
+      hiredDay: 1,
+      daysWorked: 0,
+      promoted: false,
+      absentUntilDay: null,
+      absenceReason: null,
+      bonusPct: 0,
+    })),
+    staffSerial: oldStaff.length,
+    wageRaise: 0,
+    profitHistory: [],
+    lastSummary: summary ? { ...summary, staffNotices: [] } : old.lastSummary,
+    today: today ? todayWithoutTasks : old.today,
+  };
+}
+
 /**
  * Save v0 (giả định, minh hoạ cách thêm migration thật sau này): chưa có
  * field `flags`. Chuỗi migration chạy tuần tự cho tới `SAVE_VERSION` hiện tại.
@@ -61,6 +94,7 @@ const migrations: Record<number, (old: Record<string, unknown>) => Record<string
   0: (old) => ({ ...old, version: 1, flags: old.flags ?? {} }),
   1: migrateV1ToV2,
   2: migrateV2ToV3,
+  3: migrateV3ToV4,
 };
 
 export type MigrateResult =

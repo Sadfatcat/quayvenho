@@ -3,6 +3,7 @@ import { TRAVELVIET_FROM_DAY } from '@data/demand';
 import { STRINGS } from '@data/strings';
 import type { DaySummary } from '@domain/models';
 import { Button } from '@ui/Button';
+import { noticeText } from '@ui/staffText';
 import { formatMoney } from '@ui/format';
 import { CountUpText } from '@ui/CountUpText';
 import { TEXT_STYLES } from '@ui/textStyles';
@@ -39,6 +40,7 @@ export class SummaryScene extends BaseScene {
   private countUps: CountUpText[] = [];
   private pendingTimers: Phaser.Time.TimerEvent[] = [];
   private continueButton!: Button;
+  private noticesShown = false;
 
   constructor() {
     super('Summary');
@@ -166,6 +168,15 @@ export class SummaryScene extends BaseScene {
   }
 
   private handleContinue(summary: DaySummary): void {
+    if (summary.staffNotices.length > 0 && !this.noticesShown) {
+      this.noticesShown = true;
+      new DialogOverlay(this, {
+        title: STRINGS.staff.notice.title,
+        message: summary.staffNotices.map((notice) => noticeText(notice, summary.day + 1)).join('\n\n'),
+        buttons: [{ label: STRINGS.staff.notice.ok, variant: 'primary', onTap: () => this.handleContinue(summary) }],
+      });
+      return;
+    }
     const state = sessionBridge.current.state;
     if (summary.day === TRAVELVIET_FROM_DAY - 1 && !state.flags['travelVietIntro']) {
       sessionBridge.dispatch({ type: 'FLAG_SET', flag: 'travelVietIntro' });

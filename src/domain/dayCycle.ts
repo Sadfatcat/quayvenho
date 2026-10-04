@@ -41,12 +41,15 @@ import type {
   BuildStep,
   Command,
   CounterSlot,
+  DaySummary,
   Customer,
   DomainEvent,
   GameState,
   Mood,
   RouteId,
   ScoreResult,
+  StaffJob,
+  StaffNotice,
   TicketDraft,
   TodayState,
   Transaction,
@@ -59,7 +62,25 @@ import { findFlight, generateFlights } from './schedule';
 import { scoreCustomer, type CustomerAction } from './scoring';
 import type { ShuffleBag } from './shuffleBag';
 import { generateArrivals } from './spawner';
-import { checkHire, dailyWages, findStaff, findStaffTicket, isStaffServable, sellSeat } from './staff';
+import {
+  buildAssistQueues,
+  checkHire,
+  checkTeachMarketing,
+  clearFinishedAbsences,
+  dailyWages,
+  marketingFactor,
+  newMember,
+  pickStaffFlight,
+  pickStaffSeat,
+  presentStaff,
+  promoteInterns,
+  pushProfit,
+  rollAbsences,
+  staffBaggageKg,
+  wageRaiseIncrement,
+  type AssistQueue,
+} from './staff';
+import { MARKETING, WAGE_RAISE_EVERY_DAYS } from '@data/staff';
 import { checkRouteUnlock, checkUpgrade, computeModifiers } from './upgrades';
 
 /** Per-shift RNG state; rebuilt deterministically at OPEN_COUNTER, never saved. */
@@ -67,6 +88,8 @@ export interface DayRuntime {
   routeBag: ShuffleBag<RouteId>;
   ordersRng: Rng;
   namesRng: Rng;
+  /** Phụ việc của nhân viên cho khách đang ở quầy (không lưu; dựng lại khi khách vào quầy). */
+  assist: { customerId: string; queues: AssistQueue[] } | null;
 }
 
 /** Mutable holder owned by GameSession. Commands and ticks mutate `state` in place. */
@@ -76,7 +99,6 @@ export interface Session {
   personal: PersonalConfig;
 }
 
-const STAFF_MISTAKE_BAGGAGE_KG = 15;
 export const TUTORIAL_FLAG = 'tutorialDone_1';
 const BUILD_STEPS: readonly BuildStep[] = ['FLIGHT', 'SEAT', 'EXTRAS', 'REVIEW'];
 
@@ -108,7 +130,6 @@ const createToday = (
   counter: emptyCounter(),
   results: [],
   turnedAway: 0,
-  staffTasks: [],
 });
 
 const applySafetyNet = (state: GameState): DomainEvent[] => {
@@ -135,6 +156,9 @@ export const createNewGame = (seed: number, personal: PersonalConfig = PERSONAL)
     routeUnlockedDay: {},
     upgrades: [],
     staff: [],
+    staffSerial: 0,
+    wageRaise: 0,
+    profitHistory: [],
     settings: { ...DEFAULT_SETTINGS },
     flags: {},
     today: createToday(seed, 1, unlockedRoutes, STARTING_MONEY, [], personal),
@@ -381,6 +405,8 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       if (!building()) return reject('NOT_BUILDING');
       today.seats = releaseHeld(today.seats);
       today.counter.draft = freshDraft();
+      // Làm lại thì nhân viên không làm lại cho khách này.
+      if (session.runtime?.assist) session.runtime.assist.queues = [];
       return [];
     }
 
@@ -448,12 +474,30 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
 
     case 'HIRE_STAFF': {
       if (!canShop(state)) return reject('WRONG_PHASE');
-      const result = checkHire(command.staffId, state.staff, shopContext(state));
+      const result = checkHire(command.kind, state.staff, shopContext(state));
       if (!result.ok) return reject(result.reason);
+      const member = newMember(command.kind, state.staffSerial++, shopTransactionDay(state));
       state.money -= result.value.hireCost;
-      state.staff.push(command.staffId);
-      shopTransactions(state).push(makeTx('STAFF_HIRE', -result.value.hireCost, shopTransactionDay(state), null, command.staffId));
-      return [{ type: 'STAFF_HIRED', staffId: command.staffId }];
+      state.staff.push(member);
+      shopTransactions(state).push(makeTx('STAFF_HIRE', -result.value.hireCost, shopTransactionDay(state), null, member.id));
+      return [{ type: 'STAFF_HIRED', staffId: member.id, kind: member.kind }];
+    }
+
+    case 'FIRE_STAFF': {
+      if (!canShop(state)) return reject('WRONG_PHASE');
+      if (!state.staff.some((member) => member.id === command.staffId)) return reject('UNKNOWN_STAFF');
+      state.staff = state.staff.filter((member) => member.id !== command.staffId);
+      return [{ type: 'STAFF_FIRED', staffId: command.staffId }];
+    }
+
+    case 'TEACH_MARKETING': {
+      if (!canShop(state)) return reject('WRONG_PHASE');
+      const result = checkTeachMarketing(state.staff, state.money);
+      if (!result.ok) return reject(result.reason);
+      state.money -= result.value.cost;
+      result.value.member.bonusPct += MARKETING.stepPct;
+      shopTransactions(state).push(makeTx('STAFF_TRAIN', -result.value.cost, shopTransactionDay(state), null, result.value.member.id));
+      return [{ type: 'MARKETING_TAUGHT', bonusPct: result.value.member.bonusPct }];
     }
 
     case 'NEXT_DAY': {
@@ -517,7 +561,7 @@ const openCounter = (session: Session): DomainEvent[] => {
     rating: travelVietScore(state.starHistory),
     rush: isRush(today.event),
   });
-  today.targetCustomers = clamp(Math.round(baseTarget * demandProfile.averagePriceFactor), MIN_CUSTOMERS, MAX_CUSTOMERS);
+  today.targetCustomers = clamp(Math.round(baseTarget * demandProfile.averagePriceFactor * marketingFactor(state.staff, day)), MIN_CUSTOMERS, MAX_CUSTOMERS);
   today.arrivals = generateArrivals(rngFor(seed, day, 'spawn'), today.targetCustomers);
   today.nextArrivalIndex = 0;
   today.clock = SHOP_OPEN_MINUTE;
@@ -525,6 +569,7 @@ const openCounter = (session: Session): DomainEvent[] => {
     routeBag: buildRouteBag(rngFor(seed, day, 'routes'), state.unlockedRoutes, state.routeUnlockedDay, day, demandProfile.routeWeightMultiplier),
     ordersRng: rngFor(seed, day, 'orders'),
     namesRng: rngFor(seed, day, 'names'),
+    assist: null,
   };
   state.phase = 'OPEN';
   events.push({ type: 'DAY_OPENED', targetCustomers: today.targetCustomers });
@@ -549,7 +594,7 @@ export const advanceTime = (session: Session, deltaMs: number): DomainEvent[] =>
     state.phase = 'CLOSING';
     events.push({ type: 'DAY_CLOSING' });
   }
-  promoteNextCustomer(state, events);
+  promoteNextCustomer(session, events);
   tickPatience(state, delta, events);
   endDayIfDone(session, events);
   return events;
@@ -573,46 +618,69 @@ const tickCounter = (state: GameState, delta: number, events: DomainEvent[]): vo
   }
 };
 
-/** Nhân viên rảnh nhận khách đầu tiên trong hàng chờ mà họ xử lý được; phục vụ xong thì chấm điểm như giao vé bình thường. */
-const tickStaff = (session: Session, delta: number, events: DomainEvent[]): void => {
+type AssistOutcome = 'DONE' | 'SKIP' | 'WAIT';
+
+/** Làm một việc của nhân viên trên vé nháp của khách ở quầy: bỏ qua nếu người chơi đã tự làm, chờ nếu chưa đủ điều kiện (vd. chưa có chuyến để chọn ghế). */
+const applyAssistStep = (session: Session, customer: Customer, job: StaffJob): AssistOutcome => {
   const { state } = session;
   const { today } = state;
-  if (!state.staff.length) return;
-
-  const finished = today.staffTasks.filter((task) => (task.leftMs -= delta) <= 0);
-  today.staffTasks = today.staffTasks.filter((task) => !finished.includes(task));
-  for (const task of finished) {
-    const flight = findFlight(today.flights, task.flightId);
-    invariant(flight, 'staff task refers to a missing flight');
-    const result = scoreAction(state, task.customer, {
-      type: 'DELIVER',
-      ticket: { flight, cabin: task.cabin, seat: task.seat, baggageKg: task.baggageKg, extras: [] },
-    });
-    recordResult(state, result);
-    events.push({ type: 'TICKET_SCORED', result });
-  }
-
-  for (const staffId of state.staff) {
-    const def = findStaff(staffId);
-    if (!def || today.staffTasks.some((task) => task.staffId === staffId)) continue;
-    for (const customer of today.queue) {
-      if (customer.position !== 'QUEUE' || !isStaffServable(customer.order, state.day, def)) continue;
-      const ticket = findStaffTicket(customer.order, today.flights, today.seats);
-      if (!ticket) continue;
-      const accurate = rngFor(state.seed, state.day, `staff:${customer.order.customerId}`).chance(def.accuracyPct / 100);
-      today.queue = today.queue.filter((candidate) => candidate !== customer);
-      today.seats = sellSeat(today.seats, ticket.flight.id, ticket.seat);
-      today.staffTasks.push({
-        staffId,
-        customer,
-        leftMs: def.serveMs,
-        flightId: ticket.flight.id,
-        cabin: customer.order.cabin,
-        seat: ticket.seat,
-        baggageKg: accurate ? customer.order.baggageKg : customer.order.baggageKg === 0 ? STAFF_MISTAKE_BAGGAGE_KG : 0,
-      });
-      break;
+  const draft = today.counter.draft;
+  if (!draft) return 'SKIP';
+  const { order } = customer;
+  switch (job) {
+    case 'CABIN':
+      if (draft.cabin !== null) return 'SKIP';
+      draft.cabin = order.cabin;
+      return 'DONE';
+    case 'STAMPS': {
+      if (draft.routeStamp !== null || draft.timeStamp !== null) return 'SKIP';
+      const flight = pickStaffFlight(order, today.flights, today.seats);
+      if (!flight) return 'SKIP';
+      draft.routeStamp = flight.routeId;
+      draft.timeStamp = flight.departAt;
+      resolveStampedFlight(session, draft);
+      return 'DONE';
     }
+    case 'BAGGAGE': {
+      if (order.baggageKg === 0 || draft.baggageKg !== 0) return 'SKIP';
+      draft.baggageKg = snapBaggage(staffBaggageKg(order, rngFor(state.seed, state.day, `staffbag:${order.customerId}`)));
+      return 'DONE';
+    }
+    case 'SEAT': {
+      if (draft.seat !== null) return 'SKIP';
+      if (!draft.flightId || !draft.cabin) return 'WAIT';
+      const flight = findFlight(today.flights, draft.flightId);
+      const seat = flight ? pickStaffSeat(order, flight, draft.cabin, today.seats) : undefined;
+      if (!seat) return 'SKIP';
+      const held = holdSeat(today.seats, draft.flightId, draft.cabin, seat);
+      if (!held.ok) return 'SKIP';
+      today.seats = held.value;
+      draft.seat = seat;
+      return 'DONE';
+    }
+    case 'SERVICES':
+      if (!isMechanicOpen('extras', state.day) || order.extras.length === 0 || draft.extras.length > 0) return 'SKIP';
+      draft.extras = [...order.extras];
+      return 'DONE';
+  }
+};
+
+/** Nhân viên đi làm lần lượt làm phần việc của mình cho khách đang lắp vé; người chơi vẫn luôn là người in và giao vé. */
+const tickStaff = (session: Session, delta: number, events: DomainEvent[]): void => {
+  const assist = session.runtime?.assist;
+  if (!assist) return;
+  const { today } = session.state;
+  const customer = counterCustomer(today);
+  if (!customer || customer.order.customerId !== assist.customerId || today.counter.state !== 'BUILDING') return;
+  for (const queue of assist.queues) {
+    const step = queue.steps[0];
+    if (!step) continue;
+    step.waitMs = Math.max(0, step.waitMs - delta);
+    if (step.waitMs > 0) continue;
+    const outcome = applyAssistStep(session, customer, step.job);
+    if (outcome === 'WAIT') continue;
+    queue.steps.shift();
+    if (outcome === 'DONE') events.push({ type: 'STAFF_ASSISTED', staffId: queue.staffId, kind: queue.kind, job: step.job });
   }
 };
 
@@ -661,12 +729,14 @@ const spawnArrivals = (state: GameState, runtime: DayRuntime, personal: Personal
   }
 };
 
-const promoteNextCustomer = (state: GameState, events: DomainEvent[]): void => {
+const promoteNextCustomer = (session: Session, events: DomainEvent[]): void => {
+  const { state } = session;
   const { today } = state;
   const next = today.queue[0];
   if (today.counter.state !== 'EMPTY' || !next) return;
   next.position = 'COUNTER';
   today.counter = { state: 'BUILDING', draft: freshDraft(), printLeftMs: 0, resolveLeftMs: 0 };
+  if (session.runtime) session.runtime.assist = { customerId: next.order.customerId, queues: buildAssistQueues(state.staff, state.day) };
   events.push({ type: 'CUSTOMER_AT_COUNTER', customerId: next.order.customerId });
 };
 
@@ -701,10 +771,24 @@ const tickPatience = (state: GameState, delta: number, events: DomainEvent[]): v
 
 /** Lương nhân viên trừ lúc tổng kết; tiền không bao giờ âm nên nếu quỹ không đủ thì chỉ trừ phần còn có. */
 const payStaffWages = (state: GameState): void => {
-  const wages = Math.min(dailyWages(state.staff), state.money);
+  const wages = Math.min(dailyWages(state.staff, state.day, state.wageRaise), state.money);
   if (wages === 0) return;
   state.money -= wages;
   state.today.transactions.push(makeTx('STAFF_WAGE', -wages, state.day, Math.floor(state.today.clock)));
+};
+
+/**
+ * Hết ngày: người đi làm tăng ngày công, thực tập sinh đủ ngày lên Junior, ghi lợi nhuận kinh doanh (không tính lương),
+ * mỗi 3 ngày lương tăng theo lợi nhuận, rồi tung nghỉ ngẫu nhiên cho ngày mai. Trả thông báo hiện ở màn tổng kết.
+ */
+const finishStaffDay = (state: GameState, summary: DaySummary): StaffNotice[] => {
+  for (const member of presentStaff(state.staff, state.day)) member.daysWorked++;
+  const notices: StaffNotice[] = promoteInterns(state.staff);
+  state.profitHistory = pushProfit(state.profitHistory, summary.moneyEnd - summary.moneyStart + summary.shopCost + summary.staffWages);
+  if (state.day % WAGE_RAISE_EVERY_DAYS === 0) state.wageRaise += wageRaiseIncrement(state.profitHistory);
+  clearFinishedAbsences(state.staff, state.day + 1);
+  notices.push(...rollAbsences(state.staff, state.seed, state.day + 1));
+  return notices;
 };
 
 /** Vé bán vượt trần giá: một phần bị huỷ lúc tổng kết — hoàn tiền vé + tip, ghế vẫn đã dùng (không bán lại được). */
@@ -726,7 +810,7 @@ const cancelOverCapTickets = (state: GameState): void => {
 const endDayIfDone = (session: Session, events: DomainEvent[]): void => {
   const { state } = session;
   const { today } = state;
-  if (state.phase !== 'CLOSING' || today.queue.length || today.staffTasks.length || today.counter.state !== 'EMPTY') return;
+  if (state.phase !== 'CLOSING' || today.queue.length || today.counter.state !== 'EMPTY') return;
 
   today.seats = expireAvailable(today.seats);
   const refund = refundFor(
@@ -751,6 +835,7 @@ const endDayIfDone = (session: Session, events: DomainEvent[]): void => {
     turnedAway: today.turnedAway,
     travelVietAfter: isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null,
   });
+  summary.staffNotices = finishStaffDay(state, summary);
   state.lastSummary = summary;
   state.phase = 'SUMMARY';
   session.runtime = null;

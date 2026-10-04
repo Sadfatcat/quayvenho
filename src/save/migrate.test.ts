@@ -7,11 +7,11 @@ describe('migrateSave', () => {
 
     const result = migrateSave(v0);
 
-    expect(result).toMatchObject({ ok: true, value: { seed: 1, day: 1, version: 3, flags: {} } });
+    expect(result).toMatchObject({ ok: true, value: { seed: 1, day: 1, version: 4, flags: {} } });
   });
 
   it('giữ nguyên save đã đúng version hiện tại', () => {
-    const current = { version: 3, seed: 1, day: 1 };
+    const current = { version: 4, seed: 1, day: 1 };
 
     const result = migrateSave(current);
 
@@ -38,11 +38,14 @@ describe('migrateSave', () => {
     expect(result).toEqual({
       ok: true,
       value: {
-        version: 3,
+        version: 4,
         staff: [],
+        staffSerial: 0,
+        wageRaise: 0,
+        profitHistory: [],
         money: 6000,
         nextDayTransactions: [{ type: 'WEATHER_LOSS', amount: -150, day: 2, minute: null }],
-        lastSummary: { day: 1, moneyStart: 6000, moneyEnd: 6975, ticketRevenue: 1500, penalties: 150, cancelledTickets: 0, cancelRefunds: 0, staffWages: 0 },
+        lastSummary: { day: 1, moneyStart: 6000, moneyEnd: 6975, ticketRevenue: 1500, penalties: 150, cancelledTickets: 0, cancelRefunds: 0, staffWages: 0, staffNotices: [] },
         today: {
           moneyStart: 6975,
           event: { type: 'RUSH', holidayId: 'NATIONAL_DAY', hotRoutes: [] },
@@ -50,18 +53,51 @@ describe('migrateSave', () => {
           transactions: [{ type: 'TICKET_REVENUE', amount: 1125, day: 2, minute: 500 }],
           seats: [{ flightId: 'F', seat: '1A', cabin: 'ECONOMY', unitCost: 750, state: 'AVAILABLE' }],
           results: [{ customerId: 'c1', revenue: 1125, tip: 0, penalty: 0, overCap: false }],
-          staffTasks: [],
         },
       },
     });
   });
 
-  it('nâng save v2 lên v3: thêm danh sách nhân viên, việc của nhân viên và lương trong tổng kết', () => {
+  it('nâng save v2 lên v4: thêm nhân viên, lương tăng, lịch sử lợi nhuận và thông báo tổng kết', () => {
     const v2 = { version: 2, lastSummary: { day: 1 }, today: { clock: 480 } };
 
     const result = migrateSave(v2);
 
-    expect(result).toEqual({ ok: true, value: { version: 3, staff: [], lastSummary: { day: 1, staffWages: 0 }, today: { clock: 480, staffTasks: [] } } });
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        version: 4,
+        staff: [],
+        staffSerial: 0,
+        wageRaise: 0,
+        profitHistory: [],
+        lastSummary: { day: 1, staffWages: 0, staffNotices: [] },
+        today: { clock: 480 },
+      },
+    });
+  });
+
+  it('nâng save v3 lên v4: nhân viên cũ thành thực thể Junior/Middle, bỏ việc tự bán', () => {
+    const v3 = { version: 3, staff: ['TRAINEE', 'VETERAN'], lastSummary: { day: 5, staffWages: 600 }, today: { clock: 480, staffTasks: [] } };
+
+    const result = migrateSave(v3);
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        version: 4,
+        staffSerial: 2,
+        wageRaise: 0,
+        profitHistory: [],
+        lastSummary: { day: 5, staffWages: 600, staffNotices: [] },
+        today: { clock: 480 },
+        staff: [
+          { id: 's0', kind: 'JUNIOR', promoted: false, daysWorked: 0, absentUntilDay: null },
+          { id: 's1', kind: 'MIDDLE', promoted: false, daysWorked: 0, absentUntilDay: null },
+        ],
+      },
+    });
+    expect((result as unknown as { value: { today: Record<string, unknown> } }).value.today).not.toHaveProperty('staffTasks');
   });
 
   it('từ chối save có version lớn hơn bản đang chạy', () => {

@@ -5,7 +5,7 @@ import { counterCustomer } from '@domain/dayCycle';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
 import { isMechanicOpen } from '@domain/dayConfig';
 import { formatClock } from '@domain/clock';
-import type { Command, DomainEvent, GameState, ScoreResult } from '@domain/models';
+import type { Command, DomainEvent, GameState, ScoreResult, StaffKind } from '@domain/models';
 import { getRoute } from '@domain/routes';
 import { GAME_WIDTH } from '../config';
 import { registerVisibilityHandler } from '@platform/visibility';
@@ -18,6 +18,8 @@ import { QueueStrip } from '@ui/QueueStrip';
 import { showFloatingText } from '@ui/FloatingText';
 import { buttonRow, MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
+import { isAbsentOn } from '@domain/staff';
+import { kindName } from '@ui/staffText';
 import { ToastQueue } from '@ui/Toast';
 import { TopBar } from '@ui/TopBar';
 import { BACK_PRESSED_EVENT, BaseScene } from './BaseScene';
@@ -37,6 +39,10 @@ const DOCK_Y = 1170;
 const HEADER_TEXT_Y = 146;
 const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 262 };
 const FEEDBACK_Y = 330;
+const STAFF_TOAST_MS = 1200;
+const STAFF_CHIP_RADIUS = 18;
+const STAFF_CHIP_GAP = 8;
+const STAFF_CHIP_COLOR: Record<StaffKind, number> = { INTERN: COLORS.textMuted, JUNIOR: COLORS.teal, MIDDLE: COLORS.accent, SENIOR: COLORS.primary, MARKETING: COLORS.moneyGreen };
 
 const rejectedLabel = (reason: string): string =>
   (STRINGS.counter.rejectedReasons as Record<string, string>)[reason] ?? STRINGS.counter.rejectedFallback;
@@ -54,6 +60,8 @@ export class CounterScene extends BaseScene {
   private mainButton!: Button;
   private passportButton!: Button;
   private topBar!: TopBar;
+  private staffChips!: Phaser.GameObjects.Container;
+  private staffChipsSignature = '';
 
   private pauseOverlay: PauseOverlay | null = null;
   private unsubscribeEvents: (() => void) | null = null;
@@ -108,6 +116,7 @@ export class CounterScene extends BaseScene {
     this.eventBadge = this.add.text(GAME_WIDTH / 2, HEADER_TEXT_Y, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.warning) }).setOrigin(0.5);
 
     this.waitingText = this.add.text(GAME_WIDTH / 2, 290, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
+    this.staffChips = this.add.container(0, 0);
     this.queueStrip = new QueueStrip(this);
     this.customerCard = new CustomerCard(this);
     this.desk = new CounterDesk(this, { dispatch: (command) => this.dispatch(command) });
@@ -140,6 +149,7 @@ export class CounterScene extends BaseScene {
 
     const counter = counterCustomer(state.today);
     const queuedCount = state.today.queue.filter((candidate) => candidate.position === 'QUEUE').length;
+    this.renderStaffChips(state);
     this.queueStrip.update(state.today.queue);
     this.customerCard.update(counter, specialLinesOf(counter?.order.special?.id)?.arrive);
     this.waitingText.setVisible(!counter && queuedCount === 0);
@@ -148,6 +158,24 @@ export class CounterScene extends BaseScene {
     this.updateButtons(state);
 
     if (state.phase === 'SUMMARY') this.scene.start('Summary');
+  }
+
+  /** Chip tròn nhỏ cho từng nhân viên ở lề phải hàng đầu: màu theo bậc, mờ đi nếu hôm nay nghỉ. */
+  private renderStaffChips(state: GameState): void {
+    const signature = state.staff.map((member) => `${member.id}:${member.kind}:${member.absentUntilDay ?? ''}`).join(',') + `@${state.day}`;
+    if (signature === this.staffChipsSignature) return;
+    this.staffChipsSignature = signature;
+    this.staffChips.removeAll(true);
+    const absentIds = new Set(state.staff.filter((member) => isAbsentOn(member, state.day)).map((member) => member.id));
+    state.staff.forEach((member, index) => {
+      const x = GAME_WIDTH - SCREEN_MARGIN - STAFF_CHIP_RADIUS - index * (STAFF_CHIP_RADIUS * 2 + STAFF_CHIP_GAP);
+      const absent = absentIds.has(member.id);
+      const disc = this.add.graphics();
+      disc.fillStyle(STAFF_CHIP_COLOR[member.kind], absent ? 0.35 : 1);
+      disc.fillCircle(x, HEADER_TEXT_Y, STAFF_CHIP_RADIUS);
+      const initial = this.add.text(x, HEADER_TEXT_Y, member.name.charAt(0), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5);
+      this.staffChips.add([disc, initial]);
+    });
   }
 
   private eventBadgeText(state: GameState): string {
@@ -192,6 +220,9 @@ export class CounterScene extends BaseScene {
         this.toasts.show(STRINGS.counter.rejectedPrefix + rejectedLabel(event.reason));
       } else if (event.type === 'TICKET_SCORED') {
         this.showScoreFeedback(event.result);
+      } else if (event.type === 'STAFF_ASSISTED') {
+        const member = sessionBridge.current.state.staff.find((candidate) => candidate.id === event.staffId);
+        this.toasts.show(`${member?.name ?? kindName(event.kind)}: ${STRINGS.staff.jobDone[event.job] ?? ''}`, STAFF_TOAST_MS);
       }
     }
   }
