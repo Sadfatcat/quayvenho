@@ -54,4 +54,4 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - **Đã dùng:** 16 khách thường × 3 biểu cảm (c01–c16, nền đã tách, khung 192 px cao) thay hoàn toàn bản cũ. Tạo atlas: `node tools/buildAtlas.mjs`.
 - **Còn dùng ảnh cũ độ phân giải thấp:** 2 khách VIP, Béo (6 tư thế), logo. Cần tạo lại theo `docs/PROMPT_ANH_V2.md` mục 1 (Béo), 2 (VIP), 3 (logo).
 - **Chưa có:** nền màn hình (Quầy, Kho, Tổng kết, Shop, Title), icon, nút/bảng UI, bưu thiếp tuyến bay.
-- Ghi chú: khách c10 trong game là người đàn ông kính râm vest; thứ tự gán c01–c16 theo  trong .
+- Ghi chú: thứ tự gán c01–c16 theo `CUSTOMER_FILES` trong `tools/buildAtlas.mjs` (c10 là người đàn ông kính râm vest).
