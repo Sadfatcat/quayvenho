@@ -57,10 +57,10 @@ describe('ratingBonus', () => {
 });
 
 describe('customersForDay', () => {
-  it('ignores TravelViet before day 11', () => {
-    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: false })).toBe(5);
-    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: true })).toBe(7);
-    expect(customersForDay({ seed: 1, day: 10, rating: 5, rush: false })).toBe(baseCustomers(1, 10));
+  it('ignores TravelViet before day 11 and adds 20% early-days customers', () => {
+    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: false })).toBe(6);
+    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: true })).toBe(8);
+    expect(customersForDay({ seed: 1, day: 10, rating: 5, rush: false })).toBe(Math.round(baseCustomers(1, 10) * 1.2));
   });
 
   it('applies factor from day 11', () => {

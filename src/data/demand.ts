@@ -1,5 +1,7 @@
 export const BASE_CUSTOMERS_DAY_1 = 5;
 export const EARLY_GROWTH = { untilDay: 10, min: 1, max: 3 } as const;
+/** Hệ số khách cho những ngày đầu (trước khi mở TravelViet), để game đỡ vắng lúc mới chơi. */
+export const EARLY_DAYS_CUSTOMER_MULT = 1.2;
 export const LATE_GROWTH = { min: 1, max: 2 } as const;
 
 export const TRAVELVIET_FROM_DAY = 11;

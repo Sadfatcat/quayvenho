@@ -3,6 +3,7 @@ import {
   BONUS_FROM_TENTHS,
   BONUS_TIERS,
   DEMAND_FACTORS,
+  EARLY_DAYS_CUSTOMER_MULT,
   EARLY_GROWTH,
   LATE_GROWTH,
   MAX_CUSTOMERS,
@@ -62,6 +63,7 @@ export const customersForDay = (input: { seed: number; day: number; rating: numb
   const open = isTravelVietOpen(input.day);
   const factor = open ? demandFactor(input.rating) : 1;
   const bonus = open ? ratingBonus(input.seed, input.day, input.rating) : 0;
-  const raw = (base * factor + bonus) * (input.rush ? RUSH_CUSTOMER_MULT : 1);
+  const earlyMult = open ? 1 : EARLY_DAYS_CUSTOMER_MULT;
+  const raw = (base * factor + bonus) * earlyMult * (input.rush ? RUSH_CUSTOMER_MULT : 1);
   return clamp(Math.round(raw), MIN_CUSTOMERS, MAX_CUSTOMERS);
 };
