@@ -14,6 +14,7 @@ import { burstCoins } from '@ui/CoinBurst';
 import { CounterDesk } from '@ui/CounterDesk';
 import { CustomerCard } from '@ui/CustomerCard';
 import { formatMoney } from '@ui/format';
+import { QueueStrip } from '@ui/QueueStrip';
 import { showFloatingText } from '@ui/FloatingText';
 import { buttonRow, MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
@@ -34,8 +35,8 @@ const SHAKE_DURATION_MS = 180;
 const SHAKE_INTENSITY = 0.006;
 const DOCK_Y = 1170;
 const HEADER_TEXT_Y = 146;
-const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 150 };
-const FEEDBACK_Y = 300;
+const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 262 };
+const FEEDBACK_Y = 330;
 
 const rejectedLabel = (reason: string): string =>
   (STRINGS.counter.rejectedReasons as Record<string, string>)[reason] ?? STRINGS.counter.rejectedFallback;
@@ -45,6 +46,7 @@ export class CounterScene extends BaseScene {
   private brandText!: Phaser.GameObjects.Text;
   private eventBadge!: Phaser.GameObjects.Text;
   private waitingText!: Phaser.GameObjects.Text;
+  private queueStrip!: QueueStrip;
   private customerCard!: CustomerCard;
   private desk!: CounterDesk;
   private retryButton!: Button;
@@ -106,6 +108,7 @@ export class CounterScene extends BaseScene {
     this.eventBadge = this.add.text(GAME_WIDTH / 2, HEADER_TEXT_Y, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.warning) }).setOrigin(0.5);
 
     this.waitingText = this.add.text(GAME_WIDTH / 2, 290, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
+    this.queueStrip = new QueueStrip(this);
     this.customerCard = new CustomerCard(this);
     this.desk = new CounterDesk(this, { dispatch: (command) => this.dispatch(command) });
 
@@ -137,7 +140,8 @@ export class CounterScene extends BaseScene {
 
     const counter = counterCustomer(state.today);
     const queuedCount = state.today.queue.filter((candidate) => candidate.position === 'QUEUE').length;
-    this.customerCard.update(counter, queuedCount, specialLinesOf(counter?.order.special?.id)?.arrive);
+    this.queueStrip.update(state.today.queue);
+    this.customerCard.update(counter, specialLinesOf(counter?.order.special?.id)?.arrive);
     this.waitingText.setVisible(!counter && queuedCount === 0);
     this.passportButton.setVisible(!!counter && isMechanicOpen('badPassport', state.day));
     this.desk.renderFrame(state);

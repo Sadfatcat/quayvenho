@@ -9,7 +9,7 @@ import { computeModifiers } from '@domain/upgrades';
 import type { CabinClass, Command, Extra, GameState } from '@domain/models';
 import { getRoute } from '@domain/routes';
 import { BaggageSlider } from './BaggageSlider';
-import { Button } from './Button';
+import { audio } from '@platform/audio';
 import { DeskTicket } from './DeskTicket';
 import { DragController } from './DragController';
 import { formatMoney } from './format';
@@ -20,7 +20,7 @@ import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
 
 /** Toạ độ thiết kế (720×1280) của các vùng trên quầy; kéo vé lên trên `DELIVER_LINE_Y` là giao cho khách. */
 const LAYOUT = {
-  dispenser: { x: 24, y: 436, width: 226, buttonHeight: 88, gap: 14 },
+  dispenser: { x: 24, y: 440, width: 226, gap: 14 },
   ticketSpot: { x: 266, y: 432, width: 430, height: 208 },
   stampTray: { x: 24, y: 654, width: 416, height: 320 },
   seatPanel: { x: 456, y: 654, width: 240, height: 320 },
@@ -29,6 +29,11 @@ const LAYOUT = {
 } as const;
 export const DELIVER_LINE_Y = 430;
 
+const STACK_LAYERS = 6;
+const STACK_LAYER_OFFSET = 7;
+const STACK_CARD_HEIGHT = 96;
+const STACK_TOP_PADDING = 6;
+const STACK_HEIGHT = STACK_TOP_PADDING + STACK_CARD_HEIGHT + STACK_LAYER_OFFSET * (STACK_LAYERS - 1) + 8;
 const STAMP_HEIGHT = 62;
 const STAMP_ROW_GAP = 6;
 const STAMP_GAP = 8;
@@ -113,23 +118,43 @@ export class CounterDesk extends Phaser.GameObjects.Container {
 
   // ---------- vé: kho vé + chỗ đặt vé ----------
 
+  /** Hai chồng vé (thường / thương gia) như chồng cốc: bấm vào chồng để rút một vé đặt lên bàn. */
   private drawDispenser(parent: Phaser.GameObjects.Container, state: GameState): void {
+    const scene = this.scene;
     const draft = state.today.counter.draft;
-    const { x, y, width, buttonHeight, gap } = LAYOUT.dispenser;
-    const tickets: { cabin: CabinClass; label: string }[] = [
-      { cabin: 'ECONOMY', label: STRINGS.counter.desk.economyTicket },
-      { cabin: 'BUSINESS', label: STRINGS.counter.desk.businessTicket },
+    const { x, y, width, gap } = LAYOUT.dispenser;
+    const stackWidth = (width - gap) / 2;
+    const stacks: { cabin: CabinClass; label: string; color: number }[] = [
+      { cabin: 'ECONOMY', label: STRINGS.counter.desk.economyTicket, color: COLORS.teal },
+      { cabin: 'BUSINESS', label: STRINGS.counter.desk.businessTicket, color: COLORS.accent },
     ];
-    tickets.forEach(({ cabin, label }, index) => {
-      parent.add(
-        new Button(this.scene, x + width / 2, y + buttonHeight / 2 + index * (buttonHeight + gap), {
-          width,
-          height: buttonHeight,
-          label,
-          variant: draft?.cabin === cabin ? 'primary' : 'ghost',
-          onTap: () => this.dispatch({ type: 'BUILD_TAKE_TICKET', cabin }),
-        }),
-      );
+    stacks.forEach(({ cabin, label, color }, index) => {
+      const left = x + index * (stackWidth + gap);
+      const selected = draft?.cabin === cabin;
+      const g = scene.add.graphics();
+      const baseTop = y + STACK_TOP_PADDING;
+      for (let layer = STACK_LAYERS - 1; layer >= 0; layer--) {
+        const top = baseTop + layer * STACK_LAYER_OFFSET;
+        g.fillStyle(layer === 0 ? color : COLORS.cloud, 1);
+        g.fillRoundedRect(left + 4, top, stackWidth - 8, STACK_CARD_HEIGHT, 10);
+        g.lineStyle(3, COLORS.primaryDark, 1);
+        g.strokeRoundedRect(left + 4, top, stackWidth - 8, STACK_CARD_HEIGHT, 10);
+      }
+      if (selected) {
+        g.lineStyle(5, COLORS.success, 1);
+        g.strokeRoundedRect(left - 2, y, stackWidth + 4, STACK_HEIGHT, 14);
+      }
+      const centerX = left + stackWidth / 2;
+      const mark = scene.add.text(centerX, baseTop + STACK_CARD_HEIGHT / 2, '🎫', { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
+      const caption = scene.add
+        .text(centerX, y + STACK_HEIGHT + 22, label, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: stackWidth } })
+        .setOrigin(0.5);
+      const hit = scene.add.zone(centerX, y + (STACK_HEIGHT + 44) / 2, stackWidth, STACK_HEIGHT + 44).setInteractive({ useHandCursor: true });
+      hit.on('pointerup', () => {
+        audio.playSfx('click');
+        this.dispatch({ type: 'BUILD_TAKE_TICKET', cabin });
+      });
+      parent.add([g, mark, caption, hit]);
     });
   }
 
