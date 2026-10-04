@@ -23,7 +23,7 @@ export const noticeText = (notice: StaffNotice, tomorrow: number): string => {
   return fill(template, {
     name: notice.name,
     kind: kindName(notice.kind),
-    reason: T.absence[notice.reason] ?? notice.reason,
+    reason: T.absence[notice.reason],
     days: daysText(notice.untilDay - tomorrow + 1),
     jobs,
   });
@@ -33,17 +33,18 @@ export const noticeText = (notice: StaffNotice, tomorrow: number): string => {
 export const absentTodayLines = (state: Readonly<GameState>): string[] =>
   state.staff
     .filter((member) => isAbsentOn(member, state.day) && member.absenceReason !== null)
-    .map((member) => {
-      const jobs = jobsText(member.kind);
-      if (member.kind === 'INTERN') return null;
-      return fill(member.kind === 'MARKETING' ? T.notice.todayAbsentMarketing : T.notice.todayAbsent, {
-        name: member.name,
-        kind: kindName(member.kind),
-        reason: T.absence[member.absenceReason ?? ''] ?? '',
-        jobs,
-      });
-    })
-    .filter((line): line is string => line !== null);
+    .flatMap((member) =>
+      member.kind === 'INTERN' || member.absenceReason === null
+        ? []
+        : [
+            fill(member.kind === 'MARKETING' ? T.notice.todayAbsentMarketing : T.notice.todayAbsent, {
+              name: member.name,
+              kind: kindName(member.kind),
+              reason: T.absence[member.absenceReason],
+              jobs: jobsText(member.kind),
+            }),
+          ],
+    );
 
 export const memberDetail = (member: StaffMember): string => {
   const jobs = jobsText(member.kind);

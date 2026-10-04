@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PROFILE_LIMITS } from '@data/balance';
+import { MARKETING } from '@data/staff';
 
 /**
  * Validates + clamps dữ liệu save đọc từ localStorage. Không đối chiếu với
@@ -126,12 +127,12 @@ const staffMemberSchema = z.object({
   id: z.string(),
   kind: staffKindSchema,
   name: z.string(),
-  hiredDay: z.number().finite(),
+  hiredDay: z.number().int().min(1),
   daysWorked: nonNegIntSchema,
   promoted: z.boolean(),
-  absentUntilDay: z.number().finite().nullable(),
+  absentUntilDay: z.number().int().nullable(),
   absenceReason: absenceReasonSchema.nullable(),
-  bonusPct: z.number().finite().min(0),
+  bonusPct: z.number().finite().min(0).max(MARKETING.maxBonusPct),
 });
 
 const staffNoticeSchema = z.discriminatedUnion('type', [

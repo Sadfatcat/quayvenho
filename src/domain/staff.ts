@@ -13,6 +13,7 @@ import {
 import { STAFF_NAMES } from '@data/staffNames';
 import { BAGGAGE_MARKS } from '@data/balance';
 import { err, ok, type Result } from './common/result';
+import { roundMoney } from './economy';
 import { matchesTimePref } from './clock';
 import type { Flight, Order, OwnedSeat, SeatId, StaffJob, StaffKind, StaffKindDef, StaffMember, StaffNotice } from './models';
 import type { Rng } from './rng';
@@ -29,7 +30,7 @@ const countsTowardCap = (member: StaffMember): boolean => kindDefOf(member.kind)
 
 /** Lương một ngày đi làm: lương gốc (thực tập sinh đã lên bậc lấy tỉ lệ lương Junior) cộng phần tăng theo lợi nhuận. */
 export const wageOf = (member: StaffMember, wageRaise: number): number => {
-  const base = member.promoted ? Math.round((kindDefOf('JUNIOR')?.baseWage ?? 0) * PROMOTED_WAGE_RATIO) : (kindDefOf(member.kind)?.baseWage ?? 0);
+  const base = member.promoted ? roundMoney((kindDefOf('JUNIOR')?.baseWage ?? 0) * PROMOTED_WAGE_RATIO) : (kindDefOf(member.kind)?.baseWage ?? 0);
   return base + wageRaise;
 };
 
@@ -184,7 +185,7 @@ export const wageRaiseIncrement = (profitHistory: readonly number[]): number => 
   if (profitHistory.length < WAGE_WINDOW_DAYS * 2) return 0;
   const recent = average(profitHistory.slice(-WAGE_WINDOW_DAYS));
   const previous = average(profitHistory.slice(-WAGE_WINDOW_DAYS * 2, -WAGE_WINDOW_DAYS));
-  return Math.max(0, Math.round((WAGE_RAISE_PROFIT_SHARE * (recent - previous)) / WAGE_RAISE_SPLIT));
+  return roundMoney((WAGE_RAISE_PROFIT_SHARE * (recent - previous)) / WAGE_RAISE_SPLIT);
 };
 
 /** Giữ 6 ngày lợi nhuận gần nhất. */

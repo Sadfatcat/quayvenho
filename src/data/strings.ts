@@ -1,3 +1,4 @@
+import type { AbsenceReason } from '@domain/models';
 export const STRINGS = {
   gameTitle: 'Quầy Vé Nhỏ',
   common: {
@@ -130,7 +131,7 @@ export const STRINGS = {
       SICK: 'nghỉ ốm',
       FAMILY: 'nghỉ vì gia đình có việc',
       MATERNITY: 'nghỉ thai sản',
-    } as Record<string, string>,
+    } satisfies Record<AbsenceReason, string>,
     notice: {
       absentWithJobs: '{name} ({kind}) {reason} {days}. Phụ trách: {jobs}. Bạn tự làm việc này nhé.',
       absentMarketing: '{name} ({kind}) {reason} {days}: hôm đó không kéo thêm được khách.',

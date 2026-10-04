@@ -1,6 +1,6 @@
 # Việc chưa làm được — ghi chú để chủ dự án xem sau
 
-Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ bạn.
+Cập nhật: 2026-10-04. Mỗi mục ghi lý do chưa làm và cần gì từ bạn.
 
 ## 1. Thiết kế (thư mục `DESIGN/`)
 
@@ -11,11 +11,11 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 
 ## 2. Quyết định cần bạn (ảnh hưởng thiết kế/luật)
 
-- **Thanh điều hướng 4 tab** (Phục vụ / Kho vé / Sơ đồ ghế / Nâng cấp) trong mockup: PLAN chuyển màn tuần tự, không có tab tự do. Có thêm không?
+- ~~Thanh điều hướng 4 tab~~ **Đã làm ở giai đoạn 9**: Mua vé / Giá vé / Đồ hỗ trợ / Nhân viên chuyển qua lại tự do (`ManagementTabs`).
 - **Hồ sơ khách** (hạng thẻ "Thẻ Bạc", tâm trạng, nút gọi chuông), **nút "Đổi ghế"**, **"Soạn hồ sơ"**: chưa có trong PLAN/domain.
 - **Màu cảnh báo/lỗi** và màu mức khẩn khách: STYLE.md đang đề xuất, bạn chưa chốt.
 - **Duyệt văn bản** `docs/STORY_DRAFT.md` (PLAN D11 bắt buộc bạn duyệt).
-- **Mua máy bay / thuê nhân viên:** PLAN §17 ghi "không làm ở bản đầu"; làm thì cần mô tả luật.
+- ~~Thuê nhân viên~~ **Đã làm ở giai đoạn 9** (`docs/PLAN_NHAN_VIEN.md`). **Mua máy bay vẫn chưa làm** (PLAN §17 ghi không làm ở bản đầu); làm thì cần mô tả luật.
 
 ## 3. Cần thiết bị thật hoặc tài khoản
 
@@ -38,7 +38,7 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 
 ## 6. Gợi ý cho cân bằng game (từ sim)
 
-- Bot hoàn hảo cuối game có ~2,2 triệu k (2,2 tỉ đồng): chưa có khoản chi lớn để tiêu. PLAN §17 (mua máy bay, thuê nhân viên, nợ/vay) là chỗ giải quyết; cần bạn mô tả luật nếu muốn làm.
+- Bot hoàn hảo cuối game giờ có hàng triệu k nhờ lạm phát giá vé; khoản chi lớn hiện có là nhân viên (lương tăng theo lợi nhuận) và nâng cấp. Mua máy bay/nợ/vay (PLAN §17) vẫn là chỗ để tiêu tiền nếu muốn, cần bạn mô tả luật.
 - Người chơi chậm hoặc hay sai (POOR) gần như đứng yên ở ~10k, không mở thêm tuyến. Nếu muốn dễ hơn cho người mới: nâng `STARTING_MONEY` hoặc giảm `SEAT_COST_FACTOR` thêm.
 - Kết quả sim phụ thuộc bot; người thật có thể chơi khác. Nên chơi thử và báo cảm giác (quá dễ/khó ở ngày nào) để chỉnh tiếp.
 
@@ -67,3 +67,12 @@ Cập nhật: 2026-10-02. Mỗi mục ghi lý do chưa làm và cần gì từ b
 - Cân bằng nhân viên (tiền thuê, lương, tốc độ, độ chính xác) mới thử bằng `HIRE=1 npm run sim`, cần chủ dự án chơi thử rồi chỉnh.
 - Nâng cấp `SEARCH_FILTER` ("Ô lọc chuyến") không còn tác dụng vì màn Quầy mới không có danh sách chuyến; cần bỏ hoặc đổi tác dụng.
 - Chưa có tutorial giới thiệu nhân viên và 4 mục quản lý.
+
+## 11. Việc của giai đoạn 9 còn mở
+
+- **Số cân bằng chưa duyệt:** tiền thuê, lương gốc, mốc mở thuê, xác suất nghỉ, giá dạy việc marketing, hệ số lạm phát (xem `docs/PLAN_NHAN_VIEN.md` mục 12). Cần chơi thử rồi báo để chỉnh. Chạy thử kinh tế nhân viên: `HIRE=1 npm run sim`.
+- **Ảnh nhân viên:** chưa có (prompt ở `docs/PLAN_NHAN_VIEN.md` mục 13). Thẻ nhân viên đang dùng chữ cái đầu tên làm ảnh đại diện.
+- **Tutorial nhân viên:** chưa có thẻ Béo giới thiệu mục Nhân viên và lần tăng giá vé gốc đầu tiên (ngày 4).
+- **Nhân viên chưa hiện hiệu ứng nhìn thấy được trên Quầy** ngoài chip tròn ở góc và thông báo ngắn khi họ làm xong một việc (chưa có hoạt ảnh vé bay ra, dấu tự đóng).
+- **Nâng cấp `SEARCH_FILTER`** không còn tác dụng ở Quầy mới (không có danh sách chuyến): bỏ hoặc đổi tác dụng.
+- **Kiểm UI chưa làm lần cuối** (theo yêu cầu hạn chế Playwright): mục Nhân viên sau khi chỉnh cỡ chữ nút, thông báo nhân viên nghỉ/lên bậc ở màn Tổng kết, banner nhân viên nghỉ ở Kho, chip nhân viên ở Quầy.

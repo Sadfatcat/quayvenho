@@ -116,7 +116,10 @@ export const migrateSave = (raw: Record<string, unknown>): MigrateResult => {
       return { ok: false, reason: 'UNKNOWN_VERSION' };
     }
     data = step(data);
-    version = typeof data.version === 'number' ? data.version : version + 1;
+    const nextVersion = typeof data.version === 'number' ? data.version : version + 1;
+    // Một bước migration quên nâng `version` sẽ làm vòng lặp quay mãi: coi như không migrate được.
+    if (nextVersion <= version) return { ok: false, reason: 'UNKNOWN_VERSION' };
+    version = nextVersion;
   }
 
   return { ok: true, value: data };

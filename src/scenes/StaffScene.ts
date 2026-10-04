@@ -124,7 +124,7 @@ export class StaffScene extends BaseScene {
     const name = this.add.text(textLeft, top + 18, `${member.name} · ${kindName(member.kind)}`, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(COLORS.text), wordWrap: { width: textWidth } }).setOrigin(0, 0);
     const detail = member.kind === 'INTERN' ? T.learning : memberDetail(member);
     const absent = isAbsentOn(member, day);
-    const status = absent ? `${T.absence[member.absenceReason ?? ''] ?? ''}` : detail;
+    const status = absent ? member.absenceReason ? T.absence[member.absenceReason] : '' : detail;
     const detailText = this.add.text(textLeft, top + 48, status, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(absent ? COLORS.danger : COLORS.textMuted), wordWrap: { width: textWidth } }).setOrigin(0, 0);
     const wage = this.add.text(left + 16, top + SLOT.height - 36, `${T.wagePerDay}: ${formatMoney(wageOf(member, wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5);
     const fire = new Button(this, left + width - FIRE_BUTTON.width / 2 - 12, top + SLOT.height - 36, { width: FIRE_BUTTON.width, height: FIRE_BUTTON.height, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
@@ -139,7 +139,7 @@ export class StaffScene extends BaseScene {
     const centerY = MARKETING_STRIP.top + MARKETING_STRIP.height / 2;
     this.dynamicLayer.add(new Panel(this, GAME_WIDTH / 2, centerY, { width, height: MARKETING_STRIP.height, fill: COLORS.cloud, strokeColor: COLORS.moneyGreen }));
     const absent = isAbsentOn(member, state.day);
-    const title = `${member.name} · ${kindName(member.kind)}${absent ? ` — ${T.absence[member.absenceReason ?? ''] ?? ''}` : ''}`;
+    const title = `${member.name} · ${kindName(member.kind)}${absent ? ` — ${member.absenceReason ? T.absence[member.absenceReason] : ''}` : ''}`;
     const nextCost = member.bonusPct >= MARKETING.maxBonusPct ? null : marketingTeachCost(member.bonusPct);
     const teach = checkTeachMarketing(state.staff, state.money);
     this.dynamicLayer.add([
