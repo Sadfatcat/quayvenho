@@ -30,11 +30,14 @@ export interface ButtonOptions {
   width?: number;
   height?: number;
   label: string;
+  /** Cỡ chữ nhãn (px); mặc định hợp với nút cao 88px, nút nhỏ nên đặt nhỏ hơn. */
+  fontSize?: number;
   variant?: ButtonVariant;
   onTap: () => void;
 }
 
 const OUTLINE_WIDTH = 2;
+const DEFAULT_LABEL_FONT_PX = 30;
 
 /**
  * Tap-to-press pill button (PLAN §11.1, STYLE §4): face sinks onto its extruded base while held, dims when disabled or locked.
@@ -68,7 +71,7 @@ export class Button extends Phaser.GameObjects.Container {
     this.labelText = scene.add
       .text(0, 0, options.label, {
         fontFamily: HEADING_FONT_FAMILY,
-        fontSize: '30px',
+        fontSize: `${options.fontSize ?? DEFAULT_LABEL_FONT_PX}px`,
         fontStyle: 'bold',
         color: toCssColor(VARIANT_TEXT[this.variant]),
       })

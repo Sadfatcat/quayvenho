@@ -29,6 +29,7 @@ const CARD_HEIGHT = 190;
 const CARD_GAP = 14;
 const AVATAR_RADIUS = 30;
 const FIRE_BUTTON = { width: 130, height: 48 };
+const SMALL_BUTTON_FONT_PX = 20;
 const KIND_COLORS: Record<StaffKind, number> = { INTERN: COLORS.textMuted, JUNIOR: COLORS.teal, MIDDLE: COLORS.accent, SENIOR: COLORS.primary, MARKETING: COLORS.moneyGreen };
 
 const hireStatusText = (reason: HireError, def: StaffKindDef): string => {
@@ -126,7 +127,7 @@ export class StaffScene extends BaseScene {
     const status = absent ? `${T.absence[member.absenceReason ?? ''] ?? ''}` : detail;
     const detailText = this.add.text(textLeft, top + 48, status, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(absent ? COLORS.danger : COLORS.textMuted), wordWrap: { width: textWidth } }).setOrigin(0, 0);
     const wage = this.add.text(left + 16, top + SLOT.height - 36, `${T.wagePerDay}: ${formatMoney(wageOf(member, wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5);
-    const fire = new Button(this, left + width - FIRE_BUTTON.width / 2 - 12, top + SLOT.height - 36, { width: FIRE_BUTTON.width, height: FIRE_BUTTON.height, label: T.fire, variant: 'ghost', onTap: () => this.confirmFire(member) });
+    const fire = new Button(this, left + width - FIRE_BUTTON.width / 2 - 12, top + SLOT.height - 36, { width: FIRE_BUTTON.width, height: FIRE_BUTTON.height, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
     this.dynamicLayer.add([avatar, initial, name, detailText, wage, fire]);
   }
 
@@ -145,15 +146,16 @@ export class StaffScene extends BaseScene {
       this.add.text(SIDE_MARGIN + 16, MARKETING_STRIP.top + 20, title, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(absent ? COLORS.danger : COLORS.text) }).setOrigin(0, 0.5),
       this.add.text(SIDE_MARGIN + 16, MARKETING_STRIP.top + 52, `${bonusText(member)} · ${T.wagePerDay}: ${formatMoney(wageOf(member, state.wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '17px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
     ]);
-    const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - 240, centerY, {
-      width: 230,
+    const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - 160, centerY, {
+      width: 210,
       height: 56,
+      fontSize: SMALL_BUTTON_FONT_PX,
       label: nextCost === null ? T.teachMax : `${T.teach} (−${formatMoney(nextCost)})`,
       variant: 'primary',
       onTap: () => sessionBridge.dispatch({ type: 'TEACH_MARKETING' }),
     });
     teachButton.setEnabled(teach.ok);
-    const fire = new Button(this, GAME_WIDTH - SIDE_MARGIN - 62, centerY, { width: 110, height: 56, label: T.fire, variant: 'ghost', onTap: () => this.confirmFire(member) });
+    const fire = new Button(this, GAME_WIDTH - SIDE_MARGIN - 48, centerY, { width: 96, height: 56, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
     this.dynamicLayer.add([teachButton, fire]);
   }
 
