@@ -25,7 +25,7 @@ import { getDayConfig, isMechanicOpen } from './dayConfig';
 import { customersForDay, isTravelVietOpen, travelVietScore } from './demand';
 import { makeTx, moneyBalances, refundFor, summarizeDay } from './economy';
 import { isRush, resolveWeather, rollDayEvent } from './events';
-import { clampPricePct, dayDemandProfile } from './pricing';
+import { clampPricePct, dayDemandProfile, isPricingOpen } from './pricing';
 import { buildSpecialOrder, dayHasPersonalContent, ensureServableForSpecial, specialCustomerForArrival } from './personal';
 import {
   expireAvailable,
@@ -290,6 +290,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
         bias: today.seatBias,
         rng: rngFor(state.seed, state.day, `purchase:${today.purchaseCount}`),
         day: state.day,
+        event: today.event,
       });
       if (!result.ok) return reject(result.reason);
       today.seats = result.value.seats;
@@ -304,6 +305,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
 
     case 'SET_ROUTE_PRICE': {
       if (state.phase !== 'PREP') return reject('WRONG_PHASE');
+      if (!isPricingOpen(state.day)) return reject('PRICING_LOCKED');
       if (!state.unlockedRoutes.includes(command.routeId)) return reject('ROUTE_LOCKED');
       if (!Number.isFinite(command.pct)) return reject('BAD_PRICE');
       today.priceAdjustPct = { ...today.priceAdjustPct, [command.routeId]: clampPricePct(command.pct) };

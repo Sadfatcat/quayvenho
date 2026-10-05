@@ -10,6 +10,7 @@ import {
   MIN_CUSTOMERS,
   TRAVELVIET_DEFAULT,
   TRAVELVIET_FROM_DAY,
+  TRAVELVIET_RAMP_DAYS,
   TRAVELVIET_WINDOW,
 } from '@data/demand';
 import { RUSH_CUSTOMER_MULT } from '@data/events';
@@ -57,13 +58,19 @@ export const ratingBonus = (seed: number, day: number, rating: number): number =
   return bonus;
 };
 
-/** §3.9. `rating` is TravelViet at the end of the previous day. */
+/** 0 trước ngày mở TravelViet, tăng đều tới 1 sau `TRAVELVIET_RAMP_DAYS` ngày: tỉ lệ ảnh hưởng của TravelViet lên số khách. */
+export const travelVietBlend = (day: number): number =>
+  clamp((day - TRAVELVIET_FROM_DAY + 1) / TRAVELVIET_RAMP_DAYS, 0, 1);
+
+const lerp = (from: number, to: number, blend: number): number => from + (to - from) * blend;
+
+/** §3.9. `rating` is TravelViet at the end of the previous day. Từ ngày mở TravelViet, ảnh hưởng của nó được trộn dần (xem `travelVietBlend`). */
 export const customersForDay = (input: { seed: number; day: number; rating: number; rush: boolean }): number => {
   const base = baseCustomers(input.seed, input.day);
-  const open = isTravelVietOpen(input.day);
-  const factor = open ? demandFactor(input.rating) : 1;
-  const bonus = open ? ratingBonus(input.seed, input.day, input.rating) : 0;
-  const earlyMult = open ? 1 : EARLY_DAYS_CUSTOMER_MULT;
+  const blend = travelVietBlend(input.day);
+  const factor = lerp(1, demandFactor(input.rating), blend);
+  const bonus = blend > 0 ? ratingBonus(input.seed, input.day, input.rating) * blend : 0;
+  const earlyMult = lerp(EARLY_DAYS_CUSTOMER_MULT, 1, blend);
   const raw = (base * factor + bonus) * earlyMult * (input.rush ? RUSH_CUSTOMER_MULT : 1);
   return clamp(Math.round(raw), MIN_CUSTOMERS, MAX_CUSTOMERS);
 };

@@ -8,6 +8,7 @@ import {
   PRICE_ELASTICITY_NORMAL,
   PRICE_MAX_PCT,
   PRICE_MIN_PCT,
+  PRICING_UNLOCK_DAY,
 } from '@data/pricing';
 import { ROUTES } from '@data/routes';
 import { clamp } from './common/math';
@@ -16,6 +17,8 @@ import type { DayEvent, RouteId } from './models';
 export type PricePctByRoute = Readonly<Partial<Record<RouteId, number>>>;
 
 export const clampPricePct = (pct: number): number => clamp(Math.round(pct), PRICE_MIN_PCT, PRICE_MAX_PCT);
+
+export const isPricingOpen = (day: number): boolean => day >= PRICING_UNLOCK_DAY;
 
 export const isOverCap = (pct: number): boolean => pct > PRICE_CAP_PCT;
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MS_PER_GAME_MINUTE } from '../config';
 import { invariant } from './common/invariant';
 import { purchaseCost } from './economy';
 import { getRoute } from './routes';
@@ -171,7 +172,7 @@ describe('shift', () => {
     const game = newGame();
     openWithSeats(game);
     game.tick(5000);
-    expect(game.state.today.clock).toBeCloseTo(480.2);
+    expect(game.state.today.clock).toBeCloseTo(480 + 100 / MS_PER_GAME_MINUTE);
   });
 
   it('builds, prints and delivers a correct ticket', () => {
@@ -213,7 +214,7 @@ describe('shift', () => {
     game.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
     const events = tickUntil(game, () => game.state.today.counter.state === 'RESOLVING');
     expect(events).toContainEqual(expect.objectContaining({ type: 'CUSTOMER_LEFT' }));
-    expect(game.state.today.results[0]).toMatchObject({ outcome: 'LEFT', stars: 1, penalty: 150 });
+    expect(game.state.today.results[0]).toMatchObject({ outcome: 'LEFT', stars: 1 });
     expect(game.state.today.seats.every((s) => s.state === 'AVAILABLE')).toBe(true);
   });
 

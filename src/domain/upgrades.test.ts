@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BASE_MODIFIERS } from '@data/balance';
 import { rollDayEvent, resolveWeather } from './events';
 import { getRoute } from './routes';
 import { needsSupport, supportGift } from './safetyNet';
@@ -7,13 +8,13 @@ import { checkRouteUnlock, checkUpgrade, computeModifiers } from './upgrades';
 
 describe('computeModifiers', () => {
   it('base values without upgrades', () => {
-    expect(computeModifiers([])).toMatchObject({ patienceMult: 1, tipMult: 1, printMs: 3000, queueMax: 4, refundRate: 0 });
+    expect(computeModifiers([])).toMatchObject({ patienceMult: 1, tipMult: 1, printMs: 3000, queueMax: BASE_MODIFIERS.queueMax, refundRate: BASE_MODIFIERS.refundRate });
   });
 
   it('multipliers stack by product, others override', () => {
     const mods = computeModifiers(['COMFY_CHAIRS', 'FAN', 'FAST_PRINTER', 'BIGGER_COUNTER', 'REFUND_POLICY', 'AIRLINE_RELATIONS', 'LOYALTY_BOARD']);
     expect(mods.patienceMult).toBeCloseTo(1.32);
-    expect(mods).toMatchObject({ tipMult: 1.15, printMs: 1500, queueMax: 6, refundRate: 0.3, seatBias: true });
+    expect(mods).toMatchObject({ tipMult: 1.15, printMs: 1500, queueMax: 12, refundRate: 0.7, seatBias: true });
   });
 });
 
@@ -36,7 +37,7 @@ describe('shop checks', () => {
     expect(checkRouteUnlock('HAN-CXR', unlocked, ctx)).toEqual({ ok: true, value: 3750 });
     expect(checkRouteUnlock('HAN-SGN', unlocked, ctx)).toEqual({ ok: false, reason: 'ALREADY_UNLOCKED' });
     expect(checkRouteUnlock('HAN-BKK', unlocked, ctx)).toEqual({ ok: false, reason: 'TRAVELVIET_LOCKED' });
-    expect(checkRouteUnlock('HAN-BKK', unlocked, { ...ctx, day: 11, travelViet: 3.7 })).toEqual({ ok: false, reason: 'TRAVELVIET_TOO_LOW' });
+    expect(checkRouteUnlock('HAN-BKK', unlocked, { ...ctx, day: 11, travelViet: 3.4 })).toEqual({ ok: false, reason: 'TRAVELVIET_TOO_LOW' });
     expect(checkRouteUnlock('HAN-BKK', unlocked, { ...ctx, day: 11 })).toEqual({ ok: true, value: 12000 });
     expect(checkRouteUnlock('HAN-PQC', unlocked, { ...ctx, money: 10 })).toEqual({ ok: false, reason: 'NOT_ENOUGH_MONEY' });
     expect(checkRouteUnlock('XXX', unlocked, ctx)).toEqual({ ok: false, reason: 'UNKNOWN_ROUTE' });
@@ -44,7 +45,7 @@ describe('shop checks', () => {
 });
 
 describe('events', () => {
-  it('rates converge: RUSH 15%, WEATHER 25%, NONE 60%; weather 40/40/20', () => {
+  it('rates converge: RUSH 15%, WEATHER 30%, NONE 55%; weather 30/50/20', () => {
     const counts = { RUSH: 0, WEATHER: 0, NONE: 0 };
     const weather = { GOOD: 0, BAD: 0, SEVERE: 0 };
     const n = 20_000;
@@ -58,8 +59,8 @@ describe('events', () => {
       weather[resolveWeather(seed, 3)]++;
     }
     expect(counts.RUSH / n).toBeCloseTo(0.15, 1);
-    expect(counts.WEATHER / n).toBeCloseTo(0.25, 1);
-    expect(weather.GOOD / n).toBeCloseTo(0.4, 1);
+    expect(counts.WEATHER / n).toBeCloseTo(0.3, 1);
+    expect(weather.GOOD / n).toBeCloseTo(0.3, 1);
     expect(weather.SEVERE / n).toBeCloseTo(0.2, 1);
   });
 

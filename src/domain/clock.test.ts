@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MS_PER_GAME_MINUTE } from '../config';
 import { SHOP_CLOSE_MINUTE, SHOP_OPEN_MINUTE } from '@data/schedule';
 import { advanceClock, formatClock, matchesTimePref, timeWindowOf } from './clock';
 
@@ -14,9 +15,9 @@ describe('clock', () => {
     expect(formatClock(1530.9)).toBe('01:30');
   });
 
-  it('advances 1 game minute per 500 ms', () => {
-    expect(advanceClock(480, 500)).toBe(481);
-    expect(advanceClock(480, 100)).toBeCloseTo(480.2);
+  it('advances 1 game minute per MS_PER_GAME_MINUTE', () => {
+    expect(advanceClock(480, MS_PER_GAME_MINUTE)).toBe(481);
+    expect(advanceClock(480, 100)).toBeCloseTo(480 + 100 / MS_PER_GAME_MINUTE);
   });
 
   it('NIGHT/LATE boundary at midnight', () => {

@@ -4,12 +4,12 @@ import {
   ACCURACY_OK,
   BAGGAGE_TOLERANCE_KG,
   BUSINESS_DEDUCTION_MULT,
-  OUTCOME_PENALTY,
+  OUTCOME_PENALTY_RATE,
   OUTCOME_STARS,
   PERFECT_MIN_SPEED,
 } from '@data/balance';
 import { matchesTimePref } from './clock';
-import { businessTip, clampPenalty, fareOf, routeOnDay, ticketRevenue } from './economy';
+import { businessTip, clampPenalty, fareOf, penaltyFor, routeOnDay, ticketRevenue } from './economy';
 import type { CabinClass, Extra, Flight, MistakeCode, Order, Passport, ScoreOutcome, ScoreResult, SeatId, Stars } from './models';
 import { isOverCap } from './pricing';
 import { getRoute } from './routes';
@@ -75,13 +75,14 @@ const outcomeOf = (accuracy: number, speed: number): ScoreOutcome =>
 
 const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
   const { order, action } = input;
+  const orderFare = fareOf(routeOnDay(getRoute(order.routeId), input.day), order.cabin, input.pricePct);
   const result = (outcome: ScoreOutcome, mistakes: MistakeCode[], revenue = 0, tip = 0): ScoreResult => ({
     customerId: order.customerId,
     outcome,
     stars: OUTCOME_STARS[outcome],
     revenue,
     tip,
-    penalty: clampPenalty(OUTCOME_PENALTY[outcome], input.money),
+    penalty: clampPenalty(penaltyFor(orderFare, OUTCOME_PENALTY_RATE[outcome], input.day), input.money),
     mistakes,
     overCap: isOverCap(input.pricePct),
   });
@@ -103,7 +104,7 @@ const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
   if (outcome === 'POOR') return result('POOR', mistakes);
 
   const route = routeOnDay(getRoute(order.routeId), input.day);
-  const revenue = ticketRevenue(order, route, input.pricePct);
+  const revenue = ticketRevenue(order, route, input.pricePct, input.day);
   const tip =
     outcome === 'PERFECT' && order.cabin === 'BUSINESS'
       ? businessTip(fareOf(route, 'BUSINESS', input.pricePct), input.tipMult)

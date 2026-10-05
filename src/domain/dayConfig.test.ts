@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { PATIENCE_SCALE } from '@data/days';
+import { PATIENCE_MIN_MS, PATIENCE_SCALE } from '@data/days';
 import { getDayConfig, isMechanicOpen } from './dayConfig';
-import { SEAT_COST_FACTOR } from '@data/balance';
+import { SEAT_MARGIN_BY_ROUTE } from '@data/balance';
 import { getRoute, routeNumber, startingRouteIds } from './routes';
 
 describe('getDayConfig', () => {
@@ -16,11 +16,11 @@ describe('getDayConfig', () => {
     expect(getDayConfig(9).maxComplexity).toBe(5);
   });
 
-  it('decays patience by 2% per day from day 11, floored at 24000', () => {
+  it('decays patience by 2% per day from day 11, floored at PATIENCE_MIN_MS', () => {
     expect(getDayConfig(10).patienceBaseMs).toBe(Math.round(36000 * PATIENCE_SCALE));
     expect(getDayConfig(11).patienceBaseMs).toBe(Math.round(36000 * 0.98 * PATIENCE_SCALE));
     expect(getDayConfig(12).patienceBaseMs).toBe(Math.round(36000 * 0.98 ** 2 * PATIENCE_SCALE));
-    expect(getDayConfig(200).patienceBaseMs).toBe(24000);
+    expect(getDayConfig(200).patienceBaseMs).toBe(PATIENCE_MIN_MS);
   });
 
   it('rejects invalid days', () => {
@@ -38,7 +38,7 @@ describe('isMechanicOpen', () => {
 
 describe('routes', () => {
   it('looks up routes and their stable numbers', () => {
-    expect(getRoute('HAN-DAD').cost.ECONOMY).toBe(Math.round((730 * SEAT_COST_FACTOR) / 10) * 10);
+    expect(getRoute('HAN-DAD').cost.ECONOMY).toBe(Math.round((1100 * (1 - (SEAT_MARGIN_BY_ROUTE['HAN-DAD'] ?? 0))) / 10) * 10);
     expect(routeNumber('HAN-SGN')).toBe(1);
     expect(() => getRoute('XXX')).toThrow();
     expect(startingRouteIds()).toEqual(['HAN-SGN', 'HAN-DAD']);

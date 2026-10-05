@@ -13,7 +13,7 @@ import { COST_RISE_PER_STEP } from '@data/pricing';
 import { inflationStep } from '../economy';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '../inventory';
 import type { CabinClass, Command, DayEvent, DomainEvent, GameState, Order, RouteId, SeatId, StaffJob, StaffKind } from '../models';
-import { dayDemandProfile } from '../pricing';
+import { dayDemandProfile, isPricingOpen } from '../pricing';
 import { createRng, type Rng } from '../rng';
 import { matchesSeatPref, seatsOfCabin } from '../seatMap';
 import { isPassportValid } from '../scoring';
@@ -129,7 +129,7 @@ export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1,
     const key = pendingKey(unit.flightId, unit.cabin);
     const next = (pending[key] ?? 0) + 1;
     if (next > maxPurchasable(flight, unit.cabin, today.seats)) continue;
-    if (pendingTotalCost({ ...pending, [key]: next }, today.flights, state.day) > budget) continue;
+    if (pendingTotalCost({ ...pending, [key]: next }, today.flights, state.day, today.event) > budget) continue;
     pending[key] = next;
   }
   for (const [key, qty] of Object.entries(pending)) {
@@ -277,6 +277,7 @@ export const FLAT_PRICING: PricingStrategy = () => 0;
 
 const setPrices = (game: GameSession, pricing: PricingStrategy): void => {
   const { state } = game;
+  if (!isPricingOpen(state.day)) return;
   for (const routeId of state.unlockedRoutes) run(game, { type: 'SET_ROUTE_PRICE', routeId, pct: pricing({ event: state.today.event, routeId }) });
 };
 

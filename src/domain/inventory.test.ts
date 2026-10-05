@@ -17,7 +17,7 @@ import {
   sellHeld,
 } from './inventory';
 import { makeFlight } from './__integration__/fixtures';
-import type { Flight, OwnedSeat } from './models';
+import type { DayEvent, Flight, OwnedSeat } from './models';
 import { createRng } from './rng';
 import { isWindow, seatsOfCabin } from './seatMap';
 
@@ -36,6 +36,20 @@ const owned = (seat: OwnedSeat['seat'], state: OwnedSeat['state'] = 'AVAILABLE',
 
 const buy = (pending: Record<string, number>, money = 100000, seats: OwnedSeat[] = [], flights = [flight()]) =>
   purchasePending({ pending, flights, seats, money, bias: 'BALANCED', rng: createRng(1) });
+
+describe('inventory: weather forecast discount', () => {
+  it('charges and records half the unit cost on the forecast route', () => {
+    const event: DayEvent = { type: 'WEATHER', routeId: 'HAN-DAD', outcome: null };
+    const pending = { [pendingKey('QV201', 'ECONOMY')]: 5 };
+    const half = Math.round(DAD_ECONOMY_COST * 0.5);
+    const result = purchasePending({ pending, flights: [flight()], seats: [], money: 100000, bias: 'BALANCED', rng: createRng(1), event });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.totalCost).toBe(purchaseCost(half, 5));
+    expect(result.value.seats.every((s) => s.unitCost === half)).toBe(true);
+    expect(pendingTotalCost(pending, [flight()], 1, event)).toBe(purchaseCost(half, 5));
+  });
+});
 
 describe('inventory: purchase', () => {
   it('free seats exclude other agents and owned seats', () => {

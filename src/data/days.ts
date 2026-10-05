@@ -23,6 +23,6 @@ export const MECHANIC_UNLOCK_DAY: Record<Mechanic, number> = {
 /** From this day on, patienceBaseMs shrinks each day. */
 export const PATIENCE_DECAY_FROM_DAY = 11;
 export const PATIENCE_DECAY_PER_DAY = 0.98;
-export const PATIENCE_MIN_MS = 24000;
+export const PATIENCE_MIN_MS = 16000;
 /** Hệ số nhân kiên nhẫn cơ bản của mọi ngày (cân bằng game). */
-export const PATIENCE_SCALE = 1.25;
+export const PATIENCE_SCALE = 0.9;

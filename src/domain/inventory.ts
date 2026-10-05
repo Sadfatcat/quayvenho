@@ -2,11 +2,10 @@ import { PURCHASE_LIMIT_PER_FLIGHT, SEAT_BIAS_PREFERENCE_CHANCE } from '@data/ba
 import { invariant } from './common/invariant';
 import { err, ok, type Result } from './common/result';
 import { sum } from './common/math';
-import { purchaseCost } from './economy';
-import type { CabinClass, Flight, OwnedSeat, OwnedSeatState, SeatBias, SeatId } from './models';
+import { purchaseCost, seatUnitCost } from './economy';
+import type { CabinClass, DayEvent, Flight, OwnedSeat, OwnedSeatState, SeatBias, SeatId } from './models';
 import type { Rng } from './rng';
 import { getRoute } from './routes';
-import { routeOnDay } from './economy';
 import { findFlight } from './schedule';
 import { isWindow, seatsOfCabin } from './seatMap';
 
@@ -38,16 +37,24 @@ export const maxPurchasable = (flight: Flight, cabin: CabinClass, seats: readonl
         ),
       );
 
-const unitCostOf = (flight: Flight, cabin: CabinClass, day: number): number => routeOnDay(getRoute(flight.routeId), day).cost[cabin];
+const NO_EVENT: DayEvent = { type: 'NONE' };
 
-/** `day` quyết định bậc lạm phát giá vốn ghế (mặc định ngày 1 = giá bảng). */
-export const pendingTotalCost = (pending: Readonly<Record<string, number>>, flights: readonly Flight[], day = 1): number =>
+const unitCostOf = (flight: Flight, cabin: CabinClass, day: number, event: DayEvent): number =>
+  seatUnitCost(getRoute(flight.routeId), cabin, day, event);
+
+/** `day` quyết định bậc lạm phát giá vốn ghế (mặc định ngày 1 = giá bảng); `event` có thể giảm giá tuyến dự báo xấu. */
+export const pendingTotalCost = (
+  pending: Readonly<Record<string, number>>,
+  flights: readonly Flight[],
+  day = 1,
+  event: DayEvent = NO_EVENT,
+): number =>
   sum(
     Object.entries(pending).map(([key, qty]) => {
       const { flightId, cabin } = parsePendingKey(key);
       const flight = findFlight(flights, flightId);
       invariant(flight, `pending on unknown flight ${flightId}`);
-      return purchaseCost(unitCostOf(flight, cabin, day), qty);
+      return purchaseCost(unitCostOf(flight, cabin, day, event), qty);
     }),
   );
 
@@ -89,6 +96,7 @@ export const purchasePending = (input: {
   bias: SeatBias;
   rng: Rng;
   day?: number;
+  event?: DayEvent;
 }): Result<{ seats: OwnedSeat[]; purchases: Purchase[]; totalCost: number }, PurchaseError> => {
   const entries = Object.entries(input.pending)
     .filter(([, qty]) => qty > 0)
@@ -103,13 +111,13 @@ export const purchasePending = (input: {
     if (qty > maxPurchasable(flight, cabin, input.seats)) return err('OVER_LIMIT');
     plan.push({ flight, cabin, qty });
   }
-  const totalCost = sum(plan.map(({ flight, cabin, qty }) => purchaseCost(unitCostOf(flight, cabin, input.day ?? 1), qty)));
+  const totalCost = sum(plan.map(({ flight, cabin, qty }) => purchaseCost(unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT), qty)));
   if (totalCost > input.money) return err('NOT_ENOUGH_MONEY');
 
   const seats = [...input.seats];
   const purchases = plan.map(({ flight, cabin, qty }) => {
     const picked = pickSeats(freeSeatsFor(flight, cabin, seats), qty, input.bias, input.rng);
-    const unitCost = unitCostOf(flight, cabin, input.day ?? 1);
+    const unitCost = unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT);
     seats.push(...picked.map((seat) => ({ flightId: flight.id, seat, cabin, unitCost, state: 'AVAILABLE' as const })));
     return { flightId: flight.id, cabin, seats: picked, cost: purchaseCost(unitCost, qty) };
   });

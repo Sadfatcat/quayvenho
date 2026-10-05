@@ -1,11 +1,13 @@
 export const BASE_CUSTOMERS_DAY_1 = 5;
 export const EARLY_GROWTH = { untilDay: 10, min: 1, max: 3 } as const;
 /** Hệ số khách cho những ngày đầu (trước khi mở TravelViet), để game đỡ vắng lúc mới chơi. */
-export const EARLY_DAYS_CUSTOMER_MULT = 1.2;
+export const EARLY_DAYS_CUSTOMER_MULT = 1.5;
 export const LATE_GROWTH = { min: 1, max: 2 } as const;
 
 export const TRAVELVIET_FROM_DAY = 11;
-export const TRAVELVIET_WINDOW = 30;
+/** TravelViet (hệ số, thưởng sao) và việc bỏ hệ số khách đầu game được trộn dần trong chừng này ngày để không có cú nhảy ở ngày 11. */
+export const TRAVELVIET_RAMP_DAYS = 10;
+export const TRAVELVIET_WINDOW = 200;
 export const TRAVELVIET_DEFAULT = 4.0;
 
 /** Rating in tenths (R × 10), upper bound inclusive → demand factor. */

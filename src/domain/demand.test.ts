@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { baseCustomers, customersForDay, demandFactor, ratingBonus, travelVietScore } from './demand';
+import { EARLY_DAYS_CUSTOMER_MULT, TRAVELVIET_FROM_DAY, TRAVELVIET_RAMP_DAYS, TRAVELVIET_WINDOW } from '@data/demand';
+import { baseCustomers, customersForDay, demandFactor, ratingBonus, travelVietBlend, travelVietScore } from './demand';
 import type { Stars } from './models';
 
 describe('baseCustomers', () => {
@@ -16,9 +17,9 @@ describe('baseCustomers', () => {
 });
 
 describe('travelVietScore', () => {
-  it('defaults to 4.0 and averages the last 30 stars', () => {
+  it('defaults to 4.0 and averages the last TRAVELVIET_WINDOW stars', () => {
     expect(travelVietScore([])).toBe(4);
-    const history: Stars[] = [...Array<Stars>(10).fill(1), ...Array<Stars>(30).fill(5)];
+    const history: Stars[] = [...Array<Stars>(10).fill(1), ...Array<Stars>(TRAVELVIET_WINDOW).fill(5)];
     expect(travelVietScore(history)).toBe(5);
     expect(travelVietScore([5, 4, 4])).toBe(4.3);
   });
@@ -57,16 +58,39 @@ describe('ratingBonus', () => {
 });
 
 describe('customersForDay', () => {
-  it('ignores TravelViet before day 11 and adds 20% early-days customers', () => {
-    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: false })).toBe(6);
-    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: true })).toBe(8);
-    expect(customersForDay({ seed: 1, day: 10, rating: 5, rush: false })).toBe(Math.round(baseCustomers(1, 10) * 1.2));
+  it('ignores TravelViet before day 11 and adds early-days customer multiplier', () => {
+    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: false })).toBe(Math.round(5 * EARLY_DAYS_CUSTOMER_MULT));
+    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: true })).toBe(11);
+    expect(customersForDay({ seed: 1, day: 10, rating: 5, rush: false })).toBe(Math.round(baseCustomers(1, 10) * EARLY_DAYS_CUSTOMER_MULT));
   });
 
-  it('applies factor from day 11', () => {
-    const base = baseCustomers(1, 11);
-    expect(customersForDay({ seed: 1, day: 11, rating: 2.5, rush: false })).toBe(Math.max(2, Math.round(base * 0.3)));
-    expect(customersForDay({ seed: 1, day: 11, rating: 4.0, rush: false })).toBe(base);
+  it('blends TravelViet in over TRAVELVIET_RAMP_DAYS, fully applied afterwards', () => {
+    const fullDay = TRAVELVIET_FROM_DAY + TRAVELVIET_RAMP_DAYS - 1;
+    expect(travelVietBlend(TRAVELVIET_FROM_DAY - 1)).toBe(0);
+    expect(travelVietBlend(TRAVELVIET_FROM_DAY)).toBeGreaterThan(0);
+    expect(travelVietBlend(TRAVELVIET_FROM_DAY)).toBeLessThan(1);
+    expect(travelVietBlend(fullDay)).toBe(1);
+    const base = baseCustomers(1, fullDay);
+    expect(customersForDay({ seed: 1, day: fullDay, rating: 2.5, rush: false })).toBe(Math.max(2, Math.round(base * 0.3)));
+    expect(customersForDay({ seed: 1, day: fullDay, rating: 4.0, rush: false })).toBe(base);
+  });
+
+  it('never lowers the customer count in days 1–10 when there is no holiday', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      for (let day = 2; day < TRAVELVIET_FROM_DAY; day++) {
+        const today = customersForDay({ seed, day, rating: 4, rush: false });
+        const yesterday = customersForDay({ seed, day: day - 1, rating: 4, rush: false });
+        expect(today).toBeGreaterThanOrEqual(yesterday);
+      }
+    }
+  });
+
+  it('does not jump at day 11 for a high rating', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const before = customersForDay({ seed, day: TRAVELVIET_FROM_DAY - 1, rating: 4.7, rush: false });
+      const after = customersForDay({ seed, day: TRAVELVIET_FROM_DAY, rating: 4.7, rush: false });
+      expect(after).toBeLessThanOrEqual(Math.ceil(before * 1.3));
+    }
   });
 
   it('never exceeds 300 or drops below 2', () => {

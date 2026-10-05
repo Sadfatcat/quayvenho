@@ -13,7 +13,7 @@ describe('rollDayEvent', () => {
     }
   });
 
-  it('converges to the configured RUSH/WEATHER/NONE weights (0.15/0.25/0.6)', () => {
+  it('converges to the configured RUSH/WEATHER/NONE weights (0.15/0.3/0.55)', () => {
     const counts = { RUSH: 0, WEATHER: 0, NONE: 0 };
     let total = 0;
     for (let seed = 1; seed <= SAMPLE_SEEDS; seed++) {
@@ -23,8 +23,8 @@ describe('rollDayEvent', () => {
       }
     }
     expect(counts.RUSH / total).toBeCloseTo(0.15, 1);
-    expect(counts.WEATHER / total).toBeCloseTo(0.25, 1);
-    expect(counts.NONE / total).toBeCloseTo(0.6, 1);
+    expect(counts.WEATHER / total).toBeCloseTo(0.3, 1);
+    expect(counts.NONE / total).toBeCloseTo(0.55, 1);
   });
 
   it('WEATHER event picks the forecast route from the unlocked routes', () => {
@@ -39,7 +39,7 @@ describe('rollDayEvent', () => {
 });
 
 describe('resolveWeather', () => {
-  it('converges to the configured GOOD/BAD/SEVERE weights (0.4/0.4/0.2)', () => {
+  it('converges to the configured GOOD/BAD/SEVERE weights (0.3/0.5/0.2)', () => {
     const counts = { GOOD: 0, BAD: 0, SEVERE: 0 };
     let total = 0;
     for (let seed = 1; seed <= SAMPLE_SEEDS; seed++) {
@@ -48,8 +48,8 @@ describe('resolveWeather', () => {
         total++;
       }
     }
-    expect(counts.GOOD / total).toBeCloseTo(0.4, 1);
-    expect(counts.BAD / total).toBeCloseTo(0.4, 1);
+    expect(counts.GOOD / total).toBeCloseTo(0.3, 1);
+    expect(counts.BAD / total).toBeCloseTo(0.5, 1);
     expect(counts.SEVERE / total).toBeCloseTo(0.2, 1);
   });
 });

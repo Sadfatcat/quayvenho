@@ -7,8 +7,18 @@ export const PROFILE_LIMITS = { playerName: 16, brandName: 20 } as const;
 export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.7, sfxVolume: 0.8, haptics: true };
 
 // Kho
-/** Hệ số nhân giá vốn ghế của mọi tuyến (1 = bảng gốc theo giá vé thật × tỉ lệ vốn cũ). */
-export const SEAT_COST_FACTOR = 0.8;
+/** Biên lợi nhuận trên giá bán gốc của mỗi vé (giá vốn = giá × (1 − biên)): nội địa 15%, quốc tế 25–30%. */
+export const SEAT_MARGIN_BY_ROUTE: Readonly<Record<string, number>> = {
+  'HAN-SGN': 0.15,
+  'HAN-DAD': 0.15,
+  'HAN-CXR': 0.15,
+  'HAN-PQC': 0.15,
+  'HAN-DLI': 0.15,
+  'HAN-BKK': 0.25,
+  'HAN-ICN': 0.27,
+  'HAN-NRT': 0.28,
+  'HAN-CDG': 0.3,
+};
 export const PURCHASE_LIMIT_PER_FLIGHT: Record<CabinClass, number> = { ECONOMY: 12, BUSINESS: 4 };
 /** Checked in order; first match wins. */
 export const BULK_DISCOUNT_TIERS: readonly { minQty: number; rate: number }[] = [
@@ -20,7 +30,7 @@ export const SEAT_BIAS_PREFERENCE_CHANCE = 0.75;
 // Doanh thu
 export const BAGGAGE_FEES: Record<BaggageKg, number> = { 0: 0, 15: 300, 20: 380, 30: 530 };
 export const EXTRA_FEES: Record<Extra, number> = { VEG_MEAL: 80, WHEELCHAIR: 0, INSURANCE: 230 };
-export const BUSINESS_TIP_RATIO = 0.8;
+export const BUSINESS_TIP_RATIO = 0.2;
 
 // Chấm điểm (accuracy tính bằng điểm phần trăm để tránh sai số số thực)
 export const ACCURACY_DEDUCTIONS = {
@@ -32,7 +42,7 @@ export const ACCURACY_DEDUCTIONS = {
 export const BUSINESS_DEDUCTION_MULT = 2;
 export const ACCURACY_GOOD = 80;
 export const ACCURACY_OK = 50;
-export const PERFECT_MIN_SPEED = 0.5;
+export const PERFECT_MIN_SPEED = 0.85;
 export const BAGGAGE_TOLERANCE_KG = 1;
 export const BAGGAGE_MARKS: readonly BaggageKg[] = [15, 20, 30];
 export const BAGGAGE_MAX_KG = 30;
@@ -52,24 +62,29 @@ export const OUTCOME_STARS: Record<ScoreOutcome, Stars> = {
   LEFT: 1,
 };
 
-export const OUTCOME_PENALTY: Record<ScoreOutcome, number> = {
+/** Phạt = giá vé của đơn × tỉ lệ này (vé càng đắt phạt càng nặng); làm tròn ở economy.ts. */
+/** Những ngày đầu phạt nhẹ để người mới làm quen: tới hết ngày này phạt nhân hệ số bên dưới. */
+export const PENALTY_GRACE_UNTIL_DAY = 10;
+export const PENALTY_GRACE_MULT = 0.5;
+
+export const OUTCOME_PENALTY_RATE: Record<ScoreOutcome, number> = {
   PERFECT: 0,
   GOOD: 0,
   OK: 0,
   POOR: 0,
-  FAILED: 380,
-  SOLD_INVALID: 600,
+  FAILED: 0.25,
+  SOLD_INVALID: 0.4,
   REFUSED_CORRECT: 0,
   REFUSED_NO_STOCK: 0,
-  REFUSED_WRONG: 300,
-  LEFT: 150,
+  REFUSED_WRONG: 0.2,
+  LEFT: 0.1,
 };
 
 // Quầy
 /** Từ ngày này khách khó tính mới đòi vị trí ghế theo hàng (đầu/giữa/cuối khoang), ngoài cửa sổ/lối đi. */
 export const FUSSY_SEAT_PREF_FROM_DAY = 7;
-export const PATIENCE_PER_COMPLEXITY_MS = 5000;
-export const QUEUE_PATIENCE_RATE = 0.5;
+export const PATIENCE_PER_COMPLEXITY_MS = 3500;
+export const QUEUE_PATIENCE_RATE = 0.3;
 export const MOOD_HAPPY_ABOVE = 0.6;
 export const MOOD_NEUTRAL_FROM = 0.3;
 export const RESOLVE_MS = 1200;
@@ -79,8 +94,8 @@ export const BASE_MODIFIERS: Modifiers = {
   patienceMult: 1,
   tipMult: 1,
   printMs: 3000,
-  queueMax: 4,
-  refundRate: 0,
+  queueMax: 8,
+  refundRate: 0.4,
   seatBias: false,
 };
 

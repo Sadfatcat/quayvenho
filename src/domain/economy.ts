@@ -3,12 +3,17 @@ import {
   BULK_DISCOUNT_TIERS,
   BUSINESS_TIP_RATIO,
   EXTRA_FEES,
+  PENALTY_GRACE_MULT,
+  PENALTY_GRACE_UNTIL_DAY,
 } from '@data/balance';
+import { WEATHER_FORECAST_COST_DISCOUNT } from '@data/events';
 import { COST_RISE_PER_STEP, FARE_RISE_EVERY_DAYS, FARE_RISE_PER_STEP } from '@data/pricing';
 import { sum } from './common/math';
 import type {
   CabinClass,
+  DayEvent,
   DaySummary,
+  Extra,
   Order,
   OwnedSeat,
   Route,
@@ -42,19 +47,35 @@ export const routeOnDay = (route: Route, day: number): Route => {
   };
 };
 
+/** Giá vốn một ghế vào ngày `day`: giá bảng đã lạm phát, giảm nếu tuyến có dự báo thời tiết xấu; làm tròn ở đây. */
+export const seatUnitCost = (route: Route, cabin: CabinClass, day: number, event: DayEvent): number => {
+  const cost = routeOnDay(route, day).cost[cabin];
+  const forecastBad = event.type === 'WEATHER' && event.routeId === route.id;
+  return forecastBad ? roundMoney(cost * (1 - WEATHER_FORECAST_COST_DISCOUNT)) : cost;
+};
+
 /** Giá bán thực tế = giá gốc × (1 + % người chơi chỉnh), làm tròn một chỗ duy nhất (đơn vị k). */
 export const fareOf = (route: Route, cabin: CabinClass, pricePct: number): number =>
   roundMoney(route.price[cabin] * (1 + pricePct / 100));
 
-export const ticketRevenue = (order: Order, route: Route, pricePct: number): number =>
+/** Phí hành lý và vé dịch vụ tăng theo cùng bậc lạm phát với giá vé (giữ tỉ trọng phí trong doanh thu); làm tròn ở đây. */
+export const scaledFee = (baseFee: number, day: number): number => roundMoney(baseFee * (1 + FARE_RISE_PER_STEP) ** inflationStep(day));
+
+export const extraFeeOf = (extra: Extra, day: number): number => scaledFee(EXTRA_FEES[extra], day);
+
+export const ticketRevenue = (order: Order, route: Route, pricePct: number, day: number): number =>
   roundMoney(
     fareOf(route, order.cabin, pricePct) +
-      BAGGAGE_FEES[order.baggageKg] +
-      sum(order.extras.map((extra) => EXTRA_FEES[extra])),
+      scaledFee(BAGGAGE_FEES[order.baggageKg], day) +
+      sum(order.extras.map((extra) => extraFeeOf(extra, day))),
   );
 
 export const businessTip = (fare: number, tipMult: number): number =>
   roundMoney(BUSINESS_TIP_RATIO * fare * tipMult);
+
+/** Phạt = giá vé × tỉ lệ; ân hạn ở những ngày đầu (`PENALTY_GRACE_*`). */
+export const penaltyFor = (fare: number, rate: number, day: number): number =>
+  roundMoney(fare * rate * (day <= PENALTY_GRACE_UNTIL_DAY ? PENALTY_GRACE_MULT : 1));
 
 export const clampPenalty = (penalty: number, money: number): number => Math.min(penalty, money);
 

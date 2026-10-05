@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { PROFILE_LIMITS } from '@data/balance';
 import { MARKETING } from '@data/staff';
+import { TRAVELVIET_WINDOW } from '@data/demand';
 
 /**
  * Validates + clamps dữ liệu save đọc từ localStorage. Không đối chiếu với
@@ -232,7 +233,7 @@ export const gameStateSchema = z.object({
   phase: dayPhaseSchema,
   money: moneySchema,
   profile: profileSchema.nullable(),
-  starHistory: z.array(starsSchema).max(30),
+  starHistory: z.array(starsSchema).max(TRAVELVIET_WINDOW),
   unlockedRoutes: z.array(z.string()),
   routeUnlockedDay: z.record(z.string(), z.number().finite()),
   upgrades: z.array(z.string()),

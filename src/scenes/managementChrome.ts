@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
+import { isPricingOpen } from '@domain/pricing';
 import type { DomainEvent, GameState } from '@domain/models';
 import { Button } from '@ui/Button';
 import { MANAGEMENT_TAB_SCENE, ManagementTabs, type ManagementTab } from '@ui/ManagementTabs';
@@ -26,9 +27,11 @@ export interface ManagementChrome {
 
 const dayLabelOf = (state: GameState): string => `${STRINGS.prep.dayLabel} ${state.day}`;
 
-/** Sau tổng kết (phase SHOP) chưa có chuyến của ngày mới, nên mua vé và chỉnh giá tạm khoá. */
-const disabledTabsFor = (state: GameState): ReadonlySet<ManagementTab> =>
-  state.phase === 'PREP' ? new Set() : new Set<ManagementTab>(['TICKETS', 'PRICES']);
+/** Sau tổng kết (phase SHOP) chưa có chuyến của ngày mới, nên mua vé và chỉnh giá tạm khoá; chỉnh giá còn khoá ở những ngày đầu. */
+const disabledTabsFor = (state: GameState): ReadonlySet<ManagementTab> => {
+  if (state.phase !== 'PREP') return new Set<ManagementTab>(['TICKETS', 'PRICES']);
+  return isPricingOpen(state.day) ? new Set() : new Set<ManagementTab>(['PRICES']);
+};
 
 /** Khung chung của 4 mục quản lý: thanh trên cùng, thanh mục và (tuỳ chọn) nút hành động chính ở đáy. */
 export const addManagementChrome = (scene: Phaser.Scene, active: ManagementTab, withActionButton: boolean): ManagementChrome => {

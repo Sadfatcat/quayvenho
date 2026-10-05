@@ -1,15 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { OVER_CAP_CANCEL_RATE, PRICE_CAP_PCT } from '@data/pricing';
+import { OVER_CAP_CANCEL_RATE, PRICE_CAP_PCT, PRICE_MAX_PCT, PRICING_UNLOCK_DAY } from '@data/pricing';
 import { createNewGame } from './dayCycle';
 import { rollDayEvent } from './events';
 import { GameSession } from './game';
 import type { DayEvent, DomainEvent } from './models';
-import { clampPricePct, dayDemandProfile, isOverCap, priceDemandFactor } from './pricing';
+import { clampPricePct, dayDemandProfile, isOverCap, isPricingOpen, priceDemandFactor } from './pricing';
 import { seedWithDay1Event } from './__integration__/fixtures';
 
 const NO_EVENT: DayEvent = { type: 'NONE' };
 const HOLIDAY: DayEvent = { type: 'RUSH', holidayId: 'TET', hotRoutes: ['HAN-DAD', 'HAN-SGN'] };
 const ROUTES = ['HAN-SGN', 'HAN-DAD'];
+const TEST_MONEY = 100_000;
+
+/** Chỉnh giá bị khoá ở những ngày đầu, nên các test giá chạy từ ngày mở khoá. */
+const gameWithPricingOpen = (seed: number): GameSession => {
+  const state = createNewGame(seed);
+  state.day = PRICING_UNLOCK_DAY;
+  state.money = TEST_MONEY;
+  state.today.moneyStart = TEST_MONEY;
+  return new GameSession(state);
+};
 
 describe('priceDemandFactor', () => {
   it('cheaper → more customers, pricier → fewer, base price → unchanged', () => {
@@ -40,7 +50,7 @@ describe('clampPricePct', () => {
   it('rounds to an integer and clamps to the allowed slider range', () => {
     expect(clampPricePct(12.4)).toBe(12);
     expect(clampPricePct(-99)).toBe(-30);
-    expect(clampPricePct(99)).toBe(60);
+    expect(clampPricePct(99)).toBe(PRICE_MAX_PCT);
   });
 });
 
@@ -78,14 +88,21 @@ describe('holiday event', () => {
 describe('SET_ROUTE_PRICE', () => {
   const rejected = (events: DomainEvent[]) => events.find((e) => e.type === 'COMMAND_REJECTED');
 
-  it('stores a clamped integer percent for an unlocked route during PREP', () => {
+  it('rejects price changes before the unlock day', () => {
     const game = new GameSession(createNewGame(3));
+    expect(isPricingOpen(PRICING_UNLOCK_DAY - 1)).toBe(false);
+    expect(rejected(game.dispatch({ type: 'SET_ROUTE_PRICE', routeId: 'HAN-DAD', pct: 10 }))).toMatchObject({ reason: 'PRICING_LOCKED' });
+    expect(game.state.today.priceAdjustPct).toEqual({});
+  });
+
+  it('stores a clamped integer percent for an unlocked route during PREP', () => {
+    const game = gameWithPricingOpen(3);
     expect(rejected(game.dispatch({ type: 'SET_ROUTE_PRICE', routeId: 'HAN-DAD', pct: 80 }))).toBeUndefined();
-    expect(game.state.today.priceAdjustPct['HAN-DAD']).toBe(60);
+    expect(game.state.today.priceAdjustPct['HAN-DAD']).toBe(PRICE_MAX_PCT);
   });
 
   it('rejects locked routes, non-numbers and anything outside PREP', () => {
-    const game = new GameSession(createNewGame(3));
+    const game = gameWithPricingOpen(3);
     expect(rejected(game.dispatch({ type: 'SET_ROUTE_PRICE', routeId: 'HAN-CDG', pct: 10 }))).toMatchObject({ reason: 'ROUTE_LOCKED' });
     expect(rejected(game.dispatch({ type: 'SET_ROUTE_PRICE', routeId: 'HAN-DAD', pct: Number.NaN }))).toMatchObject({ reason: 'BAD_PRICE' });
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
@@ -96,7 +113,7 @@ describe('SET_ROUTE_PRICE', () => {
 
 describe('prices change demand and revenue', () => {
   const targetFor = (pct: number): number => {
-    const game = new GameSession(createNewGame(seedWithDay1Event('NONE')));
+    const game = gameWithPricingOpen(seedWithDay1Event('NONE'));
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
     for (const routeId of ROUTES) game.dispatch({ type: 'SET_ROUTE_PRICE', routeId, pct });
     game.dispatch({ type: 'OPEN_COUNTER' });
@@ -109,13 +126,13 @@ describe('prices change demand and revenue', () => {
   });
 
   it('an over-cap price cuts the crowd to about half of what the cap would give', () => {
-    expect(targetFor(40)).toBeLessThanOrEqual(Math.ceil(targetFor(30) * 0.6));
+    expect(targetFor(PRICE_CAP_PCT + 10)).toBeLessThanOrEqual(Math.ceil(targetFor(PRICE_CAP_PCT) * 0.7));
   });
 });
 
 describe('over-cap cancellations at day end', () => {
   const playDayAt = (pct: number, seed: number) => {
-    const game = new GameSession(createNewGame(seed));
+    const game = gameWithPricingOpen(seed);
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
     for (const routeId of ROUTES) game.dispatch({ type: 'SET_ROUTE_PRICE', routeId, pct });
     for (const flight of game.state.today.flights.filter((f) => ROUTES.includes(f.routeId))) {

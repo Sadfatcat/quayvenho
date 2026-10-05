@@ -16,26 +16,26 @@ describe('full day (Phase 1 acceptance)', () => {
     game.dispatch({ type: 'PREP_SET_QTY', flightId: dad, cabin: 'BUSINESS', qty: 1 });
     game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
     game.dispatch({ type: 'OPEN_COUNTER' });
-    expect(game.state.today.targetCustomers).toBe(8);
+    expect(game.state.today.targetCustomers).toBe(11);
 
     const plan: Decision[] = ['CORRECT', 'CORRECT', 'CORRECT', 'WRONG_CABIN', 'REFUSE', 'IGNORE', 'IGNORE', 'IGNORE'];
     const decide: Decide = (_order, index) => plan[index] ?? 'IGNORE';
     playShift(game, decide);
 
     const outcomes = game.state.today.results.map((r) => r.outcome).sort();
-    expect(outcomes).toEqual(['FAILED', 'LEFT', 'LEFT', 'LEFT', 'PERFECT', 'PERFECT', 'PERFECT', 'REFUSED_NO_STOCK']);
+    expect(outcomes).toEqual(['FAILED', 'LEFT', 'LEFT', 'LEFT', 'LEFT', 'LEFT', 'LEFT', 'PERFECT', 'PERFECT', 'PERFECT', 'REFUSED_NO_STOCK']);
     expect(game.state.lastSummary).toMatchObject({
       day: 1,
       moneyStart: 6000,
-      moneyEnd: 6000 - SEAT_COST + 3300 - 830,
+      moneyEnd: 6000 - SEAT_COST + 3300 - 548,
       ticketRevenue: 3300,
       tips: 0,
       seatCost: SEAT_COST,
       shopCost: 0,
-      penalties: 830,
+      penalties: 548,
       expiredSeats: 0,
       served: 5,
-      left: 3,
+      left: 6,
       turnedAway: 0,
       travelVietAfter: null,
     });

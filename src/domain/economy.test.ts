@@ -9,13 +9,18 @@ import {
   moneyBalances,
   purchaseCost,
   refundFor,
+  penaltyFor,
   routeOnDay,
+  scaledFee,
+  seatUnitCost,
   roundMoney,
   summarizeDay,
   ticketRevenue,
 } from './economy';
 import { makeOrder as order } from './__integration__/fixtures';
-import type { OwnedSeat, ScoreResult } from './models';
+import type { DayEvent, OwnedSeat, ScoreResult } from './models';
+import { BUSINESS_TIP_RATIO, PENALTY_GRACE_MULT, PENALTY_GRACE_UNTIL_DAY } from '@data/balance';
+import { COST_RISE_PER_STEP, FARE_RISE_PER_STEP } from '@data/pricing';
 import { getRoute } from './routes';
 
 const seat = (state: OwnedSeat['state'], unitCost: number): OwnedSeat => ({
@@ -44,9 +49,9 @@ describe('economy', () => {
 
   it('ticket revenue = fare + baggage + extras (§5.3)', () => {
     const dad = getRoute('HAN-DAD');
-    expect(ticketRevenue(order(), dad, 0)).toBe(1100);
-    expect(ticketRevenue(order({ baggageKg: 20, extras: ['VEG_MEAL', 'INSURANCE'] }), dad, 0)).toBe(1100 + 380 + 80 + 230);
-    expect(ticketRevenue(order({ cabin: 'BUSINESS', extras: ['WHEELCHAIR'] }), dad, 0)).toBe(2700);
+    expect(ticketRevenue(order(), dad, 0, 1)).toBe(1100);
+    expect(ticketRevenue(order({ baggageKg: 20, extras: ['VEG_MEAL', 'INSURANCE'] }), dad, 0, 1)).toBe(1100 + 380 + 80 + 230);
+    expect(ticketRevenue(order({ cabin: 'BUSINESS', extras: ['WHEELCHAIR'] }), dad, 0, 1)).toBe(2700);
   });
 
   it('fare follows the player price adjustment, rounded to whole k', () => {
@@ -57,9 +62,9 @@ describe('economy', () => {
     expect(fareOf(dad, 'ECONOMY', 3)).toBe(1133);
   });
 
-  it('business tip = 0.8 × fare × tipMult', () => {
-    expect(businessTip(190, 1)).toBe(152);
-    expect(businessTip(190, 1.15)).toBe(175);
+  it('business tip = BUSINESS_TIP_RATIO × fare × tipMult', () => {
+    expect(businessTip(190, 1)).toBe(Math.round(BUSINESS_TIP_RATIO * 190));
+    expect(businessTip(190, 1.15)).toBe(Math.round(BUSINESS_TIP_RATIO * 190 * 1.15));
   });
 
   it('penalty clamps to money', () => {
@@ -135,16 +140,46 @@ describe('routeOnDay (lạm phát giá vé mỗi 3 ngày)', () => {
     expect(routeOnDay(route, 3)).toEqual(route);
   });
 
-  it('tăng giá bán 8% và giá vốn 4% mỗi bậc, làm tròn số nguyên', () => {
+  it('tăng giá bán và giá vốn cùng FARE_RISE/COST_RISE mỗi bậc, làm tròn số nguyên', () => {
     const day4 = routeOnDay(route, 4);
-    expect(day4.price.ECONOMY).toBe(Math.round(route.price.ECONOMY * 1.08));
-    expect(day4.cost.ECONOMY).toBe(Math.round(route.cost.ECONOMY * 1.04));
+    expect(day4.price.ECONOMY).toBe(Math.round(route.price.ECONOMY * (1 + FARE_RISE_PER_STEP)));
+    expect(day4.cost.ECONOMY).toBe(Math.round(route.cost.ECONOMY * (1 + COST_RISE_PER_STEP)));
     const day10 = routeOnDay(route, 10);
-    expect(day10.price.BUSINESS).toBe(Math.round(route.price.BUSINESS * 1.08 ** 3));
-    expect(day10.cost.BUSINESS).toBe(Math.round(route.cost.BUSINESS * 1.04 ** 3));
+    expect(day10.price.BUSINESS).toBe(Math.round(route.price.BUSINESS * (1 + FARE_RISE_PER_STEP) ** 3));
+    expect(day10.cost.BUSINESS).toBe(Math.round(route.cost.BUSINESS * (1 + COST_RISE_PER_STEP) ** 3));
   });
 
   it('bậc lạm phát đổi đúng ở ngày 4, 7, 10', () => {
     expect([1, 3, 4, 6, 7, 10].map(inflationStep)).toEqual([0, 0, 1, 1, 2, 3]);
+  });
+});
+
+describe('seatUnitCost (dự báo thời tiết xấu giảm 50% giá vốn)', () => {
+  const dad = getRoute('HAN-DAD');
+  const forecastOnDad: DayEvent = { type: 'WEATHER', routeId: 'HAN-DAD', outcome: null };
+
+  it('halves the cost only for the forecast route', () => {
+    const base = routeOnDay(dad, 1).cost.ECONOMY;
+    expect(seatUnitCost(dad, 'ECONOMY', 1, forecastOnDad)).toBe(Math.round(base * 0.5));
+    expect(seatUnitCost(getRoute('HAN-SGN'), 'ECONOMY', 1, forecastOnDad)).toBe(routeOnDay(getRoute('HAN-SGN'), 1).cost.ECONOMY);
+  });
+
+  it('keeps full price without a weather event', () => {
+    expect(seatUnitCost(dad, 'BUSINESS', 1, { type: 'NONE' })).toBe(routeOnDay(dad, 1).cost.BUSINESS);
+  });
+});
+
+describe('scaledFee (phí dịch vụ lạm phát cùng giá vé)', () => {
+  it('giữ nguyên ở bậc 0 và tăng theo FARE_RISE_PER_STEP mỗi bậc', () => {
+    expect(scaledFee(300, 1)).toBe(300);
+    expect(scaledFee(300, 4)).toBe(Math.round(300 * (1 + FARE_RISE_PER_STEP)));
+    expect(scaledFee(300, 10)).toBe(Math.round(300 * (1 + FARE_RISE_PER_STEP) ** 3));
+  });
+});
+
+describe('penaltyFor (ân hạn những ngày đầu)', () => {
+  it('nhân hệ số ân hạn đến hết ngày PENALTY_GRACE_UNTIL_DAY rồi phạt đủ', () => {
+    expect(penaltyFor(1000, 0.2, PENALTY_GRACE_UNTIL_DAY)).toBe(Math.round(1000 * 0.2 * PENALTY_GRACE_MULT));
+    expect(penaltyFor(1000, 0.2, PENALTY_GRACE_UNTIL_DAY + 1)).toBe(200);
   });
 });
