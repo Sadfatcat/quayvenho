@@ -11,6 +11,10 @@ export interface ScrollListOptions<T> {
   itemHeight: number;
   items: readonly T[];
   renderItem: (item: T, index: number) => Phaser.GameObjects.Container;
+  /** Vị trí cuộn ban đầu (để giữ nguyên khi danh sách được dựng lại). */
+  initialScrollY?: number;
+  /** Gọi mỗi khi vị trí cuộn đổi. */
+  onScrollChange?: (scrollY: number) => void;
 }
 
 const VIRTUALIZE_ABOVE = 15;
@@ -43,6 +47,8 @@ export class ScrollList<T> extends Phaser.GameObjects.Container {
     this.viewport = scene.add.rectangle(0, 0, options.width, options.height, 0x000000, 0).setOrigin(0);
     this.viewport.setInteractive();
     this.content = scene.add.container(0, 0);
+    this.scrollY = clamp(options.initialScrollY ?? 0, 0, this.maxScroll);
+    this.content.setY(-this.scrollY);
     this.add([this.viewport, this.content]);
     scene.add.existing(this);
 
@@ -90,6 +96,7 @@ export class ScrollList<T> extends Phaser.GameObjects.Container {
   private setScrollY(value: number): void {
     this.scrollY = clamp(value, 0, this.maxScroll);
     this.content.setY(-this.scrollY);
+    this.options.onScrollChange?.(this.scrollY);
     this.renderVisible();
   }
 

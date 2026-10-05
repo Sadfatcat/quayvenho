@@ -1,21 +1,25 @@
 import Phaser from 'phaser';
-import { EXTRA_FEES } from '@data/balance';
 import { ROUTES } from '@data/routes';
 import { STRINGS } from '@data/strings';
 import { counterCustomer } from '@domain/dayCycle';
+import { extraFeeOf } from '@domain/economy';
 import { isMechanicOpen } from '@domain/dayConfig';
 import { formatClock } from '@domain/clock';
 import { computeModifiers } from '@domain/upgrades';
-import type { CabinClass, Command, Extra, GameState } from '@domain/models';
+import type { CabinClass, Command, CounterState, Extra, GameState } from '@domain/models';
 import { getRoute } from '@domain/routes';
 import { BaggageSlider } from './BaggageSlider';
 import { audio } from '@platform/audio';
-import { DeskTicket } from './DeskTicket';
-import { hasItemImage, serviceImageKey, stampImageKey, ticketStackImageKey, timeStampImageKey } from './itemImages';
-import { DragController } from './DragController';
+import { DeskTicket, type DeskTicketOptions } from './DeskTicket';
+import { hasItemImage, serviceImageKey, stampImageKey, ticketStackImageKey, ticketStateImageKey, timeStampImageKey } from './itemImages';
+import { DragController, type DragPoint } from './DragController';
+import { DRAG_TAP_THRESHOLD_PX } from './layout';
 import { formatMoney } from './format';
 import { MiniSeatMap } from './MiniSeatMap';
 import { Panel } from './Panel';
+import { Button } from './Button';
+import { PrinterStation, type PrinterMode } from './PrinterStation';
+import { ScrollList } from './ScrollList';
 import { StampButton } from './StampButton';
 import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
 
@@ -23,10 +27,12 @@ import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
 const LAYOUT = {
   dispenser: { x: 24, y: 440, width: 226, gap: 14 },
   ticketSpot: { x: 266, y: 432, width: 430, height: 208 },
-  stampTray: { x: 24, y: 654, width: 416, height: 346 },
-  seatPanel: { x: 456, y: 654, width: 240, height: 320 },
-  baggage: { x: 60, y: 1050, width: 340 },
-  services: { x: 456, y: 990, width: 240, height: 136 },
+  stampTray: { x: 24, y: 654, width: 416, height: 300 },
+  seatPanel: { x: 456, y: 654, width: 240, height: 280 },
+  services: { x: 456, y: 944, width: 240, height: 120 },
+  baggage: { x: 60, y: 1030, width: 340 },
+  printer: { x: 456, y: 1076, width: 240, height: 160 },
+  resetButton: { x: 24 + 95, y: 1186, width: 190, height: 72 },
 } as const;
 export const DELIVER_LINE_Y = 430;
 
@@ -36,20 +42,25 @@ const STACK_CARD_HEIGHT = 96;
 const STACK_TOP_PADDING = 6;
 const STACK_HEIGHT = STACK_TOP_PADDING + STACK_CARD_HEIGHT + STACK_LAYER_OFFSET * (STACK_LAYERS - 1) + 8;
 const STAMP_HEIGHT = 78;
-const MIN_STAMP_HEIGHT = 56;
-const TIME_SECTION_HEIGHT = 110;
-const STAMP_ROW_GAP = 6;
 const STAMP_GAP = 8;
-const DEST_COLUMNS_BY_ROUTE_COUNT = [{ upTo: 6, columns: 3 }, { upTo: 8, columns: 4 }, { upTo: Infinity, columns: 5 }] as const;
-const DEST_MAX_HEIGHT = 96;
-const columnsForRouteCount = (routeCount: number): number => DEST_COLUMNS_BY_ROUTE_COUNT.find((tier) => routeCount <= tier.upTo)?.columns ?? 3;
+/** Khay điểm đến cuộn dọc: mỗi hàng 3 con dấu, thấy 2 hàng cùng lúc, thêm tuyến mới thì vuốt để xem. */
+const DEST_COLUMNS = 3;
+const DEST_ROW_HEIGHT = 80;
+const DEST_STAMP_HEIGHT = 74;
+const DEST_VISIBLE_ROWS = 2;
+const TIME_SECTION_GAP = 8;
+const TICKET_FEED_MS = 320;
+const TICKET_FEED_END_SCALE = 0.3;
+const TICKET_EJECT_MS = 420;
+const TICKET_GHOST_WIDTH = 240;
+const RESET_FONT_PX = 24;
+const RETURN_AFTER_REJECT_MS = 80;
 const STACK_IMAGE_HEIGHT = 140;
 const SERVICE_IMAGE_HEIGHT = 56;
 const TRAY_PADDING = 12;
 const TRAY_TITLE_HEIGHT = 32;
 const SERVICE_ICON: Record<Extra, string> = { VEG_MEAL: '🥗', WHEELCHAIR: '♿', INSURANCE: '🛡️' };
 const SERVICE_ORDER: readonly Extra[] = ['VEG_MEAL', 'WHEELCHAIR', 'INSURANCE'];
-const PRINT_BAR = { height: 22, margin: 24 };
 const DIM_ALPHA = 0.55;
 
 export interface CounterDeskOptions {
@@ -65,7 +76,9 @@ export class CounterDesk extends Phaser.GameObjects.Container {
   private content: Phaser.GameObjects.Container | null = null;
   private lastSignature = '';
   private lastDraftStamps = { route: null as string | null, time: null as number | null };
-  private printFill: Phaser.GameObjects.Rectangle | null = null;
+  private printer: PrinterStation | null = null;
+  private lastCounterState: CounterState = 'EMPTY';
+  private destinationScrollY = 0;
   private readonly dispatch: (command: Command) => void;
 
   constructor(scene: Phaser.Scene, options: CounterDeskOptions) {
@@ -82,9 +95,9 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       this.lastSignature = signature;
       this.rebuild(state);
     }
-    if (this.printFill && state.today.counter.state === 'PRINTING') {
+    if (this.printer && state.today.counter.state === 'PRINTING') {
       const total = computeModifiers(state.upgrades).printMs;
-      this.printFill.width = Math.max(0, (LAYOUT.ticketSpot.width - PRINT_BAR.margin * 2) * (1 - state.today.counter.printLeftMs / total));
+      this.printer.setProgress(1 - state.today.counter.printLeftMs / total);
     }
   }
 
@@ -97,7 +110,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
 
   private rebuild(state: GameState): void {
     this.content?.destroy();
-    this.printFill = null;
+    this.printer = null;
     const scene = this.scene;
     const content = scene.add.container(0, 0);
     this.content = content;
@@ -115,13 +128,59 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     this.drawSeatPanel(regions, state);
     this.drawBaggage(regions, state);
     this.drawServices(regions, state);
+    this.drawResetButton(regions, building);
 
     if (!building) {
       regions.setAlpha(DIM_ALPHA);
       const blocker = scene.add.zone(0, LAYOUT.ticketSpot.y - 8, 720, 1280).setOrigin(0).setInteractive();
       content.add(blocker);
     }
+    this.drawPrinter(content, state);
     this.drawTicket(content, state, building);
+    this.lastCounterState = counter.state;
+  }
+
+  private drawResetButton(parent: Phaser.GameObjects.Container, building: boolean): void {
+    const { x, y, width, height } = LAYOUT.resetButton;
+    const button = new Button(this.scene, x, y, {
+      width,
+      height,
+      label: STRINGS.counter.desk.resetButton,
+      fontSize: RESET_FONT_PX,
+      variant: 'ghost',
+      onTap: () => this.dispatch({ type: 'BUILD_RESET' }),
+    });
+    button.setEnabled(building);
+    parent.add(button);
+  }
+
+  // ---------- máy in vé ----------
+
+  private printerModeOf(state: GameState): PrinterMode {
+    const { counter } = state.today;
+    if (counter.state === 'PRINTING') return 'PRINTING';
+    if (counter.state === 'READY_TO_DELIVER') return 'TICKET_READY';
+    const draft = counter.draft;
+    if (counter.state !== 'BUILDING' || !draft?.cabin) return 'NEED_TICKET';
+    return draft.flightId && draft.seat ? 'READY_TO_PRINT' : 'FILL_TICKET';
+  }
+
+  private drawPrinter(parent: Phaser.GameObjects.Container, state: GameState): void {
+    const { x, y, width, height } = LAYOUT.printer;
+    const station = new PrinterStation(this.scene, x, y, {
+      width,
+      height,
+      upgraded: state.upgrades.includes('FAST_PRINTER'),
+      mode: this.printerModeOf(state),
+      onTap: () => this.dispatch({ type: 'PRINT_TICKET' }),
+    });
+    this.printer = station;
+    parent.add(station);
+  }
+
+  private isOverPrinter(point: { x: number; y: number }): boolean {
+    const { x, y, width, height } = LAYOUT.printer;
+    return point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height;
   }
 
   // ---------- vé: kho vé + chỗ đặt vé ----------
@@ -169,67 +228,145 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     });
   }
 
+  private ticketOptions(state: GameState, printed: boolean, freshStamp: DeskTicketOptions['freshStamp']): DeskTicketOptions | null {
+    const draft = state.today.counter.draft;
+    const customer = counterCustomer(state.today);
+    if (!draft?.cabin || !customer) return null;
+    const { width, height } = LAYOUT.ticketSpot;
+    const flight = draft.flightId ? state.today.flights.find((candidate) => candidate.id === draft.flightId) : undefined;
+    return {
+      width: width - 16,
+      height: height - 16,
+      cabin: draft.cabin,
+      passengerName: customer.order.passport.bookedName,
+      destinationStamp: draft.routeStamp ? getRoute(draft.routeStamp).name : null,
+      destinationIcon: draft.routeStamp ? getRoute(draft.routeStamp).icon : null,
+      timeStamp: draft.timeStamp !== null ? formatClock(draft.timeStamp) : null,
+      flightMissing: draft.routeStamp !== null && draft.timeStamp !== null && !flight,
+      seat: draft.seat,
+      baggageKg: draft.baggageKg,
+      extras: draft.extras,
+      freshStamp,
+      day: state.day,
+      printed,
+    };
+  }
+
   private drawTicket(parent: Phaser.GameObjects.Container, state: GameState, building: boolean): void {
     const scene = this.scene;
     const { x, y, width, height } = LAYOUT.ticketSpot;
     const centerX = x + width / 2;
     const centerY = y + height / 2;
-    const spot = new Panel(scene, centerX, centerY, { width, height, fill: COLORS.kraft, strokeColor: COLORS.textMuted, fillAlpha: 0.55 });
-    parent.add(spot);
+    parent.add(new Panel(scene, centerX, centerY, { width, height, fill: COLORS.kraft, strokeColor: COLORS.textMuted, fillAlpha: 0.55 }));
 
     const { counter } = state.today;
     const draft = counter.draft;
-    const customer = counterCustomer(state.today);
-    if (!draft?.cabin || !customer) {
-      parent.add(scene.add.text(centerX, centerY, STRINGS.counter.desk.ticketSpotEmpty, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted), align: 'center', wordWrap: { width: width - 60 } }).setOrigin(0.5));
+    if (!draft?.cabin || !counterCustomer(state.today)) {
+      this.addSpotMessage(parent, STRINGS.counter.desk.ticketSpotEmpty);
       return;
     }
-    const flight = draft.flightId ? state.today.flights.find((candidate) => candidate.id === draft.flightId) : undefined;
-    const routeStampName = draft.routeStamp ? getRoute(draft.routeStamp).name : null;
-    const timeStampLabel = draft.timeStamp !== null ? formatClock(draft.timeStamp) : null;
-    const fresh = this.freshStamp(draft.routeStamp, draft.timeStamp);
-    const ticket = new DeskTicket(scene, centerX, centerY, {
-      width: width - 16,
-      height: height - 16,
-      cabin: draft.cabin,
-      passengerName: customer.order.passport.bookedName,
-      destinationStamp: routeStampName,
-      destinationIcon: draft.routeStamp ? getRoute(draft.routeStamp).icon : null,
-      timeStamp: timeStampLabel,
-      flightMissing: draft.routeStamp !== null && draft.timeStamp !== null && !flight,
-      seat: draft.seat,
-      baggageKg: draft.baggageKg,
-      extras: draft.extras,
-      freshStamp: fresh,
-    });
+    if (counter.state === 'PRINTING') {
+      this.addSpotMessage(parent, STRINGS.counter.desk.ticketInPrinter);
+      if (this.lastCounterState === 'BUILDING') this.feedTicketIntoPrinter(parent, state);
+      return;
+    }
+
+    const ready = counter.state === 'READY_TO_DELIVER';
+    const options = this.ticketOptions(state, ready, this.freshStamp(draft.routeStamp, draft.timeStamp));
+    if (!options) return;
+    const ticket = new DeskTicket(scene, centerX, centerY, options);
     parent.add(ticket);
 
-    if (counter.state === 'PRINTING') {
-      const barWidth = width - PRINT_BAR.margin * 2;
-      const track = scene.add.rectangle(x + PRINT_BAR.margin, y + height - 18, barWidth, PRINT_BAR.height, COLORS.disabled).setOrigin(0, 0.5);
-      this.printFill = scene.add.rectangle(x + PRINT_BAR.margin, y + height - 18, 1, PRINT_BAR.height, COLORS.primary).setOrigin(0, 0.5);
-      const label = scene.add.text(centerX, y + height - 46, STRINGS.counter.desk.printing, { fontFamily: HEADING_FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5);
-      parent.add([track, this.printFill, label]);
-    }
-    if (counter.state === 'READY_TO_DELIVER') {
-      this.makeDeliverable(ticket, centerX, centerY);
+    if (ready) {
       const hint = scene.add
         .text(centerX, y + height + 14, `⬆ ${STRINGS.counter.deliverHint}`, { fontFamily: HEADING_FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
         .setOrigin(0.5);
       const bob = scene.tweens.add({ targets: hint, y: hint.y - 8, duration: 500, yoyo: true, repeat: -1 });
       hint.once(Phaser.GameObjects.Events.DESTROY, () => bob.stop());
       parent.add(hint);
+      const enableDelivery = (): void => this.makeDeliverable(ticket, centerX, centerY);
+      if (this.lastCounterState === 'PRINTING') this.ejectTicketFromPrinter(ticket, centerX, centerY, enableDelivery);
+      else enableDelivery();
+      return;
     }
+    if (counter.state === 'BUILDING') this.makeDraggableToPrinter(ticket, centerX, centerY);
     if (!building && counter.state === 'BUILDING') ticket.setAlpha(DIM_ALPHA);
   }
 
-  /** Vé in xong: kéo lên khung khách để giao (hoặc dùng nút "Giao vé"). */
-  private makeDeliverable(ticket: Phaser.GameObjects.Container, homeX: number, homeY: number): void {
+  private addSpotMessage(parent: Phaser.GameObjects.Container, message: string): void {
+    const { x, y, width, height } = LAYOUT.ticketSpot;
+    parent.add(
+      this.scene.add
+        .text(x + width / 2, y + height / 2, message, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted), align: 'center', wordWrap: { width: width - 60 } })
+        .setOrigin(0.5),
+    );
+  }
+
+  /** Vé nháp chui vào máy in: bản sao thu nhỏ bay từ bàn tới khe máy rồi biến mất. */
+  private feedTicketIntoPrinter(parent: Phaser.GameObjects.Container, state: GameState): void {
+    const options = this.ticketOptions(state, false, null);
+    const slot = this.printer?.slotWorldPoint;
+    if (!options || !slot) return;
+    const { x, y, width, height } = LAYOUT.ticketSpot;
+    const imageKey = ticketStateImageKey(false);
+    const ghost = hasItemImage(this.scene, imageKey)
+      ? this.scene.add.image(x + width / 2, y + height / 2, imageKey).setDisplaySize(TICKET_GHOST_WIDTH, TICKET_GHOST_WIDTH * 0.5)
+      : new DeskTicket(this.scene, x + width / 2, y + height / 2, options);
+    parent.add(ghost);
+    this.scene.tweens.add({
+      targets: ghost,
+      x: slot.x,
+      y: slot.y,
+      scale: ghost.scale * TICKET_FEED_END_SCALE,
+      alpha: 0,
+      duration: TICKET_FEED_MS,
+      ease: 'Cubic.easeIn',
+      onComplete: () => ghost.destroy(),
+    });
+  }
+
+  /** Vé đã in tự chui ra từ máy in rồi bay về chỗ cũ trên bàn; xong mới cho kéo giao khách. */
+  private ejectTicketFromPrinter(ticket: Phaser.GameObjects.Container, homeX: number, homeY: number, onDone: () => void): void {
+    const slot = this.printer?.slotWorldPoint;
+    if (!slot) {
+      onDone();
+      return;
+    }
+    ticket.setPosition(slot.x, slot.y).setScale(TICKET_FEED_END_SCALE).setAlpha(0.6);
+    this.scene.tweens.add({ targets: ticket, x: homeX, y: homeY, scale: 1, alpha: 1, duration: TICKET_EJECT_MS, ease: 'Back.easeOut', onComplete: onDone });
+  }
+
+  /** Vé nháp: kéo vào máy in để in (thả ngoài máy thì về chỗ cũ; thiếu thông tin thì quầy báo lý do). */
+  private makeDraggableToPrinter(ticket: Phaser.GameObjects.Container, homeX: number, homeY: number): void {
     ticket.setInteractive();
     new DragController(ticket, {
       onDragMove: (point) => ticket.setPosition(point.x, point.y),
       onDragEnd: (point) => {
-        if (point.y < DELIVER_LINE_Y) this.dispatch({ type: 'DELIVER_TICKET' });
+        if (!this.isOverPrinter(point)) {
+          ticket.setPosition(homeX, homeY);
+          return;
+        }
+        this.dispatch({ type: 'PRINT_TICKET' });
+        // Nếu lệnh bị từ chối (vé chưa đủ thông tin) quầy không dựng lại, nên trả vé về chỗ cũ.
+        this.scene.time.delayedCall(RETURN_AFTER_REJECT_MS, () => {
+          if (ticket.active) ticket.setPosition(homeX, homeY);
+        });
+      },
+    });
+  }
+
+  /** Vé đã in: kéo (hoặc chạm) để giao cho khách. */
+  private makeDeliverable(ticket: Phaser.GameObjects.Container, homeX: number, homeY: number): void {
+    ticket.setInteractive();
+    let start: DragPoint = { x: homeX, y: homeY };
+    new DragController(ticket, {
+      onDragStart: (point) => {
+        start = point;
+      },
+      onDragMove: (point) => ticket.setPosition(point.x, point.y),
+      onDragEnd: (point) => {
+        const tapped = Math.hypot(point.x - start.x, point.y - start.y) <= DRAG_TAP_THRESHOLD_PX;
+        if (tapped || point.y < DELIVER_LINE_Y) this.dispatch({ type: 'DELIVER_TICKET' });
         else ticket.setPosition(homeX, homeY);
       },
     });
@@ -253,29 +390,46 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     parent.add(scene.add.text(x + TRAY_PADDING + 4, y + 20, STRINGS.counter.desk.stampTray, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5));
 
     const routes = ROUTES.filter((route) => state.unlockedRoutes.includes(route.id));
-    const columns = columnsForRouteCount(routes.length);
-    const destRows = Math.max(1, Math.ceil(routes.length / columns));
-    const destAreaHeight = height - TRAY_TITLE_HEIGHT - TIME_SECTION_HEIGHT - TRAY_PADDING;
-    const destHeight = Math.max(MIN_STAMP_HEIGHT, Math.min(DEST_MAX_HEIGHT, destAreaHeight / destRows - STAMP_ROW_GAP));
     const innerWidth = width - TRAY_PADDING * 2;
-    const destWidth = (innerWidth - STAMP_GAP * (columns - 1)) / columns;
-    routes.forEach((route, index) => {
-      const column = index % columns;
-      const row = Math.floor(index / columns);
-      parent.add(
-        new StampButton(scene, x + TRAY_PADDING + destWidth / 2 + column * (destWidth + STAMP_GAP), y + TRAY_TITLE_HEIGHT + 4 + destHeight / 2 + row * (destHeight + STAMP_ROW_GAP), {
-          width: destWidth,
-          height: destHeight,
-          label: route.name,
-          color: COLORS.accent,
-          imageKey: stampImageKey(route.icon),
-          active: draft?.routeStamp === route.id,
-          onTap: () => this.dispatch({ type: 'BUILD_STAMP_ROUTE', routeId: route.id }),
-        }),
-      );
-    });
+    const destWidth = (innerWidth - STAMP_GAP * (DEST_COLUMNS - 1)) / DEST_COLUMNS;
+    const rows = Array.from({ length: Math.ceil(routes.length / DEST_COLUMNS) }, (_, row) => routes.slice(row * DEST_COLUMNS, (row + 1) * DEST_COLUMNS));
+    if (rows.length > DEST_VISIBLE_ROWS) {
+      parent.add(scene.add.text(x + width - TRAY_PADDING - 4, y + 20, STRINGS.counter.desk.scrollHint, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(1, 0.5));
+    }
+    const destTop = y + TRAY_TITLE_HEIGHT + 4;
+    parent.add(
+      new ScrollList(scene, {
+        x: x + TRAY_PADDING,
+        y: destTop,
+        width: innerWidth,
+        height: DEST_VISIBLE_ROWS * DEST_ROW_HEIGHT,
+        itemHeight: DEST_ROW_HEIGHT,
+        items: rows,
+        initialScrollY: this.destinationScrollY,
+        onScrollChange: (scrollY) => {
+          this.destinationScrollY = scrollY;
+        },
+        renderItem: (rowRoutes) => {
+          const row = scene.add.container(0, 0);
+          rowRoutes.forEach((route, column) => {
+            row.add(
+              new StampButton(scene, destWidth / 2 + column * (destWidth + STAMP_GAP), DEST_ROW_HEIGHT / 2, {
+                width: destWidth,
+                height: DEST_STAMP_HEIGHT,
+                label: route.name,
+                color: COLORS.accent,
+                imageKey: stampImageKey(route.icon),
+                active: draft?.routeStamp === route.id,
+                onTap: () => this.dispatch({ type: 'BUILD_STAMP_ROUTE', routeId: route.id }),
+              }),
+            );
+          });
+          return row;
+        },
+      }),
+    );
 
-    const timeTop = y + TRAY_TITLE_HEIGHT + 4 + destRows * (destHeight + STAMP_ROW_GAP) + 6;
+    const timeTop = destTop + DEST_VISIBLE_ROWS * DEST_ROW_HEIGHT + TIME_SECTION_GAP;
     const times = [...new Set(state.today.flights.filter((flight) => state.unlockedRoutes.includes(flight.routeId)).map((flight) => flight.departAt))].sort((a, b) => a - b);
     parent.add(scene.add.text(x + TRAY_PADDING + 4, timeTop - 2, STRINGS.counter.desk.timeStamps, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(0, 0.5));
     const timeWidth = Math.min(destWidth, (innerWidth - STAMP_GAP * (times.length - 1)) / Math.max(1, times.length));
@@ -350,7 +504,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       const card = new Panel(scene, cx, cy, { width: cardWidth, height: height - 24, fill: chosen ? COLORS.success : COLORS.cloud, strokeColor: chosen ? COLORS.successDark : COLORS.primary });
       const icon = this.serviceIcon(cx, cy - 22, extra);
       const name = scene.add.text(cx, cy + 14, STRINGS.counter.extras[extra], { fontFamily: FONT_FAMILY, fontSize: '14px', fontStyle: 'bold', color: toCssColor(chosen ? COLORS.cloud : COLORS.text), align: 'center', wordWrap: { width: cardWidth - 8 } }).setOrigin(0.5);
-      const price = scene.add.text(cx, cy + 40, `+${formatMoney(EXTRA_FEES[extra])}`, { fontFamily: FONT_FAMILY, fontSize: '14px', color: toCssColor(chosen ? COLORS.cloud : COLORS.textMuted) }).setOrigin(0.5);
+      const price = scene.add.text(cx, cy + 40, `+${formatMoney(extraFeeOf(extra, state.day))}`, { fontFamily: FONT_FAMILY, fontSize: '14px', color: toCssColor(chosen ? COLORS.cloud : COLORS.textMuted) }).setOrigin(0.5);
       const hit = scene.add.zone(cx, cy, cardWidth, height - 24).setInteractive({ useHandCursor: true });
       hit.on('pointerup', () => this.dispatch({ type: 'BUILD_TOGGLE_EXTRA', extra }));
       parent.add([card, icon, name, price, hit]);

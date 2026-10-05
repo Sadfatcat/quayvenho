@@ -11,6 +11,8 @@ export const markImageKey = (routeIcon: string): string => `mark_${routeIcon}`;
 export const timeStampImageKey = (departAt: number): string => `time_${formatClock(departAt).replace(':', '')}`;
 export const upgradeImageKey = (upgradeId: string): string => `upgrade_${upgradeId.toLowerCase()}`;
 export const ticketStackImageKey = (cabin: 'ECONOMY' | 'BUSINESS'): string => (cabin === 'ECONOMY' ? 'stack_eco' : 'stack_biz');
+export const printerImageKey = (upgraded: boolean): string => (upgraded ? 'printer_upgraded' : 'printer_basic');
+export const ticketStateImageKey = (printed: boolean): string => (printed ? 'ticket_printed' : 'ticket_draft');
 const SERVICE_IMAGE: Record<Extra, string> = { VEG_MEAL: 'service_meal', WHEELCHAIR: 'service_wheelchair', INSURANCE: 'service_insurance' };
 export const serviceImageKey = (extra: Extra): string => SERVICE_IMAGE[extra];
 
@@ -23,6 +25,10 @@ export const loadItemImages = (scene: Phaser.Scene): void => {
     ...['2130', '2230', '2330', '0030', '0130'].map((time) => `time_${time}`),
     'stack_eco',
     'stack_biz',
+    printerImageKey(false),
+    printerImageKey(true),
+    ticketStateImageKey(false),
+    ticketStateImageKey(true),
     ...Object.values(SERVICE_IMAGE),
     ...UPGRADES.map((upgrade) => upgradeImageKey(upgrade.id)),
   ];

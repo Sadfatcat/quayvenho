@@ -16,7 +16,7 @@ import { CustomerCard } from '@ui/CustomerCard';
 import { formatMoney } from '@ui/format';
 import { QueueStrip } from '@ui/QueueStrip';
 import { showFloatingText } from '@ui/FloatingText';
-import { buttonRow, MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
+import { MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { isAbsentOn } from '@domain/staff';
 import { kindName } from '@ui/staffText';
@@ -35,9 +35,9 @@ const GOOD_SPECIAL_OUTCOMES: ReadonlySet<ScoreResult['outcome']> = new Set(['PER
 const specialLinesOf = (specialId: string | undefined) => PERSONAL.specialCustomers.find((special) => special.id === specialId)?.lines;
 const SHAKE_DURATION_MS = 180;
 const SHAKE_INTENSITY = 0.006;
-const DOCK_Y = 1170;
 const HEADER_TEXT_Y = 146;
 const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 262 };
+const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 84, y: 396, width: 168, height: 56, fontSize: 22 };
 const FEEDBACK_Y = 330;
 const STAFF_TOAST_MS = 1200;
 const STAFF_CHIP_RADIUS = 18;
@@ -55,9 +55,7 @@ export class CounterScene extends BaseScene {
   private queueStrip!: QueueStrip;
   private customerCard!: CustomerCard;
   private desk!: CounterDesk;
-  private retryButton!: Button;
   private refuseButton!: Button;
-  private mainButton!: Button;
   private passportButton!: Button;
   private topBar!: TopBar;
   private staffChips!: Phaser.GameObjects.Container;
@@ -121,10 +119,8 @@ export class CounterScene extends BaseScene {
     this.customerCard = new CustomerCard(this);
     this.desk = new CounterDesk(this, { dispatch: (command) => this.dispatch(command) });
 
-    const dock = buttonRow(GAME_WIDTH, 3);
-    this.retryButton = new Button(this, dock.centers[0] ?? 0, DOCK_Y, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.retry, variant: 'ghost', onTap: () => this.dispatch({ type: 'BUILD_RESET' }) });
-    this.refuseButton = new Button(this, dock.centers[1] ?? 0, DOCK_Y, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.refuse, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
-    this.mainButton = new Button(this, dock.centers[2] ?? 0, DOCK_Y, { width: dock.width, height: MIN_TOUCH_SIZE, label: STRINGS.counter.print, variant: 'primary', onTap: () => this.onMainAction() });
+    this.refuseButton = new Button(this, REFUSE_BUTTON.x, REFUSE_BUTTON.y, { width: REFUSE_BUTTON.width, height: REFUSE_BUTTON.height, label: STRINGS.counter.desk.refuseButton, fontSize: REFUSE_BUTTON.fontSize, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
+    this.refuseButton.setVisible(false);
 
     this.passportButton = new Button(this, PASSPORT_BUTTON.x, PASSPORT_BUTTON.y, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
     this.passportButton.setVisible(false);
@@ -191,21 +187,11 @@ export class CounterScene extends BaseScene {
   // ---------- buttons ----------
 
   private updateButtons(state: GameState): void {
-    const counter = state.today.counter;
-    const draft = counter.draft;
+    const counterState = state.today.counter.state;
     const hasCustomer = counterCustomer(state.today) !== undefined;
-    const canBuild = counter.state === 'BUILDING';
-    const canRefuse = (['BUILDING', 'PRINTING', 'READY_TO_DELIVER'] as const).includes(counter.state as never) && hasCustomer;
-
-    this.retryButton.setEnabled(canBuild);
+    const canRefuse = (['BUILDING', 'PRINTING', 'READY_TO_DELIVER'] as const).includes(counterState as never) && hasCustomer;
+    this.refuseButton.setVisible(hasCustomer);
     this.refuseButton.setEnabled(canRefuse);
-
-    this.mainButton.setLabel(STRINGS.counter.print);
-    this.mainButton.setEnabled(canBuild && !!draft?.cabin && !!draft.flightId && !!draft.seat);
-  }
-
-  private onMainAction(): void {
-    if (sessionBridge.current.state.today.counter.state === 'BUILDING') this.dispatch({ type: 'PRINT_TICKET' });
   }
 
   // ---------- events, pause, summary ----------

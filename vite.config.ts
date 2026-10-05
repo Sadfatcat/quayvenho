@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => ({
           { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,png,woff2,json}'] },
+      workbox: { globPatterns: ['**/*.{js,css,html,png,woff2,json}'], maximumFileSizeToCacheInBytes: 4 * 1024 * 1024 },
     }),
   ],
   test: {

@@ -66,6 +66,7 @@ export class CustomerCard extends Phaser.GameObjects.Container {
     const scene = this.scene;
     const content = scene.add.container(0, 0);
     this.content = content;
+    this.add(content);
 
     // Avatar tròn: nền kraft + ảnh cắt theo hình tròn + viền nâu.
     const disc = scene.add.graphics();

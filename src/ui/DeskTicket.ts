@@ -5,7 +5,7 @@ import { formatMoney } from './format';
 import { markImageKey } from './itemImages';
 import { Panel } from './Panel';
 import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
-import { EXTRA_FEES } from '@data/balance';
+import { extraFeeOf } from '@domain/economy';
 
 export interface DeskTicketOptions {
   width: number;
@@ -21,6 +21,10 @@ export interface DeskTicketOptions {
   seat: SeatId | null;
   baggageKg: number;
   extras: readonly Extra[];
+  /** Ngày hiện tại, để tính phí dịch vụ đã lạm phát. */
+  day: number;
+  /** Vé đã in (màu tươi, có dấu "ĐÃ IN") hay còn là vé nháp chưa in (màu nhạt, nhãn "CHƯA IN"). */
+  printed: boolean;
   /** Con dấu vừa đóng ở lần vẽ này (để chạy hiệu ứng "đóng dấu"). */
   freshStamp: 'destination' | 'time' | null;
 }
@@ -31,6 +35,9 @@ const HEADER_HEIGHT = 44;
 const SLOT_HEIGHT = 68;
 const SLOT_GAP = 14;
 const STAMP_ANGLE_DEG = -5;
+const STATUS_STAMP_ANGLE_DEG = -12;
+const STATUS_STAMP_RADIUS = 30;
+const DRAFT_BAND_ALPHA = 0.8;
 const STAMP_POP_MS = 160;
 const STAMP_START_SCALE = 1.5;
 const IMAGE_CENTER_RATIO = 0.22;
@@ -43,9 +50,10 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     super(scene, x, y);
     const { width, height } = options;
     const business = options.cabin === 'BUSINESS';
-    const panel = new Panel(scene, 0, 0, { width, height, fill: COLORS.panel, strokeColor: COLORS.primary });
+    const printed = options.printed;
+    const panel = new Panel(scene, 0, 0, { width, height, fill: printed ? COLORS.panel : COLORS.kraft, strokeColor: printed ? COLORS.primary : COLORS.textMuted });
     const band = scene.add.graphics();
-    band.fillStyle(business ? COLORS.accent : COLORS.teal, 1);
+    band.fillStyle(printed ? (business ? COLORS.accent : COLORS.teal) : COLORS.textMuted, printed ? 1 : DRAFT_BAND_ALPHA);
     band.fillRoundedRect(-width / 2 + 2, -height / 2 + 2, width - 4, HEADER_HEIGHT, { tl: 22, tr: 22, bl: 0, br: 0 });
     const heading = scene.add
       .text(-width / 2 + PADDING, -height / 2 + HEADER_HEIGHT / 2 + 2, business ? STRINGS.counter.desk.businessTicket.toUpperCase() : STRINGS.counter.desk.economyTicket.toUpperCase(), {
@@ -68,7 +76,7 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     const infoY = slotTop + SLOT_HEIGHT + 24;
     const seatText = options.seat ?? '—';
     const baggage = options.baggageKg > 0 ? `${options.baggageKg} ${STRINGS.counter.baggageUnit}` : '—';
-    const extras = options.extras.length ? options.extras.map((extra) => `${EXTRA_ICON[extra]} +${formatMoney(EXTRA_FEES[extra])}`).join('  ') : '';
+    const extras = options.extras.length ? options.extras.map((extra) => `${EXTRA_ICON[extra]} +${formatMoney(extraFeeOf(extra, options.day))}`).join('  ') : '';
     this.add([
       scene.add.text(-width / 2 + PADDING, infoY, `${STRINGS.counter.ticket.seat}: ${seatText}`, { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5),
       scene.add.text(0, infoY, `🧳 ${baggage}`, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.text) }).setOrigin(0.5, 0.5),
@@ -77,8 +85,24 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     if (options.flightMissing) {
       this.add(scene.add.text(0, height / 2 - 22, STRINGS.counter.desk.flightMissing, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.danger) }).setOrigin(0.5));
     }
+    this.addStatusMark(scene, width, height, printed);
     this.setSize(width, height);
     scene.add.existing(this);
+  }
+
+  /** Dấu đỏ "ĐÃ IN" ở vé đã in, nhãn xám "CHƯA IN" ở vé nháp: phân biệt hai trạng thái ngay cả khi màu giống nhau. */
+  private addStatusMark(scene: Phaser.Scene, width: number, height: number, printed: boolean): void {
+    const x = width / 2 - STATUS_STAMP_RADIUS - 10;
+    const y = height / 2 - STATUS_STAMP_RADIUS - 8;
+    const ink = printed ? COLORS.danger : COLORS.textMuted;
+    const ring = scene.add.graphics();
+    ring.lineStyle(3, ink, printed ? 0.9 : 0.6);
+    ring.strokeCircle(0, 0, STATUS_STAMP_RADIUS);
+    const label = scene.add
+      .text(0, 0, printed ? STRINGS.counter.desk.ticketPrintedTag : STRINGS.counter.desk.ticketDraftTag, { fontFamily: HEADING_FONT_FAMILY, fontSize: '14px', fontStyle: 'bold', color: toCssColor(ink), align: 'center', wordWrap: { width: STATUS_STAMP_RADIUS * 1.8 } })
+      .setOrigin(0.5)
+      .setAlpha(printed ? 1 : 0.8);
+    this.add(scene.add.container(x, y, [ring, label]).setAngle(STATUS_STAMP_ANGLE_DEG));
   }
 
   private addSlot(scene: Phaser.Scene, left: number, top: number, width: number, caption: string, stamped: string | null, inkColor: number, fresh: boolean, imageKey: string | null): void {
