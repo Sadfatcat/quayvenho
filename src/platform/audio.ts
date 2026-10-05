@@ -1,7 +1,10 @@
 /**
- * Âm thanh tổng hợp bằng Web Audio (không cần file asset): SFX ngắn + nhạc nền lofi lặp (PLAN §11.3).
+ * Âm thanh tổng hợp bằng Web Audio (không cần file asset): SFX ngắn + nhạc nền tự soạn (sáo, piano, violin, guitar) lặp (PLAN §11.3).
  * AudioContext chỉ tạo và resume sau lần chạm đầu tiên (`unlock`) để chạy trên Safari iOS; trước đó mọi lời gọi là no-op.
  */
+import { MUSIC_TRACKS } from '@data/music';
+import { createReverb, Instruments } from './instruments';
+
 export type SfxName = 'click' | 'seat' | 'print' | 'success' | 'error' | 'walkAway' | 'thunder' | 'buy' | 'unlock' | 'open' | 'tick';
 export type MusicTrack = 'calm' | 'busy';
 
@@ -45,15 +48,7 @@ const SFX_TONES: Record<SfxName, readonly Tone[]> = {
   ],
 };
 
-/** Hợp âm lofi (Hz) cho mỗi nhịp; mỗi track dùng độ dài nhịp khác nhau. */
-const CHORDS: readonly (readonly number[])[] = [
-  [220, 277.18, 329.63, 415.3],
-  [174.61, 220, 261.63, 329.63],
-  [196, 246.94, 293.66, 392],
-  [164.81, 207.65, 246.94, 329.63],
-];
-const BAR_SECONDS: Record<MusicTrack, number> = { calm: 3, busy: 2.1 };
-const MUSIC_GAIN = 0.12;
+const MUSIC_GAIN = 0.6;
 const CROSSFADE_SECONDS = 0.8;
 const SCHEDULE_AHEAD_SECONDS = 1;
 const SCHEDULER_INTERVAL_MS = 250;
@@ -65,6 +60,7 @@ class AudioEngine {
   private context: AudioContext | null = null;
   private sfxGain: GainNode | null = null;
   private musicGain: GainNode | null = null;
+  private instruments: Instruments | null = null;
   private musicVolume = 0.7;
   private sfxVolume = 0.8;
   private track: MusicTrack | null = null;
@@ -83,6 +79,8 @@ class AudioEngine {
       this.musicGain = this.context.createGain();
       this.sfxGain.connect(this.context.destination);
       this.musicGain.connect(this.context.destination);
+      this.musicGain.connect(createReverb(this.context, this.context.destination));
+      this.instruments = new Instruments(this.context, this.musicGain);
       this.applyVolumes();
     }
     if (this.context.state === 'suspended') void this.context.resume();
@@ -113,7 +111,10 @@ class AudioEngine {
   /** Đổi nhạc nền: crossfade 800 ms (nhạc cũ nhỏ dần rồi mới đổi nhịp). `null` giữ nhạc hiện tại. */
   playMusic(track: MusicTrack | null): void {
     if (track === null || track === this.track) return;
+    const sameSong = this.track !== null && MUSIC_TRACKS[track] === MUSIC_TRACKS[this.track];
     this.track = track;
+    if (sameSong) return;
+    this.barIndex = 0;
     if (!this.context || !this.musicGain) return;
     const { currentTime } = this.context;
     const gain = this.musicGain.gain;
@@ -154,16 +155,13 @@ class AudioEngine {
   }
 
   private scheduleBars(): void {
-    const { context, musicGain, track } = this;
-    if (!context || !musicGain || !track) return;
-    const barSeconds = BAR_SECONDS[track];
+    const { context, instruments, track } = this;
+    if (!context || !instruments || !track) return;
+    const { bpm, beatsPerBar, bars } = MUSIC_TRACKS[track];
+    const beatSeconds = 60 / bpm;
     while (this.nextBarTime < context.currentTime + SCHEDULE_AHEAD_SECONDS) {
-      const chord = CHORDS[this.barIndex % CHORDS.length] ?? [];
-      chord.forEach((freq, index) =>
-        this.playTone(musicGain, this.nextBarTime + index * (barSeconds / 8), { freq, start: 0, duration: barSeconds * 0.9, type: 'triangle', gain: 0.5 }),
-      );
-      this.playTone(musicGain, this.nextBarTime, { freq: (chord[0] ?? 220) / 2, start: 0, duration: barSeconds * 0.8, type: 'sine', gain: 0.7 });
-      this.nextBarTime += barSeconds;
+      for (const note of bars[this.barIndex % bars.length] ?? []) instruments.playNote(note, this.nextBarTime + note.beat * beatSeconds, beatSeconds);
+      this.nextBarTime += beatsPerBar * beatSeconds;
       this.barIndex++;
     }
   }
