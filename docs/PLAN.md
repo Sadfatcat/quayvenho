@@ -104,7 +104,7 @@ Khách vào hàng ─► đến lượt (đứng ở quầy) ─► người ch�
 
 Nhánh phụ:
 - Bấm "Từ chối" bất kỳ lúc nào: khách rời đi, chấm theo luật từ chối (§5.5).
-- Bấm "Làm lại": vé đang lắp reset về Bước A, ghế đã giữ trả về kho.
+- Muốn lắp lại: chạm lại hạng vé, con dấu hoặc ghế khác, bước mới tự đè lên bước cũ (đổi chuyến hoặc hạng thì ghế đang giữ tự trả về kho). Không còn nút "Làm lại" (bỏ 2026-10-07).
 - Khách hết kiên nhẫn: khách bỏ đi, vé đang lắp bị huỷ, ghế trả về kho, 1 sao.
 
 ### 2.5 Tiến trình qua các ngày
@@ -172,7 +172,7 @@ Vùng thao tác phía dưới màn Quầy là một stepper 4 bước. Người 
 
 In vé: thanh tiến trình máy in (thời gian theo nâng cấp, §4.3). Trong lúc in không sửa được vé, nhưng khách vẫn mất kiên nhẫn. In xong, vé xuất hiện; người chơi kéo vé thả vào vùng khách để giao. Thả trượt ra ngoài thì vé bay về chỗ cũ.
 
-Các nút luôn hiện trong lúc có khách ở quầy: "Làm lại", "Từ chối", "Hộ chiếu" (chỉ từ ngày 6).
+Các nút luôn hiện trong lúc có khách ở quầy: "Từ chối" (nút tròn ✋), "Hộ chiếu" (chỉ từ ngày 6).
 
 ### 3.6 Kiên nhẫn
 
@@ -582,7 +582,6 @@ type Command =
   | { type: 'BUILD_SET_BAGGAGE'; kg: number }
   | { type: 'BUILD_TOGGLE_EXTRA'; extra: Extra }
   | { type: 'BUILD_GOTO_STEP'; step: BuildStep }
-  | { type: 'BUILD_RESET' }
   | { type: 'PRINT_TICKET' }
   | { type: 'DELIVER_TICKET' }
   | { type: 'REFUSE_CUSTOMER' }
@@ -1058,7 +1057,7 @@ Bố cục theo trục dọc (toạ độ y trong khung 720×1280):
 | Mặt quầy | 600–660 | Hình mặt bàn; vùng thả vé (drop zone) là toàn bộ khu khách |
 | Stepper bước | 660–730 | 4 chấm A-B-C-D có nhãn "Chuyến · Ghế · Hành lý · Vé" |
 | Vùng thao tác | 730–1130 | Nội dung của bước hiện tại |
-| Hàng nút | 1130–1230 | "Làm lại", "Từ chối", "Hộ chiếu" (từ ngày 6), nút chính theo bước ("Tiếp" / "In vé") |
+| Hàng nút | 1130–1230 | "Từ chối" (nút tròn ✋), "Hộ chiếu" (từ ngày 6), nút chính theo bước ("Tiếp" / "In vé") |
 
 Chi tiết từng bước:
 
