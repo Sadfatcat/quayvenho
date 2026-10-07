@@ -453,8 +453,8 @@ describe('staff', () => {
     const events = game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
 
     expect(events).toEqual([{ type: 'STAFF_HIRED', staffId: 's0', kind: 'SENIOR' }]);
-    expect(game.state.money).toBe(500_000 - 15_000);
-    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -15_000, day: 15, minute: null, ref: 's0' });
+    expect(game.state.money).toBe(500_000 - 20_000);
+    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -20_000, day: 15, minute: null, ref: 's0' });
     expect(game.state.staff[0]).toMatchObject({ id: 's0', kind: 'SENIOR', daysWorked: 0 });
   });
 

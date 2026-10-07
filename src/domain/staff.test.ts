@@ -36,8 +36,8 @@ const unit = (seat: `${number}${'A' | 'B' | 'C' | 'D'}`, patch: Partial<OwnedSea
 describe('checkHire', () => {
   const rich = { day: 20, money: 1_000_000 };
 
-  it('charges a fixed hire price that never grows with the day (Junior 10tr, Middle 12tr, Senior 15tr)', () => {
-    for (const [kind, price] of [['JUNIOR', 10_000], ['MIDDLE', 12_000], ['SENIOR', 15_000]] as const) {
+  it('charges a fixed hire price that never grows with the day (Junior 10tr, Middle 15tr, Senior 20tr)', () => {
+    for (const [kind, price] of [['JUNIOR', 10_000], ['MIDDLE', 15_000], ['SENIOR', 20_000]] as const) {
       for (const day of [15, 60, 400]) {
         const result = checkHire(kind, [], { day, money: 1_000_000 });
         expect(result.ok && result.value.hireCost).toBe(price);
