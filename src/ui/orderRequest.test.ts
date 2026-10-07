@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeOrder } from '@domain/__integration__/fixtures';
-import { orderSpeech } from './orderRequest';
+import { orderSpeech, orderSpeechSegments } from './orderRequest';
 
 describe('orderSpeech', () => {
   it('only names the destination and cabin for a plain order, without "no request" filler', () => {
@@ -25,5 +25,15 @@ describe('orderSpeech', () => {
   it('says the same sentence every time for the same customer', () => {
     const order = makeOrder({ routeId: 'HAN-DAD', customerId: 'c-42' });
     expect(orderSpeech(order)).toBe(orderSpeech(order));
+  });
+
+  it('marks the destination, cabin and every wish as key segments and leaves the filler words unmarked', () => {
+    const order = makeOrder({ routeId: 'HAN-SGN', cabin: 'BUSINESS', timePref: 'LATE', seatPref: 'BACK', baggageKg: 20, extras: ['VEG_MEAL'] });
+    const key = orderSpeechSegments(order).filter((segment) => segment.key).map((segment) => segment.text);
+    expect(key).toEqual(expect.arrayContaining(['thương gia', 'bay chuyến khuya', 'ngồi cuối khoang', 'mang theo 20 kg hành lý', 'suất ăn chay']));
+    expect(key.some((text) => text.includes('Sài Gòn') || text.includes('Hồ Chí Minh'))).toBe(true);
+    const filler = orderSpeechSegments(order).filter((segment) => !segment.key).map((segment) => segment.text).join('');
+    expect(filler).toMatch(/mình/);
+    expect(filler).not.toMatch(/khuya|cuối khoang|thương gia/);
   });
 });

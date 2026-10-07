@@ -248,3 +248,6 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - `STAFF_JOB_DELAY_MS` chậm lại: rút vé 1500 ms, đóng dấu 2200, cân hành lý 1500 (+ thời gian giữ thanh cân), chọn ghế 1800, vé dịch vụ 1500, kiểm tra hộ chiếu 1500 (trước đó 800/1200/1200/1000/800/1000, bản gốc 2000/3000/3000/2500/2000).
 - Thẻ hộ chiếu: đẩy tên và các dòng thông tin xuống dưới ảnh khách (trước đó ảnh đè lên tên); thẻ cao 470.
 - Chỉnh lại sau lần chơi thử kế tiếp: mỗi việc của nhân viên chỉ loanh quanh 0,8–1,3 giây (rút vé 800 ms, đóng dấu 1300, cân hành lý 900 + thời gian giữ thanh cân, chọn ghế 1100, vé dịch vụ 1000, kiểm tra hộ chiếu 800); vẫn làm từng việc một.
+
+## 2026-10-07 — Lời khách: yêu cầu in đậm, lời đưa đẩy làm mờ
+- `orderSpeechSegments` chia câu của khách thành đoạn có cờ `key`: đi đâu, hạng vé, giờ bay, chỗ ngồi, hành lý, dịch vụ là yêu cầu (in đậm, màu đậm); phần còn lại ("Cho mình một vé…", "và cho mình thêm…") thường, màu nhạt, độ mờ 0,5. `addHighlightedSpeech` vẽ mỗi từ một Text (Phaser không trộn kiểu chữ trong một khối) và tự xuống dòng. Chữ lời khách tăng lên 26px.

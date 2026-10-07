@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import type { Customer, Mood } from '@domain/models';
 import { patienceRatioOf } from '@domain/dayCycle';
 import { CustomerAvatar, type AvatarMood } from './CustomerAvatar';
-import { orderSpeech } from './orderRequest';
+import { addHighlightedSpeech } from './highlightedText';
+import { orderSpeechSegments } from './orderRequest';
 import { shortNameOf } from './passportProfile';
 import { Panel } from './Panel';
 import { PatienceBar } from './PatienceBar';
@@ -14,7 +15,7 @@ const AVATAR_CENTER = { x: 84, y: 318 };
 const AVATAR_RADIUS = 52;
 export const CARD = { left: 164, top: 244, width: 532, height: 184 };
 /** Lời khách nói nằm trên cùng khung; nút Từ chối nằm sát đáy bên phải nên chừa chỗ phía dưới. */
-const SPEECH = { paddingX: 22, paddingTop: 16, fontSize: 24, lineSpacing: 4 };
+const SPEECH = { paddingX: 22, paddingTop: 16, fontSize: 26, lineSpacing: 6, fillerAlpha: 0.5 };
 /** Nút hộ chiếu nằm ở góc trên phải của khung (xem CounterScene); lời khách chừa chỗ cho nó. */
 export const PASSPORT_BUTTON_INSET = 14;
 export const PASSPORT_BUTTON_SIZE = 72;
@@ -110,18 +111,13 @@ export class CustomerCard extends Phaser.GameObjects.Container {
     tail.fillRect(CARD.left - 1, tailY - TAIL_HALF_HEIGHT + 3, 6, TAIL_HALF_HEIGHT * 2 - 6);
     content.add([panel, tail]);
 
-    content.add(
-      scene.add
-        .text(CARD.left + SPEECH.paddingX, CARD.top + SPEECH.paddingTop, orderSpeech(customer.order), {
-          fontFamily: FONT_FAMILY,
-          fontSize: `${SPEECH.fontSize}px`,
-          fontStyle: 'bold',
-          color: toCssColor(COLORS.text),
-          lineSpacing: SPEECH.lineSpacing,
-          wordWrap: { width: CARD.width - SPEECH.paddingX - PASSPORT_BUTTON_INSET * 2 - PASSPORT_BUTTON_SIZE },
-        })
-        .setOrigin(0, 0),
-    );
-
+    addHighlightedSpeech(scene, content, orderSpeechSegments(customer.order), {
+      x: CARD.left + SPEECH.paddingX,
+      y: CARD.top + SPEECH.paddingTop,
+      maxWidth: CARD.width - SPEECH.paddingX - PASSPORT_BUTTON_INSET * 2 - PASSPORT_BUTTON_SIZE,
+      fontSize: SPEECH.fontSize,
+      lineSpacing: SPEECH.lineSpacing,
+      fillerAlpha: SPEECH.fillerAlpha,
+    });
   }
 }
