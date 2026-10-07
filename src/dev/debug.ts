@@ -1,4 +1,6 @@
 import { GameSession } from '@domain/game';
+import { maxPurchasable } from '@domain/inventory';
+import type { StaffKind } from '@domain/models';
 import { perfectDecide, playDay, playShift } from '@domain/__integration__/bots';
 import { sessionBridge } from '@scenes/sessionBridge';
 
@@ -10,9 +12,15 @@ declare global {
     __debugBaggageStep?: () => void;
     /** DEV: mở thẳng một màn với ván mẫu (Prep | Price | Staff | Counter | Summary | Shop) để xem giao diện. */
     __debugScene?: (scene: DebugScene) => void;
-    /** DEV: mở ván mẫu đã chơi tới ngày `day` (bot chơi hoàn hảo) với đúng `money` (đơn vị k), vào màn `scene` (mặc định Prep). Cũng chạy qua URL ?debugDay=25&debugMoney=10000&debugScene=Prep. */
-    __debugDay?: (day: number, money: number, scene?: DebugScene) => void;
+    /** DEV: mở ván mẫu đã chơi tới ngày `day` (bot chơi hoàn hảo) với đúng `money` (đơn vị k), vào màn `scene` (mặc định Prep). Cũng chạy qua URL ?debugDay=25&debugMoney=1000000&debugScene=Prep&debugSeats=10&debugStaff=MIDDLE,SENIOR. */
+    __debugDay?: (day: number, money: number, scene?: DebugScene, options?: DebugDayOptions) => void;
   }
+}
+
+/** `seatsPerKind`: mua sẵn tối đa chừng này ghế cho mỗi chuyến × hạng (bị chặn bởi giới hạn mỗi chuyến). `staff`: các bậc nhân viên thuê sẵn. */
+interface DebugDayOptions {
+  seatsPerKind?: number;
+  staff?: readonly StaffKind[];
 }
 
 type DebugScene = 'Prep' | 'Price' | 'Staff' | 'Counter' | 'Summary' | 'Shop';
@@ -74,7 +82,22 @@ const DEBUG_URL_POLL_MS = 200;
 const DEBUG_URL_TIMEOUT_MS = 30000;
 const DEBUG_SCENES: readonly DebugScene[] = ['Prep', 'Price', 'Staff', 'Counter', 'Summary', 'Shop'];
 
-const startAtDay = (day: number, money: number, target: DebugScene = 'Prep'): void => {
+const DEBUG_RICH_MONEY = 1_000_000_000;
+const STAFF_KINDS_BY_NAME: readonly StaffKind[] = ['INTERN', 'JUNIOR', 'MIDDLE', 'SENIOR', 'MARKETING'];
+
+const stockSeatsAndHireStaff = (session: GameSession, options: DebugDayOptions): void => {
+  const { seatsPerKind = 0, staff = [] } = options;
+  for (const flight of session.state.today.flights) {
+    for (const cabin of ['ECONOMY', 'BUSINESS'] as const) {
+      const qty = Math.min(seatsPerKind, maxPurchasable(flight, cabin, session.state.today.seats));
+      if (qty > 0) session.dispatch({ type: 'PREP_SET_QTY', flightId: flight.id, cabin, qty });
+    }
+  }
+  if (seatsPerKind > 0) session.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+  for (const kind of staff) session.dispatch({ type: 'HIRE_STAFF', kind });
+};
+
+const startAtDay = (day: number, money: number, target: DebugScene = 'Prep', options: DebugDayOptions = {}): void => {
   const game = window.__game;
   if (!game) return;
   const session = GameSession.newGame(DEBUG_SEED);
@@ -82,6 +105,8 @@ const startAtDay = (day: number, money: number, target: DebugScene = 'Prep'): vo
   session.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
   for (const id of TUTORIAL_FLAG_IDS) session.dispatch({ type: 'FLAG_SET', flag: `tut_${id}` });
   while (session.state.day < day) playDay(session);
+  Object.assign(session.state, { money: DEBUG_RICH_MONEY });
+  stockSeatsAndHireStaff(session, options);
   Object.assign(session.state, { money });
   sessionBridge.start(session);
   for (const scene of game.scene.getScenes(true)) game.scene.stop(scene.scene.key);
@@ -96,12 +121,18 @@ const startFromUrlWhenReady = (): void => {
   const money = Number(params.get('debugMoney') ?? 10000);
   const requested = params.get('debugScene') as DebugScene | null;
   const target = requested && DEBUG_SCENES.includes(requested) ? requested : 'Prep';
+  const seatsPerKind = Number(params.get('debugSeats') ?? 0);
+  const staff = (params.get('debugStaff') ?? '')
+    .split(',')
+    .map((name) => name.trim().toUpperCase())
+    .filter((name): name is StaffKind => STAFF_KINDS_BY_NAME.includes(name as StaffKind));
+  const options: DebugDayOptions = { seatsPerKind: Number.isInteger(seatsPerKind) && seatsPerKind > 0 ? seatsPerKind : 0, staff };
   const startedAt = Date.now();
   const timer = window.setInterval(() => {
     const ready = window.__game?.scene.isActive('Title');
     if (!ready && Date.now() - startedAt < DEBUG_URL_TIMEOUT_MS) return;
     window.clearInterval(timer);
-    if (ready) startAtDay(day, Number.isFinite(money) ? money : 10000, target);
+    if (ready) startAtDay(day, Number.isFinite(money) ? money : 10000, target, options);
   }, DEBUG_URL_POLL_MS);
 };
 
