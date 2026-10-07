@@ -26,7 +26,9 @@ const SCOPE_TOP = MANAGEMENT_CONTENT_TOP;
 const SCOPE_HEIGHT = 68;
 const SLOTS_TITLE_Y = SCOPE_TOP + SCOPE_HEIGHT + 22;
 const SLOT = { top: SLOTS_TITLE_Y + 22, height: 150, gap: 12 };
-const MARKETING_STRIP = { top: SLOT.top + SLOT.height + 14, height: 92 };
+const MARKETING_STRIP = { top: SLOT.top + SLOT.height + 14, height: 108 };
+/** Dải marketing có 3 dòng: tên, mức tăng khách, lương/ngày (hai dòng sau tách riêng để không bị nút che). */
+const MARKETING_LINES_Y = [22, 54, 84] as const;
 const LIST_Y = MARKETING_STRIP.top + MARKETING_STRIP.height + 16;
 const LIST_BOTTOM_MARGIN = 170;
 const CARD_HEIGHT = 190;
@@ -157,8 +159,9 @@ export class StaffScene extends BaseScene {
     const textLeft = portrait ? SIDE_MARGIN + 12 + MARKETING_PORTRAIT_WIDTH + 8 : SIDE_MARGIN + 16;
     if (portrait) this.dynamicLayer.add(portrait);
     this.dynamicLayer.add([
-      this.add.text(textLeft, MARKETING_STRIP.top + 20, title, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(absent ? COLORS.danger : COLORS.text) }).setOrigin(0, 0.5),
-      this.add.text(textLeft, MARKETING_STRIP.top + 52, `${bonusText(member)} · ${T.wagePerDay}: ${formatMoney(wageOf(member, state.wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
+      this.add.text(textLeft, MARKETING_STRIP.top + MARKETING_LINES_Y[0], title, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(absent ? COLORS.danger : COLORS.text) }).setOrigin(0, 0.5),
+      this.add.text(textLeft, MARKETING_STRIP.top + MARKETING_LINES_Y[1], bonusText(member), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
+      this.add.text(textLeft, MARKETING_STRIP.top + MARKETING_LINES_Y[2], `${T.wagePerDay}: ${formatMoney(wageOf(member, state.wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
     ]);
     const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_FIRE_WIDTH - MARKETING_BUTTON_GAP - MARKETING_TEACH_WIDTH / 2, centerY, {
       width: MARKETING_TEACH_WIDTH,
