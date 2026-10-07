@@ -11,10 +11,10 @@ export const STAFF_CAP = 2;
  */
 export const STAFF_KINDS: readonly StaffKindDef[] = [
   { kind: 'INTERN', hireCost: 0, baseWage: 300, jobs: [], minDay: 3, countsTowardCap: true },
-  { kind: 'JUNIOR', hireCost: 30_000, baseWage: 1500, jobs: ['CABIN'], minDay: 3, countsTowardCap: true },
-  { kind: 'MIDDLE', hireCost: 40_000, baseWage: 2000, jobs: ['CABIN', 'STAMPS', 'BAGGAGE'], minDay: 10, countsTowardCap: true },
-  { kind: 'SENIOR', hireCost: 50_000, baseWage: 2300, jobs: ['PASSPORT', 'SERVICES', 'SEAT'], minDay: 15, countsTowardCap: true },
-  { kind: 'MARKETING', hireCost: 20_000, baseWage: 1000, jobs: [], minDay: 8, countsTowardCap: false },
+  { kind: 'JUNIOR', hireCost: 10_000, baseWage: 1500, jobs: ['CABIN'], minDay: 3, countsTowardCap: true },
+  { kind: 'MIDDLE', hireCost: 12_000, baseWage: 2000, jobs: ['CABIN', 'STAMPS', 'BAGGAGE'], minDay: 10, countsTowardCap: true },
+  { kind: 'SENIOR', hireCost: 15_000, baseWage: 2300, jobs: ['PASSPORT', 'SERVICES', 'SEAT'], minDay: 15, countsTowardCap: true },
+  { kind: 'MARKETING', hireCost: 10_000, baseWage: 1000, jobs: [], minDay: 8, countsTowardCap: false },
 ];
 
 /** Thời gian (ms) để nhân viên làm xong từng việc trên vé của một khách. Nhân viên làm từng việc một (xem `tickStaff`), nên các số này cộng dồn. */

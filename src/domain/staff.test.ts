@@ -36,8 +36,8 @@ const unit = (seat: `${number}${'A' | 'B' | 'C' | 'D'}`, patch: Partial<OwnedSea
 describe('checkHire', () => {
   const rich = { day: 20, money: 1_000_000 };
 
-  it('charges a fixed hire price that never grows with the day (Junior 30tr, Middle 40tr, Senior 50tr)', () => {
-    for (const [kind, price] of [['JUNIOR', 30_000], ['MIDDLE', 40_000], ['SENIOR', 50_000]] as const) {
+  it('charges a fixed hire price that never grows with the day (Junior 10tr, Middle 12tr, Senior 15tr)', () => {
+    for (const [kind, price] of [['JUNIOR', 10_000], ['MIDDLE', 12_000], ['SENIOR', 15_000]] as const) {
       for (const day of [15, 60, 400]) {
         const result = checkHire(kind, [], { day, money: 1_000_000 });
         expect(result.ok && result.value.hireCost).toBe(price);
@@ -47,7 +47,7 @@ describe('checkHire', () => {
 
   it('rejects hires before the minimum day or without enough money', () => {
     expect(checkHire('SENIOR', [], { day: 14, money: 1_000_000 })).toEqual({ ok: false, reason: 'DAY_TOO_EARLY' });
-    expect(checkHire('JUNIOR', [], { day: 20, money: 29_999 })).toEqual({ ok: false, reason: 'NOT_ENOUGH_MONEY' });
+    expect(checkHire('JUNIOR', [], { day: 20, money: 9_999 })).toEqual({ ok: false, reason: 'NOT_ENOUGH_MONEY' });
     expect(checkHire('INTERN', [], { day: 2, money: 0 })).toEqual({ ok: false, reason: 'DAY_TOO_EARLY' });
   });
 

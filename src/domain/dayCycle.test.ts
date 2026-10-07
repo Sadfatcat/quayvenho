@@ -453,8 +453,8 @@ describe('staff', () => {
     const events = game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
 
     expect(events).toEqual([{ type: 'STAFF_HIRED', staffId: 's0', kind: 'SENIOR' }]);
-    expect(game.state.money).toBe(500_000 - 50_000);
-    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -50_000, day: 15, minute: null, ref: 's0' });
+    expect(game.state.money).toBe(500_000 - 15_000);
+    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -15_000, day: 15, minute: null, ref: 's0' });
     expect(game.state.staff[0]).toMatchObject({ id: 's0', kind: 'SENIOR', daysWorked: 0 });
   });
 
@@ -480,7 +480,7 @@ describe('staff', () => {
     expect(game.state.staff).toEqual([]);
 
     game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
-    expect(game.state.money).toBe(afterHire - 30_000);
+    expect(game.state.money).toBe(afterHire - 10_000);
     expect(game.state.staff[0]?.id).toBe('s1');
   });
 
@@ -682,7 +682,7 @@ describe('staff', () => {
     boosted.dispatch({ type: 'OPEN_COUNTER' });
 
     expect(boosted.state.staff[0]?.bonusPct).toBe(10.5);
-    expect(moneyAfterTeach).toBe(500_000 - 20_000 - 2000);
+    expect(moneyAfterTeach).toBe(500_000 - 10_000 - 2000);
     expect(boosted.state.today.targetCustomers).toBeGreaterThan(baseTarget);
   });
 });
@@ -703,13 +703,13 @@ describe('staff and shop spending after the summary (phase SHOP)', () => {
     game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
     game.dispatch({ type: 'TEACH_MARKETING' });
 
-    expect(game.state.money).toBe(moneyBefore - 30_000);
-    expect(game.state.nextDayTransactions).toContainEqual({ type: 'STAFF_HIRE', amount: -30_000, day: 16, minute: null, ref: 's0' });
+    expect(game.state.money).toBe(moneyBefore - 10_000);
+    expect(game.state.nextDayTransactions).toContainEqual({ type: 'STAFF_HIRE', amount: -10_000, day: 16, minute: null, ref: 's0' });
     expect(rejected(game.dispatch({ type: 'TEACH_MARKETING' }))).toMatchObject({ reason: 'NO_MARKETING' });
 
     game.dispatch({ type: 'NEXT_DAY' });
     expect(game.state.day).toBe(16);
-    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -30_000, day: 16, minute: null, ref: 's0' });
+    expect(game.state.today.transactions).toContainEqual({ type: 'STAFF_HIRE', amount: -10_000, day: 16, minute: null, ref: 's0' });
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
     game.dispatch({ type: 'OPEN_COUNTER' });
     expect(() => tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000)).not.toThrow();
