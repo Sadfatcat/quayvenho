@@ -17,7 +17,7 @@ type DebugScene = 'Prep' | 'Price' | 'Staff' | 'Counter' | 'Summary' | 'Shop';
 const PREP_PHASE_SCENES: ReadonlySet<DebugScene> = new Set(['Prep', 'Price', 'Staff']);
 
 const DEBUG_SEED = 4242;
-const TUTORIAL_FLAG_IDS = ['prepDay1', 'counterDay1', 'baggageDay2', 'priceDay2', 'rushFirst', 'weatherFirst'];
+const TUTORIAL_FLAG_IDS = ['prepDay1', 'tabsDay1', 'counterDay1', 'refuseDay1', 'pauseDay2', 'baggageDay2', 'priceDay2', 'rushFirst', 'weatherFirst', 'shopFirst', 'staffFirst', 'summaryDay1'];
 const MAX_WAIT_TICKS = 5000;
 const TICK_MS = 100;
 

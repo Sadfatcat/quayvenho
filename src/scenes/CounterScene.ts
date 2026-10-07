@@ -42,8 +42,8 @@ const HEADER_TEXT_Y = 146;
 /** Cảnh báo sự kiện (ngày lễ, thời tiết xấu) chỉ hiện một lần lúc mới mở quầy rồi tự tắt, đặt giữa màn hình để không che khách. */
 const OPENING_WARNING = { top: 540, width: 660, fontSize: 24, visibleMs: 4500, fadeMs: 600, depth: 40 };
 const PASSPORT_BUTTON = { x: CARD.left + CARD.width - PASSPORT_BUTTON_INSET - PASSPORT_BUTTON_SIZE / 2, y: CARD.top + PASSPORT_BUTTON_INSET + PASSPORT_BUTTON_SIZE / 2 };
-/** Nằm gọn trong khung yêu cầu (khung: x 164–696, y 244–428), cách viền phải và đáy 20px. */
-const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 20 - 70, y: 428 - 16 - 24, width: 140, height: 48, fontSize: 20 };
+/** Nút tròn chỉ có biểu tượng bàn tay, nằm gọn ở góc dưới phải khung yêu cầu (khung: x 164–696, y 244–428), cách viền 14px. */
+const REFUSE_BUTTON = { x: 164 + 532 - 14 - 36, y: 428 - 14 - 36, size: 72, fontSize: 36 };
 const FEEDBACK_Y = 330;
 const STAFF_TOAST_MS = 1200;
 const STAFF_CHIP_RADIUS = 18;
@@ -132,7 +132,7 @@ export class CounterScene extends BaseScene {
     this.customerCard = new CustomerCard(this);
     this.desk = new CounterDesk(this, { dispatch: (command) => this.dispatch(command) });
 
-    this.refuseButton = new Button(this, REFUSE_BUTTON.x, REFUSE_BUTTON.y, { width: REFUSE_BUTTON.width, height: REFUSE_BUTTON.height, label: STRINGS.counter.desk.refuseButton, fontSize: REFUSE_BUTTON.fontSize, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
+    this.refuseButton = new Button(this, REFUSE_BUTTON.x, REFUSE_BUTTON.y, { width: REFUSE_BUTTON.size, height: REFUSE_BUTTON.size, label: STRINGS.counter.desk.refuseButton, fontSize: REFUSE_BUTTON.fontSize, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
     this.refuseButton.setVisible(false);
 
     this.passportButton = new Button(this, PASSPORT_BUTTON.x, PASSPORT_BUTTON.y, { width: PASSPORT_BUTTON_SIZE, height: PASSPORT_BUTTON_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });

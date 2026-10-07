@@ -29,6 +29,12 @@ const TUTORIAL_POSES: Readonly<Record<string, BeoPose>> = {
   priceDay2: 'thinking',
   rushFirst: 'excited',
   weatherFirst: 'worried',
+  tabsDay1: 'pointing',
+  refuseDay1: 'worried',
+  pauseDay2: 'thinking',
+  shopFirst: 'excited',
+  staffFirst: 'proud',
+  summaryDay1: 'proud',
 };
 
 /** Một lời thoại của Béo (PLAN §10.11): bong bóng thoại + nút "Hiểu rồi". Đóng thì ghi cờ `flag` để không lặp lại. */

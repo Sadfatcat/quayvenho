@@ -16,6 +16,7 @@ import { SegmentedControl } from '@ui/SegmentedControl';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
 import { addManagementChrome, type ManagementChrome } from './managementChrome';
+import { showPendingTutorials } from './overlays/TutorialOverlay';
 import { promptForPwaUpdate } from './overlays/UpdatePrompt';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { sessionBridge } from './sessionBridge';
@@ -54,6 +55,7 @@ export class ShopScene extends BaseScene {
     this.unsubscribeEvents = sessionBridge.onEvents(() => this.renderAll());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribeEvents?.());
     this.renderAll();
+    showPendingTutorials(this, 'Shop');
   }
 
   private buildLayout(): void {
