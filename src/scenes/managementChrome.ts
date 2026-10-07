@@ -63,14 +63,15 @@ export const addManagementChrome = (scene: Phaser.Scene, active: ManagementTab, 
     onSelect: (tab) => scene.scene.start(MANAGEMENT_TAB_SCENE[tab]),
   });
 
-  const inPrep = state.phase === 'PREP';
+  /** Sau tổng kết (đã có `lastSummary`) nút là "Ngày tiếp theo" và hỏi xác nhận; ngày đầu tiên chỉ là "Mở cửa". */
+  const comingFromSummary = state.lastSummary !== null;
   const actionButton = withActionButton
     ? new Button(scene, GAME_WIDTH / 2, ACTION_BUTTON.y, {
         width: ACTION_BUTTON.width,
         height: ACTION_BUTTON.height,
-        label: inPrep ? STRINGS.prep.openCounter : STRINGS.shop.nextDay,
-        variant: inPrep ? 'success' : 'primary',
-        onTap: () => (inPrep ? requestOpenCounter(scene) : requestNextDay(scene, actionButton)),
+        label: comingFromSummary ? STRINGS.shop.nextDay : STRINGS.prep.openCounter,
+        variant: comingFromSummary ? 'primary' : 'success',
+        onTap: () => (comingFromSummary ? confirmNextDay(scene) : requestOpenCounter(scene)),
       })
     : null;
 
@@ -152,12 +153,14 @@ export const requestOpenCounter = (scene: Phaser.Scene): void => {
   startCounter(scene);
 };
 
-export const requestNextDay = (scene: Phaser.Scene, button: Button | null): void => {
-  button?.lock();
-  const events = sessionBridge.dispatch({ type: 'NEXT_DAY' });
-  if (events.some((event) => event.type === 'COMMAND_REJECTED')) {
-    button?.unlock();
-    return;
-  }
-  scene.scene.start('Prep');
+/** "Ngày tiếp theo": hỏi xác nhận rồi mở cửa luôn (vẫn qua các hộp thoại còn ghế chờ / kho trống của `requestOpenCounter`). */
+const confirmNextDay = (scene: Phaser.Scene): void => {
+  new DialogOverlay(scene, {
+    title: STRINGS.shop.nextDayConfirmTitle,
+    message: STRINGS.shop.nextDayConfirmMessage.replace('{day}', String(sessionBridge.current.state.day)),
+    buttons: [
+      { label: STRINGS.shop.nextDayConfirmCancel, variant: 'ghost', onTap: () => {} },
+      { label: STRINGS.shop.nextDayConfirmGo, variant: 'success', onTap: () => requestOpenCounter(scene) },
+    ],
+  });
 };

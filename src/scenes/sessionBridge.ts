@@ -88,6 +88,15 @@ class SessionBridge {
     return events;
   }
 
+  /**
+   * Sang ngày mới ngay sau tổng kết để mọi mục quản lý (mua vé, giá, hỗ trợ, nhân viên) cùng dùng được ở phase PREP.
+   * Save cũ đang dừng ở phase SHOP cũng được đưa về PREP theo cách này.
+   */
+  enterNextDayPrep(): void {
+    if (this.current.state.phase === 'SUMMARY') this.dispatch({ type: 'GO_TO_SHOP' });
+    if (this.current.state.phase === 'SHOP') this.dispatch({ type: 'NEXT_DAY' });
+  }
+
   tick(deltaMs: number): DomainEvent[] {
     if (this.isPaused || !this.session) return [];
     const events = this.session.tick(deltaMs);

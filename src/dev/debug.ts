@@ -61,7 +61,7 @@ const startSceneWithSession = (target: DebugScene): void => {
   if (target === 'Counter') for (let tick = 0; tick < MAX_WAIT_TICKS && session.state.today.counter.state !== 'BUILDING'; tick++) session.tick(TICK_MS);
   if (target === 'Summary' || target === 'Shop') {
     playShift(session, perfectDecide);
-    if (target === 'Shop') session.dispatch({ type: 'GO_TO_SHOP' });
+    if (target === 'Shop') for (const type of ['GO_TO_SHOP', 'NEXT_DAY'] as const) session.dispatch({ type });
   }
   sessionBridge.start(session);
   for (const scene of game.scene.getScenes(true)) game.scene.stop(scene.scene.key);

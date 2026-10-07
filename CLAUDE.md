@@ -178,3 +178,6 @@ Write code that is easy to read, debug, and extend.
 - Handle errors clearly: fail fast, include useful context, and never silently ignore exceptions.
 - Reuse shared logic through utilities, services, or modules instead of duplicating code.
 - Prioritize maintainability over cleverness. Code should be simple to debug today and easy to upgrade later.
+
+
+các ô hiện thông tin trong game không bao giờ được quá mờ nhạt, luôn phải có màu và ở trong 1 khung và có size đủ to để xem

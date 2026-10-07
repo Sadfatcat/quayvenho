@@ -100,7 +100,9 @@ export class TitleScene extends BaseScene {
 
   private continueGame(state: GameState): void {
     sessionBridge.start(new GameSession(state));
-    this.scene.start(this.sceneKeyFor(state.phase));
+    const resumedInShop = state.phase === 'SHOP';
+    if (resumedInShop) sessionBridge.enterNextDayPrep();
+    this.scene.start(resumedInShop ? 'Shop' : this.sceneKeyFor(state.phase));
   }
 
   private requestNewGame(loadResult: LoadSaveResult | undefined): void {

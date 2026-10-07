@@ -209,7 +209,7 @@ export class SummaryScene extends BaseScene {
 
   private goToShop(): void {
     this.continueButton.lock();
-    sessionBridge.dispatch({ type: 'GO_TO_SHOP' });
+    sessionBridge.enterNextDayPrep();
     this.scene.start('Shop');
   }
 }

@@ -8,7 +8,6 @@ import type { Command, GameState, Route, UpgradeDef } from '@domain/models';
 import { checkRouteUnlock, checkUpgrade, type RouteUnlockError, type UpgradeError } from '@domain/upgrades';
 import { Card } from '@ui/Card';
 import { HOLIDAYS } from '@data/holidays';
-import { previewNextDayHoliday } from '@domain/events';
 import { getRoute } from '@domain/routes';
 import { formatMoney } from '@ui/format';
 import { ScrollList } from '@ui/ScrollList';
@@ -100,8 +99,8 @@ export class ShopScene extends BaseScene {
   }
 
   private tomorrowHolidayTeaser(state: GameState): string {
-    const holiday = previewNextDayHoliday(state.seed, state.day, state.unlockedRoutes);
-    if (!holiday) return '';
+    const holiday = state.today.event;
+    if (holiday.type !== 'RUSH') return '';
     const name = HOLIDAYS.find((candidate) => candidate.id === holiday.holidayId)?.name ?? '';
     const routes = holiday.hotRoutes.map((routeId) => getRoute(routeId).name).join(', ');
     return STRINGS.shop.holidayTeaser.replace('{holiday}', name).replace('{routes}', routes);
