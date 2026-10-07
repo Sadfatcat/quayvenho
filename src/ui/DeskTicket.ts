@@ -64,7 +64,7 @@ export class DeskTicket extends Phaser.GameObjects.Container {
       })
       .setOrigin(0, 0.5);
     const passenger = scene.add
-      .text(width / 2 - PADDING, -height / 2 + HEADER_HEIGHT / 2 + 2, options.passengerName, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.cloud) })
+      .text(width / 2 - PADDING, -height / 2 + HEADER_HEIGHT / 2 + 2, options.passengerName, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.cloud) })
       .setOrigin(1, 0.5);
     this.add([panel, band, heading, passenger]);
 
@@ -80,10 +80,10 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     this.add([
       scene.add.text(-width / 2 + PADDING, infoY, `${STRINGS.counter.ticket.seat}: ${seatText}`, { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5),
       scene.add.text(0, infoY, `🧳 ${baggage}`, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.text) }).setOrigin(0.5, 0.5),
-      scene.add.text(width / 2 - PADDING, infoY, extras, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.text) }).setOrigin(1, 0.5),
+      scene.add.text(width / 2 - PADDING, infoY, extras, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(1, 0.5),
     ]);
     if (options.flightMissing) {
-      this.add(scene.add.text(0, height / 2 - 22, STRINGS.counter.desk.flightMissing, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.danger) }).setOrigin(0.5));
+      this.add(scene.add.text(0, height / 2 - 22, STRINGS.counter.desk.flightMissing, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.danger) }).setOrigin(0.5));
     }
     this.addStatusMark(scene, width, height, printed);
     this.setSize(width, height);
@@ -110,7 +110,7 @@ export class DeskTicket extends Phaser.GameObjects.Container {
     frame.lineStyle(3, COLORS.textMuted, stamped ? 0.25 : 0.9);
     frame.strokeRoundedRect(left, top + 16, width, SLOT_HEIGHT - 16, 10);
     this.add(frame);
-    this.add(scene.add.text(left + 8, top + 7, caption, { fontFamily: FONT_FAMILY, fontSize: '14px', color: toCssColor(COLORS.textMuted) }).setOrigin(0, 0.5));
+    this.add(scene.add.text(left + 8, top + 7, caption, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5));
     if (!stamped) return;
     const centerX = left + width / 2;
     const centerY = top + 16 + (SLOT_HEIGHT - 16) / 2;

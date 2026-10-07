@@ -76,9 +76,15 @@ describe('customersForDay', () => {
     expect(customersForDay({ seed: 1, day: fullDay, rating: 4.0, rush: false })).toBe(base);
   });
 
-  it('gives 15–30 extra customers in each of the first 4 days, tapering off afterwards', () => {
-    const firstFour = EARLY_CUSTOMER_BONUS.slice(0, 4);
-    expect(firstFour.every((bonus) => bonus >= 15 && bonus <= 30)).toBe(true);
+  it('keeps the average customer count of each of the first 4 days within 15–30 and growing', () => {
+    const seeds = Array.from({ length: 200 }, (_, index) => index + 1);
+    const averageOf = (day: number): number => seeds.reduce((sum, seed) => sum + customersForDay({ seed, day, rating: 4, rush: false }), 0) / seeds.length;
+    const averages = [1, 2, 3, 4].map(averageOf);
+    expect(averages.every((average) => average >= 15 && average <= 30)).toBe(true);
+    expect(averages.every((average, index) => index === 0 || average > (averages[index - 1] ?? 0))).toBe(true);
+  });
+
+  it('tapers the early bonus off after day 4', () => {
     const afterwards = EARLY_CUSTOMER_BONUS.slice(3);
     expect(afterwards.every((bonus, index) => index === 0 || bonus < (afterwards[index - 1] ?? 0))).toBe(true);
   });

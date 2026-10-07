@@ -217,7 +217,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       const centerX = left + stackWidth / 2;
       const mark = stackImage ?? scene.add.text(centerX, baseTop + STACK_CARD_HEIGHT / 2, '🎫', { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
       const caption = scene.add
-        .text(centerX, y + STACK_HEIGHT + 22, label, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: stackWidth } })
+        .text(centerX, y + STACK_HEIGHT + 22, label, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: stackWidth } })
         .setOrigin(0.5);
       const hit = scene.add.zone(centerX, y + (STACK_HEIGHT + 44) / 2, stackWidth, STACK_HEIGHT + 44).setInteractive({ useHandCursor: true });
       hit.on('pointerup', () => {
@@ -394,7 +394,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     const destWidth = (innerWidth - STAMP_GAP * (DEST_COLUMNS - 1)) / DEST_COLUMNS;
     const rows = Array.from({ length: Math.ceil(routes.length / DEST_COLUMNS) }, (_, row) => routes.slice(row * DEST_COLUMNS, (row + 1) * DEST_COLUMNS));
     if (rows.length > DEST_VISIBLE_ROWS) {
-      parent.add(scene.add.text(x + width - TRAY_PADDING - 4, y + 20, STRINGS.counter.desk.scrollHint, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(1, 0.5));
+      parent.add(scene.add.text(x + width - TRAY_PADDING - 4, y + 20, STRINGS.counter.desk.scrollHint, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(1, 0.5));
     }
     const destTop = y + TRAY_TITLE_HEIGHT + 4;
     parent.add(
@@ -431,7 +431,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
 
     const timeTop = destTop + DEST_VISIBLE_ROWS * DEST_ROW_HEIGHT + TIME_SECTION_GAP;
     const times = [...new Set(state.today.flights.filter((flight) => state.unlockedRoutes.includes(flight.routeId)).map((flight) => flight.departAt))].sort((a, b) => a - b);
-    parent.add(scene.add.text(x + TRAY_PADDING + 4, timeTop - 2, STRINGS.counter.desk.timeStamps, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(0, 0.5));
+    parent.add(scene.add.text(x + TRAY_PADDING + 4, timeTop - 2, STRINGS.counter.desk.timeStamps, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5));
     const timeWidth = Math.min(destWidth, (innerWidth - STAMP_GAP * (times.length - 1)) / Math.max(1, times.length));
     times.forEach((departAt, index) => {
       parent.add(
@@ -494,7 +494,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     const scene = this.scene;
     const draft = state.today.counter.draft;
     const { x, y, width, height } = LAYOUT.services;
-    parent.add(scene.add.text(x + width / 2, y - 4, STRINGS.counter.desk.serviceTray, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5));
+    parent.add(scene.add.text(x + width / 2, y - 4, STRINGS.counter.desk.serviceTray, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5));
     const gap = 8;
     const cardWidth = (width - gap * (SERVICE_ORDER.length - 1)) / SERVICE_ORDER.length;
     SERVICE_ORDER.forEach((extra, index) => {
@@ -503,8 +503,8 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       const cy = y + 14 + (height - 14) / 2;
       const card = new Panel(scene, cx, cy, { width: cardWidth, height: height - 24, fill: chosen ? COLORS.success : COLORS.cloud, strokeColor: chosen ? COLORS.successDark : COLORS.primary });
       const icon = this.serviceIcon(cx, cy - 22, extra);
-      const name = scene.add.text(cx, cy + 14, STRINGS.counter.extras[extra], { fontFamily: FONT_FAMILY, fontSize: '14px', fontStyle: 'bold', color: toCssColor(chosen ? COLORS.cloud : COLORS.text), align: 'center', wordWrap: { width: cardWidth - 8 } }).setOrigin(0.5);
-      const price = scene.add.text(cx, cy + 40, `+${formatMoney(extraFeeOf(extra, state.day))}`, { fontFamily: FONT_FAMILY, fontSize: '14px', color: toCssColor(chosen ? COLORS.cloud : COLORS.textMuted) }).setOrigin(0.5);
+      const name = scene.add.text(cx, cy + 14, STRINGS.counter.extras[extra], { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(chosen ? COLORS.cloud : COLORS.text), align: 'center', wordWrap: { width: cardWidth - 8 } }).setOrigin(0.5);
+      const price = scene.add.text(cx, cy + 40, `+${formatMoney(extraFeeOf(extra, state.day))}`, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(chosen ? COLORS.cloud : COLORS.text) }).setOrigin(0.5);
       const hit = scene.add.zone(cx, cy, cardWidth, height - 24).setInteractive({ useHandCursor: true });
       hit.on('pointerup', () => this.dispatch({ type: 'BUILD_TOGGLE_EXTRA', extra }));
       parent.add([card, icon, name, price, hit]);

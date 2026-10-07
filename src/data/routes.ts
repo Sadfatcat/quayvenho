@@ -14,7 +14,7 @@ const BASE_ROUTES: readonly RouteDef[] = [
   { id: 'HAN-BKK', name: 'Bangkok', price: { ECONOMY: 2400, BUSINESS: 5500 }, weight: 2, unlock: { cost: 12000, minTravelViet: 3.5 }, color: 0xeb5757, icon: 'bkk' },
   { id: 'HAN-ICN', name: 'Seoul', price: { ECONOMY: 5600, BUSINESS: 20000 }, weight: 2, unlock: { cost: 18000, minTravelViet: 3.7 }, color: 0xf2c94c, icon: 'icn' },
   { id: 'HAN-NRT', name: 'Tokyo', price: { ECONOMY: 6500, BUSINESS: 24000 }, weight: 1, unlock: { cost: 24000, minTravelViet: 3.9 }, color: 0xff8fab, icon: 'nrt' },
-  { id: 'HAN-CDG', name: 'Paris', price: { ECONOMY: 12000, BUSINESS: 70000 }, weight: 1, unlock: { cost: 37500, minTravelViet: 4.1 }, color: 0x9b51e0, icon: 'cdg' },
+  { id: 'HAN-CDG', name: 'Paris', price: { ECONOMY: 10000, BUSINESS: 32000 }, weight: 1, unlock: { cost: 37500, minTravelViet: 4.1 }, color: 0x9b51e0, icon: 'cdg' },
 ];
 
 /** Giá vốn ghế = giá bán × (1 − biên lợi nhuận của tuyến), làm tròn 10 xu (docs/CAN_BANG_KINH_TE.md). */

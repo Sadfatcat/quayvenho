@@ -23,9 +23,10 @@ const HEADER_HEIGHT = 24;
 const ROW_GAP = 4;
 const MAX_ROW_HEIGHT = 36;
 const BOTTOM_PADDING = 12;
-const SEAT_WIDTH = 40;
-const AISLE_WIDTH = 26;
-const SIDE_LABEL_WIDTH = 34;
+const SEAT_WIDTH = 36;
+const AISLE_WIDTH = 22;
+const SIDE_LABEL_WIDTH = 54;
+const ZONE_LABEL_LEFT = 8;
 const COLUMN_ORDER = ['A', 'B', 'C', 'D'] as const;
 type Column = (typeof COLUMN_ORDER)[number];
 
@@ -78,7 +79,7 @@ export class MiniSeatMap extends Phaser.GameObjects.Container {
       return gridLeft + index * SEAT_WIDTH + (index >= 2 ? AISLE_WIDTH : 0) + SEAT_WIDTH / 2;
     };
     for (const column of COLUMN_ORDER) {
-      this.add(scene.add.text(columnX(column), TITLE_HEIGHT + HEADER_HEIGHT / 2, column, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5));
+      this.add(scene.add.text(columnX(column), TITLE_HEIGHT + HEADER_HEIGHT / 2, column, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0.5));
     }
 
     const edges = scene.add.graphics();
@@ -97,7 +98,7 @@ export class MiniSeatMap extends Phaser.GameObjects.Container {
       if (zone && zone !== lastZone) {
         lastZone = zone;
         this.add(
-          scene.add.text(SIDE_LABEL_WIDTH / 2 + 2, rowY, ZONE_LABEL[zone], { fontFamily: FONT_FAMILY, fontSize: '14px', fontStyle: 'bold', color: toCssColor(COLORS.accentDark) }).setOrigin(0.5),
+          scene.add.text(ZONE_LABEL_LEFT, rowY, ZONE_LABEL[zone], { fontFamily: FONT_FAMILY, fontSize: '16px', fontStyle: 'bold', color: toCssColor(COLORS.accentDark) }).setOrigin(0, 0.5),
         );
       }
       for (const seat of rowSeats) this.drawSeat(scene, options, seat, columnX(seatColumn(seat) as Column), rowY, rowHeight, blocked.has(seat));
@@ -110,10 +111,10 @@ export class MiniSeatMap extends Phaser.GameObjects.Container {
     const tile = scene.add.rectangle(x, y, SEAT_WIDTH - 4, rowHeight, fill).setStrokeStyle(2, COLORS.primaryDark, isBlocked ? 0.3 : 1);
     this.add(tile);
     if (isBlocked) {
-      this.add(scene.add.text(x, y, '✕', { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5));
+      this.add(scene.add.text(x, y, '✕', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5));
       return;
     }
-    if (isSelected) this.add(scene.add.text(x, y, '✓', { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5));
+    if (isSelected) this.add(scene.add.text(x, y, '✓', { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5));
     // Vùng chạm rộng hơn ô nhìn thấy một chút để dễ bấm trên điện thoại.
     const hit = scene.add.zone(x, y, SEAT_WIDTH, rowHeight + ROW_GAP + 4).setInteractive({ useHandCursor: true });
     hit.on('pointerup', () => {

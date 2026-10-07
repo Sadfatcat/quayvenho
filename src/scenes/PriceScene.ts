@@ -6,6 +6,7 @@ import type { Route } from '@domain/models';
 import { fareOf, routeOnDay } from '@domain/economy';
 import { isHolidayEvent, isOverCap, priceDemandFactor } from '@domain/pricing';
 import { Button } from '@ui/Button';
+import { Panel } from '@ui/Panel';
 import { formatMoney } from '@ui/format';
 import { ScrollList } from '@ui/ScrollList';
 import { Slider } from '@ui/Slider';
@@ -19,7 +20,8 @@ import { sessionBridge } from './sessionBridge';
 
 const LIST_WIDTH = 660;
 const LIST_X = (GAME_WIDTH - LIST_WIDTH) / 2;
-const ROW_HEIGHT = 270;
+const ROW_HEIGHT = 286;
+const ROW_GAP = 14;
 const ROW_PADDING = 24;
 const SLIDER_WIDTH = LIST_WIDTH - 2 * ROW_PADDING - 60;
 const SLIDER_X = ROW_PADDING + 30;
@@ -92,16 +94,17 @@ export class PriceScene extends BaseScene {
     const currentPct = state.today.priceAdjustPct[route.id] ?? 0;
     const row = scene.add.container(0, 0);
 
-    const name = scene.add.text(ROW_PADDING, 8, `${route.name}${hot ? `  ${STRINGS.priceBoard.hot}` : ''}`, { ...TEXT_STYLES.body, fontStyle: 'bold' });
+    const panel = new Panel(scene, LIST_WIDTH / 2, (ROW_HEIGHT - ROW_GAP) / 2, { width: LIST_WIDTH, height: ROW_HEIGHT - ROW_GAP, strokeColor: route.color });
+    const name = scene.add.text(ROW_PADDING, 12, `${route.name}${hot ? `  ${STRINGS.priceBoard.hot}` : ''}`, { ...TEXT_STYLES.body, fontStyle: 'bold' });
     const base = scene.add.text(
       ROW_PADDING,
-      48,
+      54,
       STRINGS.priceBoard.basePrices.replace('{eco}', formatMoney(listed.price.ECONOMY)).replace('{biz}', formatMoney(listed.price.BUSINESS)),
-      { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) },
+      { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.text) },
     );
     const selling = scene.add.text(ROW_PADDING, SLIDER_Y + 40, '', { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) });
-    const crowd = scene.add.text(ROW_PADDING, SLIDER_Y + 74, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) });
-    const warning = scene.add.text(ROW_PADDING, SLIDER_Y + 100, '', { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.danger), wordWrap: { width: LIST_WIDTH - 2 * ROW_PADDING } });
+    const crowd = scene.add.text(ROW_PADDING, SLIDER_Y + 76, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.text) });
+    const warning = scene.add.text(ROW_PADDING, SLIDER_Y + 106, '', { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.danger), wordWrap: { width: LIST_WIDTH - 2 * ROW_PADDING } });
 
     const refresh = (pct: number): void => {
       selling.setText(
@@ -126,9 +129,9 @@ export class PriceScene extends BaseScene {
     });
     const capX = SLIDER_X + sliderValueFromPct(PRICE_CAP_PCT) * SLIDER_WIDTH;
     const capMarker = scene.add.rectangle(capX, SLIDER_Y, 6, 44, COLORS.danger);
-    const capLabel = scene.add.text(capX, SLIDER_Y - 40, STRINGS.priceBoard.capLabel, { fontFamily: FONT_FAMILY, fontSize: '16px', fontStyle: 'bold', color: toCssColor(COLORS.danger) }).setOrigin(0.5);
+    const capLabel = scene.add.text(capX, SLIDER_Y - 40, STRINGS.priceBoard.capLabel, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.danger) }).setOrigin(0.5);
 
-    row.add([name, base, capMarker, capLabel, slider, selling, crowd, warning]);
+    row.add([panel, name, base, capMarker, capLabel, slider, selling, crowd, warning]);
     return row;
   }
 }

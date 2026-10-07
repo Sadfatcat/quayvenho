@@ -45,14 +45,14 @@ export class BaggageSlider extends Phaser.GameObjects.Container {
     for (const mark of BAGGAGE_MARKS) {
       const markX = (mark / BAGGAGE_MAX_KG) * options.width;
       marks.push(scene.add.circle(markX, 0, 4, COLORS.textMuted));
-      marks.push(scene.add.text(markX, 22, `${mark}`, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5, 0));
+      marks.push(scene.add.text(markX, 22, `${mark}`, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(0.5, 0));
     }
     this.fill = scene.add.rectangle(0, 0, this.xFor(this.kg), 12, COLORS.primary).setOrigin(0, 0.5);
     this.handle = scene.add.circle(this.xFor(this.kg), 0, HANDLE_RADIUS, COLORS.primary).setStrokeStyle(4, COLORS.primaryDark);
     this.valueText = scene.add
       .text(options.width / 2, -50, this.labelFor(this.kg), { fontFamily: FONT_FAMILY, fontSize: '26px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
       .setOrigin(0.5);
-    const hint = scene.add.text(options.width / 2, HINT_Y, STRINGS.counter.baggageHoldHint, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5, 0);
+    const hint = scene.add.text(options.width / 2, HINT_Y, STRINGS.counter.baggageHoldHint, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(0.5, 0);
     const hitZone = scene.add.zone(options.width / 2, 0, options.width + 2 * HANDLE_RADIUS, HIT_HEIGHT).setInteractive({ useHandCursor: true });
 
     this.add([track, this.fill, ...marks, this.handle, this.valueText, hint, hitZone]);

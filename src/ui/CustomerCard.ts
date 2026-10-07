@@ -84,12 +84,12 @@ export class CustomerCard extends Phaser.GameObjects.Container {
     content.add([disc, avatar, ring]);
 
     const name = scene.add
-      .text(AVATAR_CENTER.x, NAME_Y, customer.order.passport.bookedName, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: 150 } })
+      .text(AVATAR_CENTER.x, NAME_Y, customer.order.passport.bookedName, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: 150 } })
       .setOrigin(0.5);
     this.patienceBar = new PatienceBar(scene, PATIENCE_BAR.x, PATIENCE_BAR.y, { width: PATIENCE_BAR.width, height: PATIENCE_BAR.height });
     content.add([name, this.patienceBar]);
     if (arriveLine) {
-      content.add(scene.add.text(AVATAR_CENTER.x, PATIENCE_BAR.y + 12, arriveLine, { fontFamily: FONT_FAMILY, fontSize: '15px', color: toCssColor(COLORS.textMuted), align: 'center', wordWrap: { width: 170 } }).setOrigin(0.5, 0));
+      content.add(scene.add.text(AVATAR_CENTER.x, PATIENCE_BAR.y + 12, arriveLine, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: 170 } }).setOrigin(0.5, 0));
     }
 
     // Khung yêu cầu: đuôi trỏ về avatar + tab tên + các dòng rõ ràng.
@@ -111,13 +111,13 @@ export class CustomerCard extends Phaser.GameObjects.Container {
     orderRequestLines(customer.order).forEach((line, index) => {
       const y = ROW_TOP + index * ROW_HEIGHT;
       content.add([
-        scene.add.text(LABEL_X, y, line.label, { fontFamily: FONT_FAMILY, fontSize: '17px', color: toCssColor(COLORS.textMuted) }).setOrigin(0, 0.5),
+        scene.add.text(LABEL_X, y, line.label, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5),
         scene.add
           .text(VALUE_X, y, line.value, {
             fontFamily: FONT_FAMILY,
             fontSize: '20px',
             fontStyle: line.demanding ? 'bold' : 'normal',
-            color: toCssColor(line.demanding ? COLORS.accentDark : COLORS.textMuted),
+            color: toCssColor(line.demanding ? COLORS.accentDark : COLORS.text),
             wordWrap: { width: CARD.width - (VALUE_X - CARD.left) - 20 },
           })
           .setOrigin(0, 0.5),

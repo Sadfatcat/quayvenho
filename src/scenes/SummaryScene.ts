@@ -4,6 +4,7 @@ import { STRINGS } from '@data/strings';
 import { seatsExpiringOn } from '@domain/inventory';
 import type { DaySummary } from '@domain/models';
 import { Button } from '@ui/Button';
+import { Panel } from '@ui/Panel';
 import { InfoBox } from '@ui/InfoBox';
 import { noticeText } from '@ui/staffText';
 import { formatMoney } from '@ui/format';
@@ -26,7 +27,10 @@ interface SummaryLine {
 const LINES_TOP = 320;
 const NOTICE_GAP = 16;
 const NOTICE_WIDTH = GAME_WIDTH - 60;
-const LINE_HEIGHT = 40;
+const LINE_HEIGHT = 42;
+const LINES_PANEL = { width: 620, padding: 12 };
+const LINE_LABEL_FONT_PX = 24;
+const LINE_VALUE_FONT_PX = 26;
 const STAR_COUNT = 5;
 const STAR_Y = 250;
 const STAR_GAP = 70;
@@ -65,9 +69,12 @@ export class SummaryScene extends BaseScene {
 
     this.showStars(summary.avgStars);
     const lines = this.buildLines(summary, state.today.targetCustomers - state.today.results.length);
+    const linesPanelHeight = lines.length * LINE_HEIGHT + 2 * LINES_PANEL.padding;
+    const linesPanelTop = LINES_TOP - LINE_HEIGHT / 2 - LINES_PANEL.padding;
+    new Panel(this, GAME_WIDTH / 2, linesPanelTop + linesPanelHeight / 2, { width: LINES_PANEL.width, height: linesPanelHeight, fill: COLORS.cloud, strokeColor: COLORS.primary, strokeWidth: 3 });
     this.revealLines(lines);
 
-    let noticeTop = LINES_TOP + lines.length * LINE_HEIGHT + NOTICE_GAP;
+    let noticeTop = linesPanelTop + linesPanelHeight + NOTICE_GAP;
     const expiringTomorrow = seatsExpiringOn(state.today.seats, summary.day + 1);
     if (expiringTomorrow > 0) {
       const expiryBox = new InfoBox(this, GAME_WIDTH / 2, noticeTop, { width: NOTICE_WIDTH, tone: 'warning', text: STRINGS.summary.seatsExpireTomorrow.replace('{n}', String(expiringTomorrow)) });
@@ -148,7 +155,7 @@ export class SummaryScene extends BaseScene {
     lines.forEach((line, index) => {
       const y = LINES_TOP + index * LINE_HEIGHT;
       const label = this.add
-        .text(GAME_WIDTH / 2 - 260, y, line.label, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted) })
+        .text(GAME_WIDTH / 2 - 260, y, line.label, { fontFamily: FONT_FAMILY, fontSize: `${LINE_LABEL_FONT_PX}px`, color: toCssColor(COLORS.text) })
         .setOrigin(0, 0.5)
         .setAlpha(0);
       const timer = this.time.delayedCall(index * stagger, () => this.revealLine(label, line, y, Math.min(500, Math.max(150, stagger))));
@@ -162,7 +169,7 @@ export class SummaryScene extends BaseScene {
       to: line.to,
       durationMs,
       format: line.format,
-      style: { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) },
+      style: { fontFamily: FONT_FAMILY, fontSize: `${LINE_VALUE_FONT_PX}px`, fontStyle: 'bold', color: toCssColor(COLORS.text) },
     }).setOrigin(1, 0.5);
     this.countUps.push(value);
   }

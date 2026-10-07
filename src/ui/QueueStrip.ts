@@ -12,14 +12,31 @@ const MAX_VISIBLE = 8;
 const LEFT_MARGIN = 24;
 const SERVED_RING_WIDTH = 6;
 const WAITING_RING_WIDTH = 4;
+const CLIP_INSET = 2;
 
 /** Thanh khách đang chờ nhìn từ trên xuống: khách đang được phục vụ ở đầu hàng (viền dày), sau đó là hàng chờ. */
 export class QueueStrip extends Phaser.GameObjects.Container {
   private lastSignature = '';
+  private maskShapes: Phaser.GameObjects.Graphics[] = [];
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
     scene.add.existing(this);
+  }
+
+  destroy(fromScene?: boolean): void {
+    for (const shape of this.maskShapes) shape.destroy();
+    this.maskShapes = [];
+    super.destroy(fromScene);
+  }
+
+  /** Cắt ảnh khách theo hình tròn để đầu/vai không lòi ra khỏi ô tròn. */
+  private clipToDisc(avatar: CustomerAvatar, x: number): void {
+    const shape = this.scene.make.graphics({}, false);
+    shape.fillStyle(0xffffff, 1);
+    shape.fillCircle(x, STRIP_Y, AVATAR_RADIUS - CLIP_INSET);
+    this.maskShapes.push(shape);
+    avatar.setMask(shape.createGeometryMask());
   }
 
   update(customers: readonly Customer[]): void {
@@ -27,6 +44,8 @@ export class QueueStrip extends Phaser.GameObjects.Container {
     if (signature === this.lastSignature) return;
     this.lastSignature = signature;
     this.removeAll(true);
+    for (const shape of this.maskShapes) shape.destroy();
+    this.maskShapes = [];
     const visible = customers.slice(0, MAX_VISIBLE);
     visible.forEach((customer, index) => {
       const x = LEFT_MARGIN + SLOT_WIDTH / 2 + index * SLOT_WIDTH;
@@ -35,6 +54,7 @@ export class QueueStrip extends Phaser.GameObjects.Container {
       disc.fillStyle(COLORS.kraft, 1);
       disc.fillCircle(x, STRIP_Y, AVATAR_RADIUS);
       const avatar = new CustomerAvatar(this.scene, x, STRIP_Y + 4, AVATAR_RADIUS * 0.9, customer.order.spriteId, MOOD_TO_AVATAR[customer.mood]);
+      this.clipToDisc(avatar, x);
       const ring = this.scene.add.graphics();
       ring.lineStyle(served ? SERVED_RING_WIDTH : WAITING_RING_WIDTH, MOOD_RING[customer.mood], 1);
       ring.strokeCircle(x, STRIP_Y, AVATAR_RADIUS);

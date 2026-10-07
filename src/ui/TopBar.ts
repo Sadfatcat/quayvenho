@@ -10,6 +10,7 @@ const EDGE_PADDING = SCREEN_MARGIN;
 const ICON_BUTTON_SIZE = 72;
 const ICON_BUTTON_GAP = 12;
 const MONEY_BOX = { width: 200, height: 52 };
+const LEFT_BOX = { width: 160, height: 52 };
 /** Ô điểm TravelViet: khung dài, chữ nhỏ, ngay dưới ô tiền (ô tiền căn giữa màn hình). */
 const TRAVELVIET_BOX = { width: 250, height: 32, offsetY: 48, fontSize: 19 };
 
@@ -35,8 +36,9 @@ export class TopBar extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number, options: TopBarOptions) {
     super(scene, x, y);
     this.leftText = scene.add
-      .text(EDGE_PADDING, 0, options.leftLabel, { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
-      .setOrigin(0, 0.5);
+      .text(EDGE_PADDING + LEFT_BOX.width / 2, 0, options.leftLabel, { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
+      .setOrigin(0.5);
+    const leftBox = new Panel(scene, EDGE_PADDING + LEFT_BOX.width / 2, 0, { width: LEFT_BOX.width, height: LEFT_BOX.height, fill: COLORS.cloud, strokeColor: COLORS.primary, strokeWidth: 3 });
     this.moneyText = scene.add
       .text(options.width / 2, 0, '', { fontFamily: FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) })
       .setOrigin(0.5);
@@ -53,7 +55,7 @@ export class TopBar extends Phaser.GameObjects.Container {
       variant: 'ghost',
       onTap: options.onIconTap,
     });
-    this.add([this.leftText, moneyBox, this.moneyText, this.travelVietBox, iconButton]);
+    this.add([leftBox, this.leftText, moneyBox, this.moneyText, this.travelVietBox, iconButton]);
     if (options.secondaryIcon) {
       this.secondaryButton = new Button(scene, options.width - SCREEN_MARGIN - ICON_BUTTON_SIZE - ICON_BUTTON_GAP - ICON_BUTTON_SIZE / 2, 0, {
         width: ICON_BUTTON_SIZE,

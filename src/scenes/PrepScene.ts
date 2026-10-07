@@ -40,8 +40,8 @@ const EXPECTED_BOX = { top: 258, width: 320, fontSize: 21, paddingY: 5 };
 const BANNER_TOP_WITH_BIAS = 382;
 const BANNER_TOP_WITHOUT_BIAS = 314;
 const BANNER_SIDE_MARGIN = 20;
-const LIST_BOTTOM = 1060;
-const TOTAL_Y = 1095;
+const LIST_BOTTOM = 1050;
+const TOTAL_BOX = { top: 1062, width: 680, fontSize: 24, paddingY: 7 };
 const BUTTON_ROW_Y = 1180;
 const BUTTON_HEIGHT = 76;
 
@@ -51,7 +51,7 @@ export class PrepScene extends BaseScene {
   private bannerBox!: InfoBox;
   private expectedBox!: InfoBox;
   private flightList!: ScrollList<Flight>;
-  private totalText!: Phaser.GameObjects.Text;
+  private totalBox!: InfoBox;
   private confirmButton!: Button;
   private unsubscribeEvents: (() => void) | null = null;
 
@@ -119,9 +119,7 @@ export class PrepScene extends BaseScene {
       renderItem: (flight) => this.renderFlightRow(flight),
     });
 
-    this.totalText = this.add
-      .text(GAME_WIDTH / 2, TOTAL_Y, '', { fontFamily: FONT_FAMILY, fontSize: '26px', color: toCssColor(COLORS.text) })
-      .setOrigin(0.5);
+    this.totalBox = new InfoBox(this, GAME_WIDTH / 2, TOTAL_BOX.top, { ...TOTAL_BOX, tone: 'info' });
 
     const bottomRow = buttonRow(GAME_WIDTH, 2);
     this.confirmButton = new Button(this, bottomRow.centers[0] ?? 0, BUTTON_ROW_Y, {
@@ -148,7 +146,7 @@ export class PrepScene extends BaseScene {
     this.flightList.setItems([...state.today.flights]);
 
     const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights, state.day, state.today.event);
-    this.totalText.setText(`${STRINGS.prep.estimateLabel}: ${total > 0 ? '−' : ''}${formatMoney(total)} · ${STRINGS.prep.moneyAfterLabel}: ${formatMoney(state.money - total)}`);
+    this.totalBox.setText(`${STRINGS.prep.estimateLabel}: ${total > 0 ? '−' : ''}${formatMoney(total)} · ${STRINGS.prep.moneyAfterLabel}: ${formatMoney(state.money - total)}`);
 
     const hasPending = Object.keys(state.today.pendingPurchase).length > 0;
     this.confirmButton.setEnabled(hasPending);
