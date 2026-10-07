@@ -1,5 +1,7 @@
 import { GameSession } from '@domain/game';
 import { maxPurchasable } from '@domain/inventory';
+import { ROUTES } from '@data/routes';
+import { UPGRADES } from '@data/upgrades';
 import type { StaffKind } from '@domain/models';
 import { perfectDecide, playDay, playShift } from '@domain/__integration__/bots';
 import { sessionBridge } from '@scenes/sessionBridge';
@@ -12,7 +14,7 @@ declare global {
     __debugBaggageStep?: () => void;
     /** DEV: mở thẳng một màn với ván mẫu (Prep | Price | Staff | Counter | Summary | Shop) để xem giao diện. */
     __debugScene?: (scene: DebugScene) => void;
-    /** DEV: mở ván mẫu đã chơi tới ngày `day` (bot chơi hoàn hảo) với đúng `money` (đơn vị k), vào màn `scene` (mặc định Prep). Cũng chạy qua URL ?debugDay=25&debugMoney=1000000&debugScene=Prep&debugSeats=10&debugStaff=MIDDLE,SENIOR. */
+    /** DEV: mở ván mẫu đã chơi tới ngày `day` (bot chơi hoàn hảo) với đúng `money` (đơn vị k), vào màn `scene` (mặc định Prep). Cũng chạy qua URL ?debugDay=25&debugMoney=1000000&debugScene=Prep&debugSeats=10&debugStaff=MIDDLE,SENIOR&debugFull=1. */
     __debugDay?: (day: number, money: number, scene?: DebugScene, options?: DebugDayOptions) => void;
   }
 }
@@ -20,6 +22,8 @@ declare global {
 /** `seatsPerKind`: mua sẵn tối đa chừng này ghế cho mỗi chuyến × hạng (bị chặn bởi giới hạn mỗi chuyến). `staff`: các bậc nhân viên thuê sẵn. */
 interface DebugDayOptions {
   seatsPerKind?: number;
+  /** Mua nốt mọi nâng cấp và mở mọi tuyến còn thiếu. */
+  everything?: boolean;
   staff?: readonly StaffKind[];
 }
 
@@ -86,7 +90,11 @@ const DEBUG_RICH_MONEY = 1_000_000_000;
 const STAFF_KINDS_BY_NAME: readonly StaffKind[] = ['INTERN', 'JUNIOR', 'MIDDLE', 'SENIOR', 'MARKETING'];
 
 const stockSeatsAndHireStaff = (session: GameSession, options: DebugDayOptions): void => {
-  const { seatsPerKind = 0, staff = [] } = options;
+  const { seatsPerKind = 0, staff = [], everything = false } = options;
+  if (everything) {
+    for (const upgrade of UPGRADES) session.dispatch({ type: 'SHOP_BUY_UPGRADE', upgradeId: upgrade.id });
+    for (const route of ROUTES) session.dispatch({ type: 'SHOP_UNLOCK_ROUTE', routeId: route.id });
+  }
   for (const flight of session.state.today.flights) {
     for (const cabin of ['ECONOMY', 'BUSINESS'] as const) {
       const qty = Math.min(seatsPerKind, maxPurchasable(flight, cabin, session.state.today.seats));
@@ -126,7 +134,8 @@ const startFromUrlWhenReady = (): void => {
     .split(',')
     .map((name) => name.trim().toUpperCase())
     .filter((name): name is StaffKind => STAFF_KINDS_BY_NAME.includes(name as StaffKind));
-  const options: DebugDayOptions = { seatsPerKind: Number.isInteger(seatsPerKind) && seatsPerKind > 0 ? seatsPerKind : 0, staff };
+  const everything = params.get('debugFull') === '1';
+  const options: DebugDayOptions = { everything, seatsPerKind: Number.isInteger(seatsPerKind) && seatsPerKind > 0 ? seatsPerKind : 0, staff };
   const startedAt = Date.now();
   const timer = window.setInterval(() => {
     const ready = window.__game?.scene.isActive('Title');
