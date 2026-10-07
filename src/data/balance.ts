@@ -1,4 +1,4 @@
-import type { BaggageKg, CabinClass, Extra, Modifiers, ScoreOutcome, Settings, Stars } from '@domain/models';
+import type { BaggageKg, CabinClass, Extra, Modifiers, ScoreOutcome, SeatBias, Settings, Stars } from '@domain/models';
 
 export const SAVE_VERSION = 5;
 export const STARTING_MONEY = 6000;
@@ -27,7 +27,8 @@ export const BULK_DISCOUNT_TIERS: readonly { minQty: number; rate: number }[] = 
   { minQty: 10, rate: 0.1 },
   { minQty: 5, rate: 0.05 },
 ];
-export const SEAT_BIAS_PREFERENCE_CHANCE = 0.75;
+/** Hệ số giá vốn theo thiên hướng ghế: chọn cửa sổ chắc chắn nhận ghế cửa sổ (đắt hơn ~10% so với lối đi), cân bằng là ngẫu nhiên giá gốc. */
+export const SEAT_BIAS_COST_MULT: Readonly<Record<SeatBias, number>> = { BALANCED: 1, WINDOW: 1.05, AISLE: 0.95 };
 
 // Doanh thu
 export const BAGGAGE_FEES: Record<BaggageKg, number> = { 0: 0, 15: 300, 20: 380, 30: 530 };

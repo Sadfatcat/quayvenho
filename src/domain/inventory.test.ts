@@ -90,16 +90,33 @@ describe('inventory: purchase', () => {
     expect(buy({ [pendingKey('QV999', 'ECONOMY')]: 1 })).toEqual({ ok: false, reason: 'UNKNOWN_FLIGHT' });
   });
 
-  it('WINDOW bias yields more window seats than AISLE bias', () => {
+  it('WINDOW bias always gives window seats and AISLE bias always gives aisle seats', () => {
     const free = seatsOfCabin('ECONOMY');
-    const windows = (bias: 'WINDOW' | 'AISLE') => {
-      let total = 0;
-      for (let seed = 0; seed < 200; seed++) total += pickSeats(free, 10, bias, createRng(seed)).filter(isWindow).length;
-      return total;
-    };
-    expect(windows('WINDOW')).toBeGreaterThan(windows('AISLE') * 2);
-    expect(new Set(pickSeats(free, 20, 'WINDOW', createRng(3))).size).toBe(20);
+    for (let seed = 0; seed < 100; seed++) {
+      expect(pickSeats(free, 12, 'WINDOW', createRng(seed)).every(isWindow)).toBe(true);
+      expect(pickSeats(free, 12, 'AISLE', createRng(seed)).every((seat) => !isWindow(seat))).toBe(true);
+    }
+    expect(new Set(pickSeats(free, 16, 'WINDOW', createRng(3))).size).toBe(16);
   });
+
+  it('BALANCED bias mixes window and aisle seats at random', () => {
+    const picked = pickSeats(seatsOfCabin('ECONOMY'), 12, 'BALANCED', createRng(5));
+    expect(picked.some(isWindow)).toBe(true);
+    expect(picked.some((seat) => !isWindow(seat))).toBe(true);
+  });
+
+  it('a biased purchase is capped by the free seats of that kind and costs 5% more for window and 5% less for aisle than balanced', () => {
+    const ctx = flight();
+    const base = (bias: 'BALANCED' | 'WINDOW' | 'AISLE') => pendingTotalCost({ [pendingKey('QV201', 'ECONOMY')]: 1 }, [ctx], 1, undefined, bias);
+    expect(base('WINDOW')).toBeGreaterThan(base('BALANCED'));
+    expect(base('AISLE')).toBeLessThan(base('BALANCED'));
+    expect(base('WINDOW') / base('AISLE')).toBeCloseTo(1.105, 1);
+    const windowOwned = seatsOfCabin('ECONOMY').filter(isWindow).slice(0, 14).map((seat) => owned(seat));
+    expect(maxPurchasable(ctx, 'ECONOMY', windowOwned, 'WINDOW')).toBe(0);
+    expect(maxPurchasable(ctx, 'ECONOMY', windowOwned, 'AISLE')).toBe(0);
+    expect(maxPurchasable(ctx, 'ECONOMY', [], 'WINDOW')).toBe(12);
+  });
+
 });
 
 describe('inventory: seat states', () => {

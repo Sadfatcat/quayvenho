@@ -5,6 +5,7 @@ import {
   EXTRA_FEES,
   PENALTY_GRACE_MULT,
   PENALTY_GRACE_UNTIL_DAY,
+  SEAT_BIAS_COST_MULT,
 } from '@data/balance';
 import { WEATHER_FORECAST_COST_DISCOUNT } from '@data/events';
 import { COST_RISE_PER_STEP, FARE_RISE_EVERY_DAYS, FARE_RISE_PER_STEP } from '@data/pricing';
@@ -14,6 +15,7 @@ import type {
   DayEvent,
   DaySummary,
   Extra,
+  SeatBias,
   Order,
   OwnedSeat,
   Route,
@@ -48,10 +50,11 @@ export const routeOnDay = (route: Route, day: number): Route => {
 };
 
 /** Giá vốn một ghế vào ngày `day`: giá bảng đã lạm phát, giảm nếu tuyến có dự báo thời tiết xấu; làm tròn ở đây. */
-export const seatUnitCost = (route: Route, cabin: CabinClass, day: number, event: DayEvent): number => {
+export const seatUnitCost = (route: Route, cabin: CabinClass, day: number, event: DayEvent, bias: SeatBias = 'BALANCED'): number => {
   const cost = routeOnDay(route, day).cost[cabin];
   const forecastBad = event.type === 'WEATHER' && event.routeId === route.id;
-  return forecastBad ? roundMoney(cost * (1 - WEATHER_FORECAST_COST_DISCOUNT)) : cost;
+  const discounted = forecastBad ? cost * (1 - WEATHER_FORECAST_COST_DISCOUNT) : cost;
+  return roundMoney(discounted * SEAT_BIAS_COST_MULT[bias]);
 };
 
 /** Giá bán thực tế = giá gốc × (1 + % người chơi chỉnh), làm tròn một chỗ duy nhất (đơn vị k). */

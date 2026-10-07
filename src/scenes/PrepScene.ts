@@ -92,7 +92,7 @@ export class PrepScene extends BaseScene {
       selectedIndex: SEAT_BIAS_ORDER.indexOf(state.today.seatBias),
       onChange: (index) => {
         const bias = SEAT_BIAS_ORDER[index];
-        if (bias) sessionBridge.dispatch({ type: 'PREP_SET_SEAT_BIAS', bias });
+        if (bias) this.dispatch({ type: 'PREP_SET_SEAT_BIAS', bias });
       },
     });
   }
@@ -145,7 +145,7 @@ export class PrepScene extends BaseScene {
     this.bannerBox.setText(this.bannerFor(state));
     this.flightList.setItems([...state.today.flights]);
 
-    const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights, state.day, state.today.event);
+    const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights, state.day, state.today.event, state.today.seatBias);
     this.totalBox.setText(`${STRINGS.prep.estimateLabel}: ${total > 0 ? '−' : ''}${formatMoney(total)} · ${STRINGS.prep.moneyAfterLabel}: ${formatMoney(state.money - total)}`);
 
     const hasPending = Object.keys(state.today.pendingPurchase).length > 0;
@@ -199,7 +199,7 @@ ${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
   private renderCabinRow(flight: Flight, cabin: CabinClass, y: number, today: TodayState): Phaser.GameObjects.GameObject[] {
     const key = pendingKey(flight.id, cabin);
     const qty = today.pendingPurchase[key] ?? 0;
-    const unitCost = seatUnitCost(getRoute(flight.routeId), cabin, sessionBridge.current.state.day, today.event);
+    const unitCost = seatUnitCost(getRoute(flight.routeId), cabin, sessionBridge.current.state.day, today.event, today.seatBias);
     const discount = bulkDiscountRate(qty);
     const label = cabin === 'ECONOMY' ? STRINGS.counter.ecoShort : STRINGS.counter.bizShort;
 
@@ -223,13 +223,13 @@ ${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
   }
 
   private maxAffordableQty(flight: Flight, cabin: CabinClass, today: TodayState, money: number): number {
-    const seatLimit = maxPurchasable(flight, cabin, today.seats);
+    const seatLimit = maxPurchasable(flight, cabin, today.seats, today.seatBias);
     if (seatLimit === 0) return 0;
     const key = pendingKey(flight.id, cabin);
     const currentQty = today.pendingPurchase[key] ?? 0;
     const day = sessionBridge.current.state.day;
-    const unitCost = seatUnitCost(getRoute(flight.routeId), cabin, day, today.event);
-    const otherPendingCost = pendingTotalCost(today.pendingPurchase, today.flights, day, today.event) - purchaseCost(unitCost, currentQty);
+    const unitCost = seatUnitCost(getRoute(flight.routeId), cabin, day, today.event, today.seatBias);
+    const otherPendingCost = pendingTotalCost(today.pendingPurchase, today.flights, day, today.event, today.seatBias) - purchaseCost(unitCost, currentQty);
     const moneyLeft = money - otherPendingCost;
     let qty = currentQty;
     while (qty < seatLimit && purchaseCost(unitCost, qty + 1) <= moneyLeft) qty++;

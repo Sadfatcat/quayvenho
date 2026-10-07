@@ -34,6 +34,7 @@ import {
   holdSeat,
   loseSeats,
   maxPurchasable,
+  parsePendingKey,
   pendingKey,
   purchasePending,
   releaseHeld,
@@ -274,7 +275,7 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       const flight = findFlight(today.flights, command.flightId);
       if (!flight) return reject('UNKNOWN_FLIGHT');
       const { qty, cabin } = command;
-      if (!Number.isInteger(qty) || qty < 0 || qty > maxPurchasable(flight, cabin, today.seats)) return reject('BAD_QTY');
+      if (!Number.isInteger(qty) || qty < 0 || qty > maxPurchasable(flight, cabin, today.seats, today.seatBias)) return reject('BAD_QTY');
       const key = pendingKey(flight.id, cabin);
       if (qty === 0) delete today.pendingPurchase[key];
       else today.pendingPurchase[key] = qty;
@@ -285,6 +286,16 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       if (state.phase !== 'PREP') return reject('WRONG_PHASE');
       if (!computeModifiers(state.upgrades).seatBias) return reject('UPGRADE_REQUIRED');
       today.seatBias = command.bias;
+      // Đổi thiên hướng thì số ghế đúng loại còn trống đổi theo: hạ các lô đang chờ xuống mức nhận được.
+      for (const [key, qty] of Object.entries(today.pendingPurchase)) {
+        const { flightId, cabin } = parsePendingKey(key);
+        const flight = findFlight(today.flights, flightId);
+        const limit = flight ? maxPurchasable(flight, cabin, today.seats, command.bias) : 0;
+        if (qty > limit) {
+          if (limit === 0) delete today.pendingPurchase[key];
+          else today.pendingPurchase[key] = limit;
+        }
+      }
       return [];
     }
 

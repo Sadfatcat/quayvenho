@@ -1,4 +1,4 @@
-import { PURCHASE_LIMIT_PER_FLIGHT, SEAT_BIAS_PREFERENCE_CHANCE, SEAT_VALID_DAYS } from '@data/balance';
+import { PURCHASE_LIMIT_PER_FLIGHT, SEAT_VALID_DAYS } from '@data/balance';
 import { invariant } from './common/invariant';
 import { err, ok, type Result } from './common/result';
 import { sum } from './common/math';
@@ -29,21 +29,28 @@ export const freeSeatsFor = (flight: Flight, cabin: CabinClass, seats: readonly 
   return seatsOfCabin(cabin).filter((seat) => !owned.has(seat) && !taken.has(seat));
 };
 
-export const maxPurchasable = (flight: Flight, cabin: CabinClass, seats: readonly OwnedSeat[]): number =>
+/** Ghế còn trống phù hợp thiên hướng: chọn cửa sổ/lối đi thì chỉ tính ghế đúng loại (chắc chắn nhận được loại đó). */
+export const freeSeatsForBias = (flight: Flight, cabin: CabinClass, seats: readonly OwnedSeat[], bias: SeatBias): SeatId[] => {
+  const free = freeSeatsFor(flight, cabin, seats);
+  const preferred = preferredOf(bias);
+  return preferred ? free.filter(preferred) : free;
+};
+
+export const maxPurchasable = (flight: Flight, cabin: CabinClass, seats: readonly OwnedSeat[], bias: SeatBias = 'BALANCED'): number =>
   flight.status !== 'SCHEDULED'
     ? 0
     : Math.max(
         0,
         Math.min(
           PURCHASE_LIMIT_PER_FLIGHT[cabin] - onFlight(seats, flight.id, cabin).length,
-          freeSeatsFor(flight, cabin, seats).length,
+          freeSeatsForBias(flight, cabin, seats, bias).length,
         ),
       );
 
 const NO_EVENT: DayEvent = { type: 'NONE' };
 
-const unitCostOf = (flight: Flight, cabin: CabinClass, day: number, event: DayEvent): number =>
-  seatUnitCost(getRoute(flight.routeId), cabin, day, event);
+const unitCostOf = (flight: Flight, cabin: CabinClass, day: number, event: DayEvent, bias: SeatBias = 'BALANCED'): number =>
+  seatUnitCost(getRoute(flight.routeId), cabin, day, event, bias);
 
 /** `day` quyết định bậc lạm phát giá vốn ghế (mặc định ngày 1 = giá bảng); `event` có thể giảm giá tuyến dự báo xấu. */
 export const pendingTotalCost = (
@@ -51,35 +58,26 @@ export const pendingTotalCost = (
   flights: readonly Flight[],
   day = 1,
   event: DayEvent = NO_EVENT,
+  bias: SeatBias = 'BALANCED',
 ): number =>
   sum(
     Object.entries(pending).map(([key, qty]) => {
       const { flightId, cabin } = parsePendingKey(key);
       const flight = findFlight(flights, flightId);
       invariant(flight, `pending on unknown flight ${flightId}`);
-      return purchaseCost(unitCostOf(flight, cabin, day, event), qty);
+      return purchaseCost(unitCostOf(flight, cabin, day, event, bias), qty);
     }),
   );
 
 const preferredOf = (bias: SeatBias): ((seat: SeatId) => boolean) | null =>
   bias === 'BALANCED' ? null : bias === 'WINDOW' ? isWindow : (seat) => !isWindow(seat);
 
-/** Without replacement; with a bias, each pick prefers the favoured side with 75% chance. */
+/** Không lặp ghế: cân bằng thì ngẫu nhiên trong mọi ghế trống, cửa sổ/lối đi thì chỉ bốc trong ghế đúng loại. */
 export const pickSeats = (free: readonly SeatId[], count: number, bias: SeatBias, rng: Rng): SeatId[] => {
-  invariant(count <= free.length, 'not enough free seats');
   const preferred = preferredOf(bias);
-  if (!preferred) return rng.shuffle(free).slice(0, count);
-  let pool = [...free];
-  const picked: SeatId[] = [];
-  for (let i = 0; i < count; i++) {
-    const favoured = pool.filter(preferred);
-    const others = pool.filter((seat) => !preferred(seat));
-    const group = favoured.length && (rng.chance(SEAT_BIAS_PREFERENCE_CHANCE) || !others.length) ? favoured : others;
-    const seat = rng.pick(group);
-    picked.push(seat);
-    pool = pool.filter((candidate) => candidate !== seat);
-  }
-  return picked;
+  const pool = preferred ? free.filter(preferred) : free;
+  invariant(count <= pool.length, 'not enough free seats');
+  return rng.shuffle(pool).slice(0, count);
 };
 
 export interface Purchase {
@@ -111,16 +109,16 @@ export const purchasePending = (input: {
     const { flightId, cabin } = parsePendingKey(key);
     const flight = findFlight(input.flights, flightId);
     if (!flight) return err('UNKNOWN_FLIGHT');
-    if (qty > maxPurchasable(flight, cabin, input.seats)) return err('OVER_LIMIT');
+    if (qty > maxPurchasable(flight, cabin, input.seats, input.bias)) return err('OVER_LIMIT');
     plan.push({ flight, cabin, qty });
   }
-  const totalCost = sum(plan.map(({ flight, cabin, qty }) => purchaseCost(unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT), qty)));
+  const totalCost = sum(plan.map(({ flight, cabin, qty }) => purchaseCost(unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT, input.bias), qty)));
   if (totalCost > input.money) return err('NOT_ENOUGH_MONEY');
 
   const seats = [...input.seats];
   const purchases = plan.map(({ flight, cabin, qty }) => {
     const picked = pickSeats(freeSeatsFor(flight, cabin, seats), qty, input.bias, input.rng);
-    const unitCost = unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT);
+    const unitCost = unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT, input.bias);
     seats.push(...picked.map((seat) => ({ flightId: flight.id, seat, cabin, unitCost, expiresDay: seatExpiryDayFor(input.day ?? 1), state: 'AVAILABLE' as const })));
     return { flightId: flight.id, cabin, seats: picked, cost: purchaseCost(unitCost, qty) };
   });

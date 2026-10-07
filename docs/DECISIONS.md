@@ -265,3 +265,8 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Nhân viên chậm lại một nấc: rút vé 1200 ms, đóng dấu 2000, cân hành lý 1300 (+ thời gian giữ thanh cân), chọn ghế 1700, vé dịch vụ 1500, kiểm tra hộ chiếu 1200. Cân hành lý của Middle không còn sai (`BAGGAGE_ERROR_PCT` 40 → 0).
 - Sửa lại: ý chủ dự án là nhanh hơn. Mỗi việc của nhân viên còn 0,5–0,9 giây (rút vé 500 ms, đóng dấu 900, cân hành lý 600 + thời gian giữ thanh cân, chọn ghế 700, vé dịch vụ 600, kiểm tra hộ chiếu 500); cân hành lý vẫn không sai.
 - Máy in nhanh (FAST_PRINTER) in trong 800 ms (trước 1000 ms); máy thường vẫn 2000 ms.
+
+## 2026-10-07 — Thiên hướng ghế: chắc chắn nhận đúng loại, cửa sổ đắt hơn
+- Nâng cấp Quan hệ hãng bay: chọn Cửa sổ thì mọi ghế nhập đều là ghế cửa sổ (cột A, D), chọn Lối đi thì đều là ghế lối đi (B, C); số mua tối đa bị chặn bởi số ghế đúng loại còn trống (`maxPurchasable(..., bias)`). Cân bằng vẫn ngẫu nhiên trong mọi ghế trống. Bỏ xác suất 75% (`SEAT_BIAS_PREFERENCE_CHANCE`).
+- Giá vốn theo thiên hướng (`SEAT_BIAS_COST_MULT`): cân bằng ×1 (giá bảng, nên cân bằng kinh tế của người không dùng nâng cấp không đổi), cửa sổ ×1,05, lối đi ×0,95, tức cửa sổ đắt hơn lối đi ~10,5%. Giá hiện ở dòng từng chuyến, tổng "Dự tính" và số lượng tối đa mua được đều theo thiên hướng đang chọn; đổi thiên hướng thì các lô đang chờ tự hạ xuống mức nhận được.
+- Vẫn giữ giới hạn mua mỗi chuyến (ECO 12, BIZ 4) nên không thể mua hết mọi ghế của một chuyến.

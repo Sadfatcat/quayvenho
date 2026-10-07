@@ -87,7 +87,7 @@ export const STRINGS = {
     COMFY_CHAIRS: { name: 'Ghế chờ êm', description: 'Khách kiên nhẫn hơn 20%.' },
     FAN: { name: 'Quạt mát', description: 'Khách kiên nhẫn hơn 10%.' },
     FAST_PRINTER: { name: 'Máy in nhanh', description: 'In vé nhanh hơn.' },
-    AIRLINE_RELATIONS: { name: 'Quan hệ hãng bay', description: 'Chọn được thiên hướng ghế (cửa sổ/lối đi) khi nhập kho.' },
+    AIRLINE_RELATIONS: { name: 'Quan hệ hãng bay', description: 'Chọn loại ghế khi nhập kho: cửa sổ hoặc lối đi chắc chắn nhận đúng loại (cửa sổ đắt hơn lối đi ~10%), cân bằng thì ngẫu nhiên.' },
     REFUND_POLICY: { name: 'Chính sách hoàn ghế', description: 'Hoàn 40% giá vốn ghế ế mỗi ngày.' },
     WAITING_LOUNGE: { name: 'Khu chờ thoải mái', description: 'Khách đang đứng chờ mất kiên nhẫn chậm hơn 15%.' },
     LOYALTY_BOARD: { name: 'Bảng khách quen', description: 'Tăng 15% tiền tip (cần TravelViet ≥ {minTravelViet}).' },
