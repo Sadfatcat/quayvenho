@@ -8,13 +8,13 @@ import { checkRouteUnlock, checkUpgrade, computeModifiers } from './upgrades';
 
 describe('computeModifiers', () => {
   it('base values without upgrades', () => {
-    expect(computeModifiers([])).toMatchObject({ patienceMult: 1, tipMult: 1, printMs: 3000, queuePatienceRateMult: BASE_MODIFIERS.queuePatienceRateMult, refundRate: BASE_MODIFIERS.refundRate });
+    expect(computeModifiers([])).toMatchObject({ patienceMult: 1.1, tipMult: 1, printMs: 2000, queuePatienceRateMult: BASE_MODIFIERS.queuePatienceRateMult, refundRate: BASE_MODIFIERS.refundRate });
   });
 
   it('multipliers stack by product, others override', () => {
     const mods = computeModifiers(['COMFY_CHAIRS', 'FAN', 'FAST_PRINTER', 'WAITING_LOUNGE', 'REFUND_POLICY', 'AIRLINE_RELATIONS', 'LOYALTY_BOARD']);
-    expect(mods.patienceMult).toBeCloseTo(1.32);
-    expect(mods).toMatchObject({ tipMult: 1.15, printMs: 1500, queuePatienceRateMult: 0.85, refundRate: 0.4, seatBias: true });
+    expect(mods.patienceMult).toBeCloseTo(1.452);
+    expect(mods).toMatchObject({ tipMult: 1.15, printMs: 1000, queuePatienceRateMult: 0.85, refundRate: 0.4, seatBias: true });
   });
 });
 

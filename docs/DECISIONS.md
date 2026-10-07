@@ -220,3 +220,8 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Bỏ hạn hộ chiếu: hộ chiếu lỗi chỉ còn sai tên (`isPassportValid` không cần ngày, `Passport.expiresDay` bị bỏ khỏi model và schema save; save cũ vẫn đọc được vì zod bỏ qua khoá thừa). Tỉ lệ hộ chiếu lỗi `pBadPassport` giữ nguyên. Ngày sinh và quê quán trên thẻ hộ chiếu chỉ để trang trí, suy ra từ mã khách (`passportProfileOf`), không nằm trong save.
 - Khung yêu cầu của khách là lời nói tự nhiên (`orderSpeech`), chỉ nhắc điều khách cần; tên ngoài quầy chỉ một chữ (chữ cuối của họ tên). Cảnh báo sự kiện chỉ hiện một lần lúc mở quầy rồi mờ dần.
 - Nút Từ chối là nút tròn chỉ có ✋. Béo hướng dẫn mọi nút (Từ chối, ⏸ và ⏭, 🛂, 4 mục quản lý, ⚙, Đồ hỗ trợ, Nhân viên, Tổng kết); người chơi cũ thấy các lời mới một lần.
+
+## 2026-10-07 — Sau lần chơi thử: kiên nhẫn +10%, in vé nhanh hơn
+- `BASE_MODIFIERS.patienceMult` 1 → 1,1 (nhân với các nâng cấp Ghế chờ êm 1,2 và Quạt mát 1,1: tối đa 1,452). Lý do: chủ dự án chơi thử thấy thanh kiên nhẫn tụt quá nhanh, khách bỏ đi nhiều.
+- Thời gian in vé thật: máy thường 3000 → 2000 ms, máy in nhanh (FAST_PRINTER) 1500 → 1000 ms (giữ tỉ lệ một nửa). Hiểu "khoảng 2 giây đời thật" là máy thường; nếu ý là máy in nhanh thì chỉnh lại.
+- Sim 400 seed / 40 ngày: AVERAGE ngày 10 = 46,1k, ngày 40 = 462k (trước 47,6k / 451k); PERFECT ngày 40 = 5,49 triệu; POOR lưới an toàn 9 lần. Bot không phản ánh hết cảm giác người chơi thật nên chỉ số khách bỏ đi của sim (AVERAGE 3%, POOR 12% ở 10 ngày đầu) ít đổi.

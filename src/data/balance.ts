@@ -93,9 +93,9 @@ export const RESOLVE_MS = 1200;
 export const MAX_TICK_MS = 100;
 
 export const BASE_MODIFIERS: Modifiers = {
-  patienceMult: 1,
+  patienceMult: 1.1,
   tipMult: 1,
-  printMs: 3000,
+  printMs: 2000,
   queuePatienceRateMult: 1,
   refundRate: 0,
   seatBias: false,

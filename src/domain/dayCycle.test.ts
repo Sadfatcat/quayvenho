@@ -214,7 +214,7 @@ describe('shift', () => {
     game.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
     expect(game.state.today.seats.find((s) => s.seat === seat)?.state).toBe('HELD');
     game.dispatch({ type: 'BUILD_GOTO_STEP', step: 'REVIEW' });
-    expect(game.dispatch({ type: 'PRINT_TICKET' })).toEqual([{ type: 'PRINT_STARTED', durationMs: 3000 }]);
+    expect(game.dispatch({ type: 'PRINT_TICKET' })).toEqual([{ type: 'PRINT_STARTED', durationMs: 2000 }]);
     expect(rejected(game.dispatch({ type: 'DELIVER_TICKET' }))).toBeTruthy();
     tickUntil(game, () => game.state.today.counter.state === 'READY_TO_DELIVER');
     const scored = game.dispatch({ type: 'DELIVER_TICKET' });
