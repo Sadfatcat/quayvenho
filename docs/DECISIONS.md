@@ -251,3 +251,4 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 
 ## 2026-10-07 — Lời khách: yêu cầu in đậm, lời đưa đẩy làm mờ
 - `orderSpeechSegments` chia câu của khách thành đoạn có cờ `key`: đi đâu, hạng vé, giờ bay, chỗ ngồi, hành lý, dịch vụ là yêu cầu (in đậm, màu đậm); phần còn lại ("Cho mình một vé…", "và cho mình thêm…") thường, màu nhạt, độ mờ 0,5. `addHighlightedSpeech` vẽ mỗi từ một Text (Phaser không trộn kiểu chữ trong một khối) và tự xuống dòng. Chữ lời khách tăng lên 26px.
+- Giá thuê nhân viên là giá cố định, không bao giờ tăng theo thời gian (Junior 30tr, Middle 40tr, Senior 50tr, Marketing 20tr; chỉ lương/ngày tăng theo lợi nhuận). Đã thử hạ xuống 15/20/30 rồi giữ lại giá cũ theo chủ dự án; thêm test khẳng định giá thuê không đổi theo ngày. Thẻ thuê nhân viên cao hơn một dòng (226) và mô tả Senior rút gọn để chữ không đè lên dòng tiền thuê.
