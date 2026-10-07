@@ -123,7 +123,7 @@ export const STRINGS = {
     kinds: {
       INTERN: { name: 'Thực tập sinh', description: 'Chăm chỉ nhưng chưa làm được gì cả. Có khi nuôi lâu rồi sẽ khác. Làm đủ 8 ngày sẽ có bất ngờ đấy!' },
       JUNIOR: { name: 'Nhân viên Junior', description: 'Rút đúng vé thường hay thương gia theo đơn của khách. Làm đủ 10 ngày sẽ lên Middle.' },
-      MIDDLE: { name: 'Nhân viên Middle', description: 'Chọn vé đúng hạng, rồi đóng dấu điểm đến + giờ bay đúng chuyến và cân hành lý (hay sai khoảng 40%). Làm đủ 12 ngày sẽ lên Senior.' },
+      MIDDLE: { name: 'Nhân viên Middle', description: 'Chọn vé đúng hạng, rồi đóng dấu điểm đến + giờ bay đúng chuyến và cân hành lý (luôn đúng). Làm đủ 12 ngày sẽ lên Senior.' },
       SENIOR: { name: 'Nhân viên Senior', description: 'Kiểm tra hộ chiếu (báo nếu sai tên), đưa vé dịch vụ rồi chọn ghế đúng yêu cầu của khách. Cần có vé trên bàn; chọn ghế còn cần chuyến đã đóng dấu.' },
       MARKETING: { name: 'Nhân viên Marketing', description: 'Kéo thêm khách mỗi ngày. Dạy việc để kéo được nhiều hơn nữa.' },
     } as Record<string, { name: string; description: string }>,

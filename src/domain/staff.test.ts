@@ -138,20 +138,10 @@ describe('staff job helpers', () => {
     expect(back && matchesSeatPref(back, 'BACK')).toBe(true);
   });
 
-  it('weighs baggage wrong about 40% of the time with a mark far from the request', () => {
+  it('weighs baggage exactly as requested every time (error rate 0%)', () => {
     const order = makeOrder({ baggageKg: 20 });
-    let wrong = 0;
-    const trials = 2000;
     const rng = createRng(7);
-    for (let i = 0; i < trials; i++) {
-      const kg = staffBaggageKg(order, rng);
-      if (kg !== 20) {
-        wrong++;
-        expect(Math.abs(kg - 20)).toBeGreaterThan(1);
-      }
-    }
-    expect(wrong / trials).toBeGreaterThan(0.35);
-    expect(wrong / trials).toBeLessThan(0.45);
+    for (let i = 0; i < 2000; i++) expect(staffBaggageKg(order, rng)).toBe(20);
   });
 });
 

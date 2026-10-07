@@ -19,19 +19,19 @@ export const STAFF_KINDS: readonly StaffKindDef[] = [
 
 /** Thời gian (ms) để nhân viên làm xong từng việc trên vé của một khách. Nhân viên làm từng việc một (xem `tickStaff`), nên các số này cộng dồn. */
 export const STAFF_JOB_DELAY_MS: Record<StaffJob, number> = {
-  CABIN: 800,
-  STAMPS: 1300,
-  BAGGAGE: 900,
-  SEAT: 1100,
-  SERVICES: 1000,
-  PASSPORT: 800,
+  CABIN: 1200,
+  STAMPS: 2000,
+  BAGGAGE: 1300,
+  SEAT: 1700,
+  SERVICES: 1500,
+  PASSPORT: 1200,
 };
 
 /** Nhân viên cân hành lý bằng đúng chuyển động bấm giữ của người chơi: giữ `kg / BAGGAGE_HOLD_SPEED_KG_PER_S` rồi nhả, cộng thêm khoảng này để số dừng lại. */
 export const STAFF_WEIGH_SETTLE_MS = 300;
 
 /** Cân hành lý của Middle sai theo xác suất này (%). */
-export const BAGGAGE_ERROR_PCT = 40;
+export const BAGGAGE_ERROR_PCT = 0;
 
 /** Làm đủ `afterDays` ngày ở bậc hiện tại thì tự lên bậc `to` (số ngày tính lại từ 0 ở bậc mới); Senior và Marketing không lên nữa. */
 export const STAFF_PROMOTIONS: Partial<Record<StaffKind, { afterDays: number; to: StaffKind }>> = {
