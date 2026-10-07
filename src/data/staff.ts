@@ -5,14 +5,14 @@ export const STAFF_CAP = 2;
 
 /**
  * Mỗi bậc phụ trách những việc riêng (không cộng dồn). Người chơi luôn tự in và giao vé.
- * Việc nào cũng cần vé trên bàn: ai ra tay trước mà chưa có vé thì tự lấy vé đúng hạng của khách ra bàn rồi làm tiếp.
- * Senior làm vé dịch vụ trước rồi mới chọn ghế, vì chọn ghế phải chờ có chuyến (Middle đóng dấu hoặc người chơi đóng dấu) nên không được chặn việc kia.
+ * Chọn vé (hạng) là việc đầu tiên: mọi việc phía sau (đóng dấu, cân hành lý, vé dịch vụ, chọn ghế) bị chặn cho tới khi trên bàn có vé, do Junior/Middle chọn hoặc do người chơi tự lấy.
+ * Senior làm vé dịch vụ trước rồi mới chọn ghế, vì chọn ghế phải chờ có chuyến (Middle hoặc người chơi đóng dấu) nên không được chặn việc kia.
  * Tiền thuê/lương tính theo "k" (nghìn đồng). Junior/Middle/Senior thuê đắt để người chơi nghĩ tới nuôi thực tập sinh.
  */
 export const STAFF_KINDS: readonly StaffKindDef[] = [
   { kind: 'INTERN', hireCost: 0, baseWage: 300, jobs: [], minDay: 3, countsTowardCap: true },
   { kind: 'JUNIOR', hireCost: 30_000, baseWage: 1500, jobs: ['CABIN'], minDay: 3, countsTowardCap: true },
-  { kind: 'MIDDLE', hireCost: 40_000, baseWage: 2000, jobs: ['STAMPS', 'BAGGAGE'], minDay: 10, countsTowardCap: true },
+  { kind: 'MIDDLE', hireCost: 40_000, baseWage: 2000, jobs: ['CABIN', 'STAMPS', 'BAGGAGE'], minDay: 10, countsTowardCap: true },
   { kind: 'SENIOR', hireCost: 50_000, baseWage: 2300, jobs: ['SERVICES', 'SEAT'], minDay: 15, countsTowardCap: true },
   { kind: 'MARKETING', hireCost: 20_000, baseWage: 1000, jobs: [], minDay: 8, countsTowardCap: false },
 ];

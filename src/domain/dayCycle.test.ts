@@ -517,23 +517,26 @@ describe('staff', () => {
     expect(game.state.today.counter.state).toBe('BUILDING');
   });
 
-  it('Middle and Senior take the ticket out themselves, so the player never has to start the draft', () => {
+  it('Middle chooses the ticket first, then stamps and weighs; Senior waits for that ticket and then adds services and the seat', () => {
     const game = richGame(15);
     game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' });
     game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
     stockAllFlights(game);
     game.dispatch({ type: 'OPEN_COUNTER' });
     const order = tickToFirstCustomer(game);
+    if (!order) throw new Error('no customer');
+    order.extras = ['VEG_MEAL'];
 
     tickUntil(game, () => game.state.today.counter.draft?.seat !== null, 400);
 
     const draft = game.state.today.counter.draft;
-    expect(draft?.cabin).toBe(order?.cabin);
-    expect(draft?.routeStamp).toBe(order?.routeId);
+    expect(draft?.cabin).toBe(order.cabin);
+    expect(draft?.routeStamp).toBe(order.routeId);
+    expect(draft?.extras).toEqual(['VEG_MEAL']);
     expect(draft?.seat).not.toBeNull();
   });
 
-  it('a Senior working alone still adds the extra services while the seat waits for a stamped flight', () => {
+  it('a Senior working alone does nothing until a ticket is on the desk, then adds services', () => {
     const game = richGame(15);
     game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
     stockAllFlights(game);
@@ -542,12 +545,14 @@ describe('staff', () => {
     if (!order) throw new Error('no customer');
     order.extras = ['VEG_MEAL'];
 
-    tickUntil(game, () => game.state.today.counter.draft?.extras.length === 1, 400);
+    for (let step = 0; step < 100; step++) game.tick(100);
+    expect(game.state.today.counter.draft?.cabin).toBeNull();
+    expect(game.state.today.counter.draft?.extras).toEqual([]);
 
-    const draft = game.state.today.counter.draft;
-    expect(draft?.cabin).toBe(order.cabin);
-    expect(draft?.extras).toEqual(order.extras);
-    expect(draft?.seat).toBeNull();
+    game.dispatch({ type: 'BUILD_TAKE_TICKET', cabin: order.cabin });
+    tickUntil(game, () => game.state.today.counter.draft?.extras.length === 1, 400);
+    expect(game.state.today.counter.draft?.extras).toEqual(['VEG_MEAL']);
+    expect(game.state.today.counter.draft?.seat).toBeNull();
   });
 
   it('staff do not overwrite a step the player already did', () => {

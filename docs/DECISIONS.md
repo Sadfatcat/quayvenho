@@ -235,3 +235,6 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Lỗi chơi thử: Middle và Senior đóng dấu/cân hành lý lên vé nháp chưa có hạng (vé chưa hiện trên bàn), Senior kẹt ở bước chọn ghế (chờ chuyến) nên không bao giờ tới việc vé dịch vụ. Sửa trong `applyAssistStep`: ai ra tay trước mà chưa có vé thì tự lấy vé đúng hạng của khách ra bàn rồi làm việc của mình; Senior làm vé dịch vụ trước rồi mới chọn ghế (`jobs: ['SERVICES', 'SEAT']`) để chọn ghế đang chờ chuyến không chặn việc kia. Người chơi vẫn luôn là người in và giao vé.
 - Tốc độ: `STAFF_JOB_DELAY_MS` giảm ~60%: rút vé 2000 → 800 ms, đóng dấu 3000 → 1200, cân hành lý 3000 → 1200, chọn ghế 2500 → 1000, vé dịch vụ 2000 → 800.
 - Các lần "tự nhảy về Kho" khi chủ dự án chơi thử là do phiên Playwright của trợ lý tải lại trang, không phải lỗi game.
+
+## 2026-10-07 — Chọn vé là việc đầu tiên, các việc sau bị chặn
+- Thay quyết định "nhân viên tự lấy vé ra bàn" ngay trên: Junior chỉ chọn loại vé (CABIN); Middle làm CABIN rồi STAMPS rồi BAGGAGE (`jobs: ['CABIN', 'STAMPS', 'BAGGAGE']`); Senior vẫn SERVICES rồi SEAT. Mọi việc ngoài CABIN (đóng dấu, cân hành lý, vé dịch vụ, chọn ghế) trả `WAIT` khi chưa có vé trên bàn (`draft.cabin === null`), nên nhân viên đứng chờ tới khi Junior/Middle hoặc người chơi chọn vé. Senior đi một mình phải đợi người chơi lấy vé; Middle + Senior thì Middle mở đường cho Senior.
