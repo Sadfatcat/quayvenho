@@ -42,7 +42,7 @@ const HEADER_TEXT_Y = 146;
 const EVENT_BADGE = { x: 110, y: 192, width: 580 };
 const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 262 };
 /** Nằm gọn trong khung yêu cầu (khung: x 164–696, y 244–428), cách viền phải và đáy 20px. */
-const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 20 - 75, y: 428 - 20 - 28, width: 150, height: 56, fontSize: 22 };
+const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 20 - 70, y: 428 - 16 - 24, width: 140, height: 48, fontSize: 20 };
 const FEEDBACK_Y = 330;
 const STAFF_TOAST_MS = 1200;
 const STAFF_CHIP_RADIUS = 18;

@@ -2,23 +2,28 @@ import { STRINGS } from '@data/strings';
 import type { Order } from '@domain/models';
 import { getRoute } from '@domain/routes';
 
-export interface RequestLine {
-  label: string;
-  value: string;
-  /** Dòng khách đòi hỏi thật sự (khác "không yêu cầu"): được tô nổi bật trong khung yêu cầu. */
-  demanding: boolean;
-}
+/** Lấy mẫu câu mở đầu theo mã khách để mỗi khách luôn nói cùng một câu (không dùng random). */
+const openingIndexOf = (customerId: string, count: number): number =>
+  [...customerId].reduce((hash, char) => (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0, 7) % count;
 
-/** Yêu cầu của khách thành các dòng rõ ràng: đi đâu, hạng nào, giờ nào, ngồi đâu, hành lý, dịch vụ thêm. */
-export const orderRequestLines = (order: Order): RequestLine[] => {
-  const text = STRINGS.counter.request;
-  const extras = order.extras.map((extra) => text.extras[extra]).join(', ');
-  return [
-    { label: text.labels.destination, value: getRoute(order.routeId).name, demanding: true },
-    { label: text.labels.cabin, value: STRINGS.counter.cabin[order.cabin], demanding: true },
-    { label: text.labels.time, value: text.time[order.timePref], demanding: order.timePref !== 'ANY' },
-    { label: text.labels.seat, value: text.seat[order.seatPref], demanding: order.seatPref !== 'ANY' },
-    { label: text.labels.baggage, value: order.baggageKg > 0 ? text.baggage.replace('{kg}', String(order.baggageKg)) : text.noBaggage, demanding: order.baggageKg > 0 },
-    { label: text.labels.extras, value: extras || text.noExtras, demanding: order.extras.length > 0 },
-  ];
+const joinNatural = (parts: readonly string[]): string => {
+  const speech = STRINGS.counter.speech;
+  if (parts.length <= 1) return parts.join('');
+  return `${parts.slice(0, -1).join(', ')} ${speech.and} ${parts[parts.length - 1]}`;
+};
+
+/**
+ * Yêu cầu của khách thành một câu nói tự nhiên: luôn nói đi đâu và hạng vé gì; giờ bay, chỗ ngồi, hành lý
+ * và dịch vụ thêm chỉ được nhắc khi khách thật sự cần (không nhắc "không yêu cầu").
+ */
+export const orderSpeech = (order: Order): string => {
+  const speech = STRINGS.counter.speech;
+  const opening = speech.openings[openingIndexOf(order.customerId, speech.openings.length)] ?? speech.openings[0] ?? '';
+  const sentence = opening.replace('{dest}', getRoute(order.routeId).name).replace('{cabin}', speech.cabin[order.cabin]);
+  const wishes: string[] = [];
+  if (order.timePref !== 'ANY') wishes.push(speech.time[order.timePref]);
+  if (order.seatPref !== 'ANY') wishes.push(speech.seat[order.seatPref]);
+  if (order.baggageKg > 0) wishes.push(speech.baggage.replace('{kg}', String(order.baggageKg)));
+  if (order.extras.length > 0) wishes.push(`${speech.extrasPrefix} ${joinNatural(order.extras.map((extra) => speech.extras[extra]))}`);
+  return wishes.length === 0 ? `${sentence}.` : `${sentence}, ${joinNatural(wishes)}.`;
 };

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { Customer, Mood } from '@domain/models';
 import { patienceRatioOf } from '@domain/dayCycle';
 import { CustomerAvatar, type AvatarMood } from './CustomerAvatar';
-import { orderRequestLines } from './orderRequest';
+import { orderSpeech } from './orderRequest';
 import { Panel } from './Panel';
 import { PatienceBar } from './PatienceBar';
 import { COLORS, FONT_FAMILY, toCssColor } from './theme';
@@ -12,10 +12,8 @@ const MOOD_TO_AVATAR: Record<Mood, AvatarMood> = { HAPPY: 'happy', NEUTRAL: 'neu
 const AVATAR_CENTER = { x: 84, y: 318 };
 const AVATAR_RADIUS = 52;
 const CARD = { left: 164, top: 244, width: 532, height: 184 };
-const ROW_TOP = CARD.top + 24;
-const ROW_HEIGHT = 27;
-const LABEL_X = CARD.left + 22;
-const VALUE_X = CARD.left + 160;
+/** Lời khách nói nằm trên cùng khung; nút Từ chối nằm sát đáy bên phải nên chừa chỗ phía dưới. */
+const SPEECH = { paddingX: 22, paddingTop: 16, fontSize: 24, lineSpacing: 4 };
 const NAME_Y = AVATAR_CENTER.y + AVATAR_RADIUS + 16;
 const PATIENCE_BAR = { x: AVATAR_CENTER.x - 56, y: NAME_Y + 16, width: 112, height: 12 };
 const TAIL_HALF_HEIGHT = 16;
@@ -108,21 +106,18 @@ export class CustomerCard extends Phaser.GameObjects.Container {
     tail.fillRect(CARD.left - 1, tailY - TAIL_HALF_HEIGHT + 3, 6, TAIL_HALF_HEIGHT * 2 - 6);
     content.add([panel, tail]);
 
-    orderRequestLines(customer.order).forEach((line, index) => {
-      const y = ROW_TOP + index * ROW_HEIGHT;
-      content.add([
-        scene.add.text(LABEL_X, y, line.label, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5),
-        scene.add
-          .text(VALUE_X, y, line.value, {
-            fontFamily: FONT_FAMILY,
-            fontSize: '20px',
-            fontStyle: line.demanding ? 'bold' : 'normal',
-            color: toCssColor(line.demanding ? COLORS.accentDark : COLORS.text),
-            wordWrap: { width: CARD.width - (VALUE_X - CARD.left) - 20 },
-          })
-          .setOrigin(0, 0.5),
-      ]);
-    });
+    content.add(
+      scene.add
+        .text(CARD.left + SPEECH.paddingX, CARD.top + SPEECH.paddingTop, orderSpeech(customer.order), {
+          fontFamily: FONT_FAMILY,
+          fontSize: `${SPEECH.fontSize}px`,
+          fontStyle: 'bold',
+          color: toCssColor(COLORS.text),
+          lineSpacing: SPEECH.lineSpacing,
+          wordWrap: { width: CARD.width - 2 * SPEECH.paddingX },
+        })
+        .setOrigin(0, 0),
+    );
 
   }
 }
