@@ -9,6 +9,7 @@ import { Card } from '@ui/Card';
 import { formatMoney } from '@ui/format';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
+import { addStaffPortrait } from '@ui/StaffPortrait';
 import { kindName, memberDetail } from '@ui/staffText';
 import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
@@ -28,6 +29,12 @@ const LIST_BOTTOM_MARGIN = 170;
 const CARD_HEIGHT = 190;
 const CARD_GAP = 14;
 const AVATAR_RADIUS = 30;
+const PORTRAIT_HEIGHT_PER_RADIUS = 2.6;
+const MARKETING_PORTRAIT_HEIGHT = 68;
+const MARKETING_PORTRAIT_WIDTH = 56;
+const MARKETING_TEACH_WIDTH = 180;
+const MARKETING_FIRE_WIDTH = 90;
+const MARKETING_BUTTON_GAP = 8;
 const FIRE_BUTTON = { width: 130, height: 48 };
 const SMALL_BUTTON_FONT_PX = 20;
 const KIND_COLORS: Record<StaffKind, number> = { INTERN: COLORS.textMuted, JUNIOR: COLORS.teal, MIDDLE: COLORS.accent, SENIOR: COLORS.primary, MARKETING: COLORS.moneyGreen };
@@ -115,15 +122,16 @@ export class StaffScene extends BaseScene {
 
   private addMemberContent(member: StaffMember, left: number, top: number, width: number, day: number, wageRaise: number): void {
     const centerY = top + 52;
+    const absent = isAbsentOn(member, day);
     const avatar = this.add.graphics();
     avatar.fillStyle(KIND_COLORS[member.kind], 1);
     avatar.fillCircle(left + 16 + AVATAR_RADIUS, centerY, AVATAR_RADIUS);
-    const initial = this.add.text(left + 16 + AVATAR_RADIUS, centerY, member.name.charAt(0), { fontFamily: HEADING_FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5);
+    const portrait = addStaffPortrait(this, left + 16 + AVATAR_RADIUS, centerY, AVATAR_RADIUS * PORTRAIT_HEIGHT_PER_RADIUS, member.kind, absent ? 'tired' : 'focused');
+    const initial = portrait ?? this.add.text(left + 16 + AVATAR_RADIUS, centerY, member.name.charAt(0), { fontFamily: HEADING_FONT_FAMILY, fontSize: '30px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5);
     const textLeft = left + 16 + AVATAR_RADIUS * 2 + 12;
     const textWidth = width - (textLeft - left) - 10;
     const name = this.add.text(textLeft, top + 18, `${member.name} · ${kindName(member.kind)}`, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(COLORS.text), wordWrap: { width: textWidth } }).setOrigin(0, 0);
     const detail = member.kind === 'INTERN' ? T.learning : memberDetail(member);
-    const absent = isAbsentOn(member, day);
     const status = absent ? member.absenceReason ? T.absence[member.absenceReason] : '' : detail;
     const detailText = this.add.text(textLeft, top + 48, status, { fontFamily: FONT_FAMILY, fontSize: '16px', color: toCssColor(absent ? COLORS.danger : COLORS.textMuted), wordWrap: { width: textWidth } }).setOrigin(0, 0);
     const wage = this.add.text(left + 16, top + SLOT.height - 36, `${T.wagePerDay}: ${formatMoney(wageOf(member, wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5);
@@ -142,12 +150,15 @@ export class StaffScene extends BaseScene {
     const title = `${member.name} · ${kindName(member.kind)}${absent ? ` — ${member.absenceReason ? T.absence[member.absenceReason] : ''}` : ''}`;
     const nextCost = member.bonusPct >= MARKETING.maxBonusPct ? null : marketingTeachCost(member.bonusPct);
     const teach = checkTeachMarketing(state.staff, state.money);
+    const portrait = addStaffPortrait(this, SIDE_MARGIN + 12 + MARKETING_PORTRAIT_WIDTH / 2, centerY, MARKETING_PORTRAIT_HEIGHT, member.kind, absent ? 'tired' : 'happy');
+    const textLeft = portrait ? SIDE_MARGIN + 12 + MARKETING_PORTRAIT_WIDTH + 8 : SIDE_MARGIN + 16;
+    if (portrait) this.dynamicLayer.add(portrait);
     this.dynamicLayer.add([
-      this.add.text(SIDE_MARGIN + 16, MARKETING_STRIP.top + 20, title, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(absent ? COLORS.danger : COLORS.text) }).setOrigin(0, 0.5),
-      this.add.text(SIDE_MARGIN + 16, MARKETING_STRIP.top + 52, `${bonusText(member)} · ${T.wagePerDay}: ${formatMoney(wageOf(member, state.wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '17px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
+      this.add.text(textLeft, MARKETING_STRIP.top + 20, title, { fontFamily: FONT_FAMILY, fontSize: '19px', fontStyle: 'bold', color: toCssColor(absent ? COLORS.danger : COLORS.text) }).setOrigin(0, 0.5),
+      this.add.text(textLeft, MARKETING_STRIP.top + 52, `${bonusText(member)} · ${T.wagePerDay}: ${formatMoney(wageOf(member, state.wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '16px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
     ]);
-    const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - 160, centerY, {
-      width: 210,
+    const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_FIRE_WIDTH - MARKETING_BUTTON_GAP - MARKETING_TEACH_WIDTH / 2, centerY, {
+      width: MARKETING_TEACH_WIDTH,
       height: 56,
       fontSize: SMALL_BUTTON_FONT_PX,
       label: nextCost === null ? T.teachMax : `${T.teach} (−${formatMoney(nextCost)})`,
@@ -155,7 +166,7 @@ export class StaffScene extends BaseScene {
       onTap: () => sessionBridge.dispatch({ type: 'TEACH_MARKETING' }),
     });
     teachButton.setEnabled(teach.ok);
-    const fire = new Button(this, GAME_WIDTH - SIDE_MARGIN - 48, centerY, { width: 96, height: 56, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
+    const fire = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_FIRE_WIDTH / 2, centerY, { width: MARKETING_FIRE_WIDTH, height: 56, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
     this.dynamicLayer.add([teachButton, fire]);
   }
 

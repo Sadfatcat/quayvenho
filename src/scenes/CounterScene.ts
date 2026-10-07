@@ -20,6 +20,7 @@ import { MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { isAbsentOn } from '@domain/staff';
 import { kindName } from '@ui/staffText';
+import { addStaffPortrait } from '@ui/StaffPortrait';
 import { ToastQueue } from '@ui/Toast';
 import { TopBar } from '@ui/TopBar';
 import { BACK_PRESSED_EVENT, BaseScene } from './BaseScene';
@@ -43,6 +44,7 @@ const FEEDBACK_Y = 330;
 const STAFF_TOAST_MS = 1200;
 const STAFF_CHIP_RADIUS = 18;
 const STAFF_CHIP_GAP = 8;
+const STAFF_CHIP_PORTRAIT_PER_RADIUS = 2.3;
 const STAFF_CHIP_COLOR: Record<StaffKind, number> = { INTERN: COLORS.textMuted, JUNIOR: COLORS.teal, MIDDLE: COLORS.accent, SENIOR: COLORS.primary, MARKETING: COLORS.moneyGreen };
 
 const rejectedLabel = (reason: string): string =>
@@ -179,7 +181,9 @@ export class CounterScene extends BaseScene {
       const disc = this.add.graphics();
       disc.fillStyle(STAFF_CHIP_COLOR[member.kind], absent ? 0.35 : 1);
       disc.fillCircle(x, HEADER_TEXT_Y, STAFF_CHIP_RADIUS);
-      const initial = this.add.text(x, HEADER_TEXT_Y, member.name.charAt(0), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5);
+      const portrait = addStaffPortrait(this, x, HEADER_TEXT_Y, STAFF_CHIP_RADIUS * STAFF_CHIP_PORTRAIT_PER_RADIUS, member.kind, absent ? 'tired' : 'focused');
+      const initial = portrait ?? this.add.text(x, HEADER_TEXT_Y, member.name.charAt(0), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.cloud) }).setOrigin(0.5);
+      if (portrait && absent) portrait.setAlpha(0.45);
       this.staffChips.add([disc, initial]);
     });
   }

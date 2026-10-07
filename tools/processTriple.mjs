@@ -43,7 +43,7 @@ const columnOccupancy = (img) => {
 };
 
 /** Hai khoảng trống rộng nhất giữa các cột có nét vẽ → 3 dải. */
-const splitIntoThreeBands = (occ) => {
+const splitIntoThreeBands = (occ, minGap = MIN_GAP_PX) => {
   const first = occ.indexOf(1);
   const last = occ.lastIndexOf(1);
   const gaps = [];
@@ -51,7 +51,7 @@ const splitIntoThreeBands = (occ) => {
   for (let x = first; x <= last; x++) {
     if (!occ[x]) { if (start < 0) start = x; } else if (start >= 0) { gaps.push({ start, end: x - 1 }); start = -1; }
   }
-  const widest = gaps.filter((g) => g.end - g.start + 1 >= MIN_GAP_PX).sort((a, b) => b.end - b.start - (a.end - a.start)).slice(0, 2).sort((a, b) => a.start - b.start);
+  const widest = gaps.filter((g) => g.end - g.start + 1 >= minGap).sort((a, b) => b.end - b.start - (a.end - a.start)).slice(0, 2).sort((a, b) => a.start - b.start);
   if (widest.length < 2) throw new Error('không tách được 3 mặt (thiếu khoảng trống giữa các mặt)');
   const [g1, g2] = widest;
   return [[first, g1.start - 1], [g1.end + 1, g2.start - 1], [g2.end + 1, last]];
@@ -86,10 +86,10 @@ export const downscale = (img, factor) => {
   return { width: w, height: h, px };
 };
 
-/** Trả về 3 ảnh (happy, neutral, angry) cùng kích thước, đã thu nhỏ về chiều cao `targetHeight`. */
-export const processTriple = (img, targetHeight) => {
+/** Trả về 3 ảnh (happy, neutral, angry) cùng kích thước, đã thu nhỏ về chiều cao `targetHeight`. `minGap`: khoảng trống tối thiểu giữa 2 mặt (ảnh các mặt sát nhau cần số nhỏ hơn). */
+export const processTriple = (img, targetHeight, minGap = MIN_GAP_PX) => {
   const cut = removeWhiteBackground(img);
-  const bands = splitIntoThreeBands(columnOccupancy(cut));
+  const bands = splitIntoThreeBands(columnOccupancy(cut), minGap);
   const bounds = bands.map(([x0, x1]) => rowBounds(cut, x0, x1));
   const top = Math.min(...bounds.map(([t]) => t));
   const bottom = Math.max(...bounds.map(([, b]) => b));

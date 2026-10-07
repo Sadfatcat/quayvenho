@@ -2,6 +2,7 @@ import { devError } from '@platform/logger';
 import { STRINGS } from '@data/strings';
 import { Button } from '@ui/Button';
 import { loadItemImages } from '@ui/itemImages';
+import { STAFF_ATLAS_KEY } from '@ui/StaffPortrait';
 import { ATLAS_KEY, BEO_ATLAS_KEY } from '@ui/CustomerAvatar';
 import { TEXT_STYLES } from '@ui/textStyles';
 import { FONT_LOAD_SPECS } from '@ui/theme';
@@ -24,6 +25,7 @@ export class PreloadScene extends BaseScene {
   preload(): void {
     this.load.atlas(ATLAS_KEY, 'assets/atlas/characters.png', 'assets/atlas/characters.json');
     this.load.atlas(BEO_ATLAS_KEY, 'assets/atlas/beo.png', 'assets/atlas/beo.json');
+    this.load.atlas(STAFF_ATLAS_KEY, 'assets/atlas/staff.png', 'assets/atlas/staff.json');
     loadItemImages(this);
   }
 
