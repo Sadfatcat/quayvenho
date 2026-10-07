@@ -651,6 +651,8 @@ const applyAssistStep = (session: Session, customer: Customer, job: StaffJob): A
   const draft = today.counter.draft;
   if (!draft) return 'SKIP';
   const { order } = customer;
+  // Ai ra tay trước mà chưa có vé trên bàn thì tự lấy vé đúng hạng của khách ra (không thì không có vé nào để đóng dấu/in).
+  if (job !== 'CABIN' && draft.cabin === null) draft.cabin = order.cabin;
   switch (job) {
     case 'CABIN':
       if (draft.cabin !== null) return 'SKIP';

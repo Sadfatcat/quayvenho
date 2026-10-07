@@ -5,23 +5,25 @@ export const STAFF_CAP = 2;
 
 /**
  * Mỗi bậc phụ trách những việc riêng (không cộng dồn). Người chơi luôn tự in và giao vé.
+ * Việc nào cũng cần vé trên bàn: ai ra tay trước mà chưa có vé thì tự lấy vé đúng hạng của khách ra bàn rồi làm tiếp.
+ * Senior làm vé dịch vụ trước rồi mới chọn ghế, vì chọn ghế phải chờ có chuyến (Middle đóng dấu hoặc người chơi đóng dấu) nên không được chặn việc kia.
  * Tiền thuê/lương tính theo "k" (nghìn đồng). Junior/Middle/Senior thuê đắt để người chơi nghĩ tới nuôi thực tập sinh.
  */
 export const STAFF_KINDS: readonly StaffKindDef[] = [
   { kind: 'INTERN', hireCost: 0, baseWage: 300, jobs: [], minDay: 3, countsTowardCap: true },
   { kind: 'JUNIOR', hireCost: 30_000, baseWage: 1500, jobs: ['CABIN'], minDay: 3, countsTowardCap: true },
   { kind: 'MIDDLE', hireCost: 40_000, baseWage: 2000, jobs: ['STAMPS', 'BAGGAGE'], minDay: 10, countsTowardCap: true },
-  { kind: 'SENIOR', hireCost: 50_000, baseWage: 2300, jobs: ['SEAT', 'SERVICES'], minDay: 15, countsTowardCap: true },
+  { kind: 'SENIOR', hireCost: 50_000, baseWage: 2300, jobs: ['SERVICES', 'SEAT'], minDay: 15, countsTowardCap: true },
   { kind: 'MARKETING', hireCost: 20_000, baseWage: 1000, jobs: [], minDay: 8, countsTowardCap: false },
 ];
 
-/** Thời gian (ms) để nhân viên làm xong từng việc trên vé của một khách. */
+/** Thời gian (ms) để nhân viên làm xong từng việc trên vé của một khách (đã giảm ~60% so với bản đầu cho nhanh tay). */
 export const STAFF_JOB_DELAY_MS: Record<StaffJob, number> = {
-  CABIN: 2000,
-  STAMPS: 3000,
-  BAGGAGE: 3000,
-  SEAT: 2500,
-  SERVICES: 2000,
+  CABIN: 800,
+  STAMPS: 1200,
+  BAGGAGE: 1200,
+  SEAT: 1000,
+  SERVICES: 800,
 };
 
 /** Cân hành lý của Middle sai theo xác suất này (%). */

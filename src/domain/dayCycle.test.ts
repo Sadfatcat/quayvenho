@@ -517,6 +517,39 @@ describe('staff', () => {
     expect(game.state.today.counter.state).toBe('BUILDING');
   });
 
+  it('Middle and Senior take the ticket out themselves, so the player never has to start the draft', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' });
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const order = tickToFirstCustomer(game);
+
+    tickUntil(game, () => game.state.today.counter.draft?.seat !== null, 400);
+
+    const draft = game.state.today.counter.draft;
+    expect(draft?.cabin).toBe(order?.cabin);
+    expect(draft?.routeStamp).toBe(order?.routeId);
+    expect(draft?.seat).not.toBeNull();
+  });
+
+  it('a Senior working alone still adds the extra services while the seat waits for a stamped flight', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const order = tickToFirstCustomer(game);
+    if (!order) throw new Error('no customer');
+    order.extras = ['VEG_MEAL'];
+
+    tickUntil(game, () => game.state.today.counter.draft?.extras.length === 1, 400);
+
+    const draft = game.state.today.counter.draft;
+    expect(draft?.cabin).toBe(order.cabin);
+    expect(draft?.extras).toEqual(order.extras);
+    expect(draft?.seat).toBeNull();
+  });
+
   it('staff do not overwrite a step the player already did', () => {
     const game = richGame(15);
     game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });

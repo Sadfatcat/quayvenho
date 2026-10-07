@@ -103,7 +103,7 @@ describe('buildAssistQueues', () => {
     expect(queues.map((queue) => [queue.kind, queue.steps.map((step) => step.job)])).toEqual([
       ['JUNIOR', ['CABIN']],
       ['MIDDLE', ['STAMPS', 'BAGGAGE']],
-      ['SENIOR', ['SEAT', 'SERVICES']],
+      ['SENIOR', ['SERVICES', 'SEAT']],
     ]);
     expect(buildAssistQueues([member('JUNIOR', { absentUntilDay: 20, absenceReason: 'SICK' })], 20)).toEqual([]);
   });

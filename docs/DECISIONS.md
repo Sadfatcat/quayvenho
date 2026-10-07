@@ -230,3 +230,8 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Thực tập sinh làm đủ 8 ngày (trước 30) lên Junior; Junior làm đủ 10 ngày lên Middle; Middle làm đủ 12 ngày lên Senior (`STAFF_PROMOTIONS` trong `data/staff.ts`). Áp dụng cho mọi nhân viên quầy, kể cả người thuê trực tiếp; Senior và Marketing không lên nữa. Mỗi lần lên bậc, số ngày làm tính lại từ 0 và lương bằng 60% lương gốc của bậc mới (`wageOf`). Lương hằng ngày tăng tương ứng theo bậc, nên quỹ lương người chơi nuôi dần cao lên thay vì mãi ở mức thực tập.
 - Save: `StaffNotice.PROMOTED` có thêm `toKind` (schema mặc định `JUNIOR` cho thông báo cũ), không đổi `SAVE_VERSION`. Save đang chơi có Junior/Middle đã làm quá số ngày sẽ được lên bậc ở cuối ngày kế tiếp.
 - Màn Nhân viên: bỏ dòng mô tả việc dưới tên (mô tả đã có ở thẻ thuê); chỉ còn lương/ngày và, nếu nghỉ, lý do nghỉ cạnh nút "Cho nghỉ".
+
+## 2026-10-07 — Nhân viên tự lấy vé ra bàn, làm nhanh hơn
+- Lỗi chơi thử: Middle và Senior đóng dấu/cân hành lý lên vé nháp chưa có hạng (vé chưa hiện trên bàn), Senior kẹt ở bước chọn ghế (chờ chuyến) nên không bao giờ tới việc vé dịch vụ. Sửa trong `applyAssistStep`: ai ra tay trước mà chưa có vé thì tự lấy vé đúng hạng của khách ra bàn rồi làm việc của mình; Senior làm vé dịch vụ trước rồi mới chọn ghế (`jobs: ['SERVICES', 'SEAT']`) để chọn ghế đang chờ chuyến không chặn việc kia. Người chơi vẫn luôn là người in và giao vé.
+- Tốc độ: `STAFF_JOB_DELAY_MS` giảm ~60%: rút vé 2000 → 800 ms, đóng dấu 3000 → 1200, cân hành lý 3000 → 1200, chọn ghế 2500 → 1000, vé dịch vụ 2000 → 800.
+- Các lần "tự nhảy về Kho" khi chủ dự án chơi thử là do phiên Playwright của trợ lý tải lại trang, không phải lỗi game.
