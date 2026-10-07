@@ -78,7 +78,6 @@ describe('commands outside the shift', () => {
       { type: 'DELIVER_TICKET' },
       { type: 'PRINT_TICKET' },
       { type: 'REFUSE_CUSTOMER' },
-      { type: 'BUILD_RESET' },
       { type: 'GO_TO_SHOP' },
       { type: 'NEXT_DAY' },
       { type: 'PREP_SET_SEAT_BIAS', bias: 'WINDOW' },
@@ -217,7 +216,6 @@ describe('shift', () => {
     game.dispatch({ type: 'BUILD_GOTO_STEP', step: 'REVIEW' });
     expect(game.dispatch({ type: 'PRINT_TICKET' })).toEqual([{ type: 'PRINT_STARTED', durationMs: 3000 }]);
     expect(rejected(game.dispatch({ type: 'DELIVER_TICKET' }))).toBeTruthy();
-    expect(rejected(game.dispatch({ type: 'BUILD_RESET' }))).toBeTruthy();
     tickUntil(game, () => game.state.today.counter.state === 'READY_TO_DELIVER');
     const scored = game.dispatch({ type: 'DELIVER_TICKET' });
     expect(scored[0]).toMatchObject({ type: 'TICKET_SCORED', result: { outcome: 'PERFECT', revenue: 1100 } });
@@ -226,7 +224,7 @@ describe('shift', () => {
     expect(game.state.today.seats.find((s) => s.seat === seat)?.state).toBe('SOLD');
   });
 
-  it('BUILD_RESET releases the held seat; leaving customer releases it too', () => {
+  it('picking another seat releases the held one; a leaving customer releases it too', () => {
     const game = newGame();
     openWithSeats(game);
     tickUntil(game, () => game.state.today.counter.state === 'BUILDING');
@@ -234,9 +232,9 @@ describe('shift', () => {
     const seat = game.state.today.seats[0]?.seat ?? '3A';
     game.dispatch({ type: 'BUILD_SELECT_FLIGHT', flightId, cabin: 'ECONOMY' });
     game.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
-    game.dispatch({ type: 'BUILD_RESET' });
-    expect(game.state.today.seats.every((s) => s.state === 'AVAILABLE')).toBe(true);
-    game.dispatch({ type: 'BUILD_SELECT_FLIGHT', flightId, cabin: 'ECONOMY' });
+    const otherSeat = game.state.today.seats.find((s) => s.seat !== seat && s.cabin === 'ECONOMY' && s.state === 'AVAILABLE')?.seat ?? seat;
+    game.dispatch({ type: 'BUILD_SELECT_SEAT', seat: otherSeat });
+    expect(game.state.today.seats.filter((s) => s.state === 'HELD')).toHaveLength(1);
     game.dispatch({ type: 'BUILD_SELECT_SEAT', seat });
     const events = tickUntil(game, () => game.state.today.counter.state === 'RESOLVING');
     expect(events).toContainEqual(expect.objectContaining({ type: 'CUSTOMER_LEFT' }));
@@ -519,7 +517,7 @@ describe('staff', () => {
     expect(game.state.today.counter.state).toBe('BUILDING');
   });
 
-  it('staff do not overwrite a step the player already did, and Reset stops them redoing it', () => {
+  it('staff do not overwrite a step the player already did', () => {
     const game = richGame(15);
     game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });
     stockAllFlights(game);
@@ -530,10 +528,8 @@ describe('staff', () => {
     game.dispatch({ type: 'BUILD_TAKE_TICKET', cabin: otherCabin });
     game.tick(3000);
     expect(game.state.today.counter.draft?.cabin).toBe(otherCabin);
-
-    game.dispatch({ type: 'BUILD_RESET' });
     game.tick(5000);
-    expect(game.state.today.counter.draft?.cabin).toBeNull();
+    expect(game.state.today.counter.draft?.cabin).toBe(otherCabin);
   });
 
   it('absent staff neither assist nor get paid; wages and work days only count for staff at work', () => {

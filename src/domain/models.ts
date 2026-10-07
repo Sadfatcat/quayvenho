@@ -334,7 +334,6 @@ export type Command =
   | { type: 'BUILD_SET_BAGGAGE'; kg: number }
   | { type: 'BUILD_TOGGLE_EXTRA'; extra: Extra }
   | { type: 'BUILD_GOTO_STEP'; step: BuildStep }
-  | { type: 'BUILD_RESET' }
   | { type: 'PRINT_TICKET' }
   | { type: 'DELIVER_TICKET' }
   | { type: 'REFUSE_CUSTOMER' }

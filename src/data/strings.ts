@@ -56,7 +56,7 @@ export const STRINGS = {
     gotIt: 'Hiểu rồi',
     prepDay1: 'Đây là mục Mua vé. Chạm + ở một chuyến để nhập ghế, rồi bấm "Xác nhận nhập ghế". Ngày đầu thử nhập vài ghế Đà Nẵng nhé. Nhập xong thì bấm "Mở cửa" để bắt đầu bán.',
     tabsDay1: 'Phía trên có 4 mục: Mua vé, Giá vé, Đồ hỗ trợ và Nhân viên. Ô "Dự kiến" cho biết hôm nay có chừng bao nhiêu khách, nhập ghế vừa đủ thôi nha. Nút ⚙ ở góc phải là cài đặt: âm thanh, xuất và nhập mã save.',
-    counterDay1: 'Khách sẽ nói họ muốn đi đâu, hạng vé gì. Lấy vé ở chồng bên trái, đóng con dấu điểm đến và giờ bay, chọn ghế ở sơ đồ, rồi kéo vé vào máy in và trao cho khách. Lắp nhầm thì bấm nút ↺ Làm lại để lắp lại từ đầu. Khách đầu tiên rất kiên nhẫn, cứ thong thả.',
+    counterDay1: 'Khách sẽ nói họ muốn đi đâu, hạng vé gì. Lấy vé ở chồng bên trái, đóng con dấu điểm đến và giờ bay, chọn ghế ở sơ đồ, rồi kéo vé vào máy in và trao cho khách. Lắp nhầm thì chạm lại con dấu, hạng vé hay ghế khác là tự đè lên cái cũ. Khách đầu tiên rất kiên nhẫn, cứ thong thả.',
     refuseDay1: 'Nút ✋ ở góc khung của khách là Từ chối. Quầy hết vé hợp thì bấm Từ chối, không bị phạt. Nhưng còn vé mà từ chối khách thì bị phạt đó nha.',
     pauseDay2: 'Hai nút tròn ở góc trên bên phải: ⏸ là tạm dừng, ⏭ là đóng cửa sớm. Hết ghế thì đóng cửa sớm cho đỡ mệt, không bị phạt nhưng vẫn phải trả lương nhân viên nha.',
     baggageDay2: 'Từ hôm nay khách có hành lý. Bấm giữ vào thanh hành lý để cân: số kg chạy từ 0 lên 30 rồi quay lại, thả tay đúng số khách yêu cầu (lệch 1 kg vẫn được). Muốn cân lại thì bấm giữ lần nữa.',
@@ -341,7 +341,6 @@ export const STRINGS = {
       ticketDraftTag: 'CHƯA IN',
       ticketPrintedTag: 'ĐÃ IN',
       refuseButton: '✋',
-      resetButton: '↺ Làm lại',
       queueLabel: 'Hàng chờ',
     },
     /** Lời khách nói ở khung yêu cầu (hàm orderSpeech): chỉ nhắc những gì khách thật sự cần. */

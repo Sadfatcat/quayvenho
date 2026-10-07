@@ -409,15 +409,6 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       return [];
     }
 
-    case 'BUILD_RESET': {
-      if (!building()) return reject('NOT_BUILDING');
-      today.seats = releaseHeld(today.seats);
-      today.counter.draft = freshDraft();
-      // Làm lại thì nhân viên không làm lại cho khách này.
-      if (session.runtime?.assist) session.runtime.assist.queues = [];
-      return [];
-    }
-
     case 'PRINT_TICKET': {
       const ctx = building();
       if (!ctx) return reject('NOT_BUILDING');

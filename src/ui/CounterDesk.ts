@@ -17,7 +17,6 @@ import { DRAG_TAP_THRESHOLD_PX } from './layout';
 import { formatMoney } from './format';
 import { MiniSeatMap } from './MiniSeatMap';
 import { Panel } from './Panel';
-import { Button } from './Button';
 import { PrinterStation, type PrinterMode } from './PrinterStation';
 import { shortNameOf } from './passportProfile';
 import { ScrollList } from './ScrollList';
@@ -33,7 +32,6 @@ const LAYOUT = {
   services: { x: 456, y: 944, width: 240, height: 120 },
   baggage: { x: 60, y: 1030, width: 340 },
   printer: { x: 456, y: 1076, width: 240, height: 160 },
-  resetButton: { x: 24 + 95, y: 1186, width: 190, height: 72 },
 } as const;
 export const DELIVER_LINE_Y = 430;
 
@@ -54,7 +52,6 @@ const TICKET_FEED_MS = 320;
 const TICKET_FEED_END_SCALE = 0.3;
 const TICKET_EJECT_MS = 420;
 const TICKET_GHOST_WIDTH = 240;
-const RESET_FONT_PX = 24;
 const RETURN_AFTER_REJECT_MS = 80;
 const STACK_IMAGE_HEIGHT = 140;
 const SERVICE_IMAGE_HEIGHT = 56;
@@ -129,7 +126,6 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     this.drawSeatPanel(regions, state);
     this.drawBaggage(regions, state);
     this.drawServices(regions, state);
-    this.drawResetButton(regions, building);
 
     if (!building) {
       regions.setAlpha(DIM_ALPHA);
@@ -139,20 +135,6 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     this.drawPrinter(content, state);
     this.drawTicket(content, state, building);
     this.lastCounterState = counter.state;
-  }
-
-  private drawResetButton(parent: Phaser.GameObjects.Container, building: boolean): void {
-    const { x, y, width, height } = LAYOUT.resetButton;
-    const button = new Button(this.scene, x, y, {
-      width,
-      height,
-      label: STRINGS.counter.desk.resetButton,
-      fontSize: RESET_FONT_PX,
-      variant: 'ghost',
-      onTap: () => this.dispatch({ type: 'BUILD_RESET' }),
-    });
-    button.setEnabled(building);
-    parent.add(button);
   }
 
   // ---------- máy in vé ----------
