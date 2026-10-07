@@ -19,12 +19,12 @@ export const STAFF_KINDS: readonly StaffKindDef[] = [
 
 /** Thời gian (ms) để nhân viên làm xong từng việc trên vé của một khách. Nhân viên làm từng việc một (xem `tickStaff`), nên các số này cộng dồn. */
 export const STAFF_JOB_DELAY_MS: Record<StaffJob, number> = {
-  CABIN: 1500,
-  STAMPS: 2200,
-  BAGGAGE: 1500,
-  SEAT: 1800,
-  SERVICES: 1500,
-  PASSPORT: 1500,
+  CABIN: 800,
+  STAMPS: 1300,
+  BAGGAGE: 900,
+  SEAT: 1100,
+  SERVICES: 1000,
+  PASSPORT: 800,
 };
 
 /** Nhân viên cân hành lý bằng đúng chuyển động bấm giữ của người chơi: giữ `kg / BAGGAGE_HOLD_SPEED_KG_PER_S` rồi nhả, cộng thêm khoảng này để số dừng lại. */
