@@ -60,7 +60,7 @@ export const STRINGS = {
     seatPrefDay3: 'Có khách thích ghế cửa sổ hoặc lối đi. Nghe khách nói rồi chọn đúng loại ghế.',
     businessDay4: 'Khách thương gia khó tính hơn nhưng tip rất hậu. Trao vé đúng hạng và thật nhanh để được tip.',
     timeAndExtrasDay5: 'Khách có thể chọn khung giờ Tối hoặc Khuya, và thêm dịch vụ như suất ăn chay. Đọc kỹ đơn nha.',
-    passportDay6: 'Hôm nay có hộ chiếu! Hộ chiếu hết hạn hoặc sai tên thì bấm Từ chối, đừng bán vé.',
+    passportDay6: 'Hôm nay có hộ chiếu! Hộ chiếu sai tên thì bấm Từ chối, đừng bán vé.',
     priceDay2: 'Cậu chỉnh được giá vé từng tuyến ở mục "Giá vé". Giá rẻ thì đông khách, giá cao thì vắng. Đừng vượt +30% giá gốc nha: vượt trần khách giảm một nửa và nhiều vé bị huỷ!',
     rushFirst: 'Ngày lễ! Khách đông hơn và ít để ý giá hơn, nhất là các tuyến đang "nhu cầu cao". Đây là lúc nâng giá vé, nhưng nhớ đừng quá +30% và nhập đủ ghế.',
     weatherFirst: 'Dự báo thời tiết xấu ở một tuyến. Có thể mất ghế khi mở cửa: tốt, xấu, hoặc rất xấu (huỷ cả chuyến). Cân nhắc đừng nhập nhiều ghế tuyến đó.',
@@ -71,12 +71,10 @@ export const STRINGS = {
     confirm: 'Cảm ơn Béo',
   },
   passport: {
-    expires: 'Hết hạn: Ngày',
     bookedName: 'Tên đặt vé',
     fullName: 'Họ tên',
     birthDate: 'Ngày sinh',
     hometown: 'Quê quán',
-    today: 'Hôm nay: Ngày',
     icon: '🛂',
   },
   upgrades: {

@@ -6,7 +6,6 @@ import type { Flight, Order, OwnedSeat } from './models';
 import type { Rng } from './rng';
 
 /** Hộ chiếu của khách đặc biệt luôn còn hạn dài, tránh bị coi là hộ chiếu lỗi. */
-const SPECIAL_PASSPORT_VALID_DAYS = 30;
 
 /**
  * Slot (chỉ số lượt đến) thật của từng khách đặc biệt trong ngày. `atCustomerIndex` vượt số khách thì thành khách cuối
@@ -45,12 +44,12 @@ export const scriptedMomentsFor = (config: PersonalConfig, day: number, at: Scri
   config.enabled ? config.scriptedMoments.filter((moment) => moment.day === day && moment.at === at) : [];
 
 /** Đơn sinh ngẫu nhiên được ghi đè bởi đơn cấu hình, kèm hộ chiếu hợp lệ mang tên hiển thị. */
-export const buildSpecialOrder = (generated: Order, special: SpecialCustomer, day: number): Order => ({
+export const buildSpecialOrder = (generated: Order, special: SpecialCustomer): Order => ({
   ...generated,
   ...special.order,
   customerId: generated.customerId,
   spriteId: special.spriteId,
-  passport: { name: special.displayName, bookedName: special.displayName, expiresDay: day + SPECIAL_PASSPORT_VALID_DAYS },
+  passport: { name: special.displayName, bookedName: special.displayName },
   special: { id: special.id, tipMultiplier: special.tipMultiplier },
 });
 

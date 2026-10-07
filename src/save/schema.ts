@@ -51,7 +51,6 @@ const ownedSeatSchema = z.object({
 const passportSchema = z.object({
   name: z.string(),
   bookedName: z.string(),
-  expiresDay: z.number().finite(),
 });
 
 const orderSchema = z.object({

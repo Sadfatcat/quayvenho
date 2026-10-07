@@ -32,10 +32,9 @@ const penaltyAt = (day: number, outcome: keyof typeof OUTCOME_PENALTY_RATE): num
 
 describe('passport', () => {
   it('expiring today is valid, yesterday is not; names must match', () => {
-    const passport = { name: 'A', bookedName: 'A', expiresDay: 6 };
-    expect(isPassportValid(passport, 6)).toBe(true);
-    expect(isPassportValid(passport, 7)).toBe(false);
-    expect(isPassportValid({ ...passport, bookedName: 'B' }, 6)).toBe(false);
+    const passport = { name: 'A', bookedName: 'A' };
+    expect(isPassportValid(passport)).toBe(true);
+    expect(isPassportValid({ ...passport, bookedName: 'B' })).toBe(false);
   });
 });
 
@@ -85,14 +84,14 @@ describe('scoreCustomer', () => {
   });
 
   it('SOLD_INVALID when selling to a bad passport', () => {
-    const expired = { passport: { name: 'A', bookedName: 'A', expiresDay: 5 } };
-    expect(score({ day: 6 }, expired)).toMatchObject({ outcome: 'SOLD_INVALID', stars: 1, penalty: penaltyAt(6, 'SOLD_INVALID'), revenue: 0 });
+    const misnamed = { passport: { name: 'A', bookedName: 'B' } };
+    expect(score({ day: 6 }, misnamed)).toMatchObject({ outcome: 'SOLD_INVALID', stars: 1, penalty: penaltyAt(6, 'SOLD_INVALID'), revenue: 0 });
   });
 
   it('refusals: correct, no stock, wrong', () => {
     const refuse = (canServe: boolean, orderPatch: Partial<Order> = {}) =>
       scoreCustomer({ order: order(orderPatch), action: { type: 'REFUSE', canServe }, patienceRatio: 1, day: 6, pricePct: 0, tipMult: 1, money: 10000 });
-    expect(refuse(true, { passport: { name: 'A', bookedName: 'B', expiresDay: 9 } })).toMatchObject({ outcome: 'REFUSED_CORRECT', stars: 5, tip: 0 });
+    expect(refuse(true, { passport: { name: 'A', bookedName: 'B' } })).toMatchObject({ outcome: 'REFUSED_CORRECT', stars: 5, tip: 0 });
     expect(refuse(false)).toMatchObject({ outcome: 'REFUSED_NO_STOCK', stars: 4, penalty: 0 });
     expect(refuse(true)).toMatchObject({ outcome: 'REFUSED_WRONG', stars: 1, penalty: penaltyAt(6, 'REFUSED_WRONG') });
   });

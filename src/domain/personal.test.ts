@@ -81,15 +81,14 @@ describe('dayHasPersonalContent / scriptedMomentsFor', () => {
 
 describe('buildSpecialOrder', () => {
   it('overlays the configured order, uses a valid passport with the display name and marks the order special', () => {
-    const base = makeOrder({ spriteId: 'c09', cabin: 'BUSINESS', passport: { name: 'X', bookedName: 'Y', expiresDay: 1 } });
-    const order = buildSpecialOrder(base, special({ order: { cabin: 'ECONOMY' } }), 3);
+    const base = makeOrder({ spriteId: 'c09', cabin: 'BUSINESS', passport: { name: 'X', bookedName: 'Y' } });
+    const order = buildSpecialOrder(base, special({ order: { cabin: 'ECONOMY' } }));
     expect(order).toMatchObject({
       spriteId: 'c01',
       cabin: 'ECONOMY',
       passport: { name: 'Khách Thử', bookedName: 'Khách Thử' },
       special: { id: 'VIP_TEST', tipMultiplier: 3 },
     });
-    expect(order.passport.expiresDay).toBeGreaterThanOrEqual(3);
   });
 });
 
@@ -113,7 +112,7 @@ describe('ensureServableForSpecial', () => {
 
 describe('scoreCustomer for special customers', () => {
   const baseInput = { patienceRatio: 1, day: 3, pricePct: 0, tipMult: 1, money: 500 };
-  const specialOrder = () => makeOrder({ special: { id: 'VIP_TEST', tipMultiplier: 3 }, passport: { name: 'K', bookedName: 'K', expiresDay: 20 } });
+  const specialOrder = () => makeOrder({ special: { id: 'VIP_TEST', tipMultiplier: 3 }, passport: { name: 'K', bookedName: 'K' } });
 
   it('gives a failed ticket no penalty, at least 3 stars and carries the special id', () => {
     const result = scoreCustomer({ ...baseInput, order: specialOrder(), action: { type: 'LEFT' } });

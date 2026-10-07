@@ -143,7 +143,7 @@ export class CounterScene extends BaseScene {
     const state = sessionBridge.current.state;
     const customer = counterCustomer(state.today);
     if (!customer) return;
-    new PassportCard(this, customer.order, state.day);
+    new PassportCard(this, customer.order);
   }
 
   // ---------- per-frame render ----------

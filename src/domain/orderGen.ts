@@ -1,8 +1,6 @@
 import {
-  BAD_PASSPORT_EXPIRED_DAYS,
   FUSSY_SEAT_PREF_FROM_DAY,
   PATIENCE_PER_COMPLEXITY_MS,
-  VALID_PASSPORT_EXTRA_DAYS,
 } from '@data/balance';
 import { CUSTOMER_SPRITES, FAMILY_NAMES, GIVEN_NAMES, MAX_FULL_NAME_LENGTH, MIDDLE_NAMES } from '@data/customers';
 import { ROUTES } from '@data/routes';
@@ -138,14 +136,7 @@ const generatePassport = (rng: Rng, namesRng: Rng, day: number, cfg: DayConfig):
   const parts = generateName(namesRng);
   const bookedName = fullName(parts.family, parts.middle, parts.given);
   const bad = isMechanicOpen('badPassport', day) && rng.chance(cfg.pBadPassport);
-  if (!bad) return { name: bookedName, bookedName, expiresDay: day + rng.int(VALID_PASSPORT_EXTRA_DAYS.min, VALID_PASSPORT_EXTRA_DAYS.max) };
-
-  const expired = day > 1 && rng.chance(0.5);
-  if (expired) {
-    const expiresDay = Math.max(1, day - rng.int(BAD_PASSPORT_EXPIRED_DAYS.min, BAD_PASSPORT_EXPIRED_DAYS.max));
-    return { name: bookedName, bookedName, expiresDay };
-  }
-  return { name: misspell(namesRng, parts), bookedName, expiresDay: day + rng.int(VALID_PASSPORT_EXTRA_DAYS.min, VALID_PASSPORT_EXTRA_DAYS.max) };
+  return { name: bad ? misspell(namesRng, parts) : bookedName, bookedName };
 };
 
 /** §8.4 */

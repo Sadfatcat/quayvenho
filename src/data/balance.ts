@@ -106,5 +106,3 @@ export const SAFETY_NET_ECO_COST_MULT = 3;
 export const SAFETY_NET_GIFT_SEATS = 3;
 
 // Hộ chiếu
-export const BAD_PASSPORT_EXPIRED_DAYS = { min: 1, max: 30 } as const;
-export const VALID_PASSPORT_EXTRA_DAYS = { min: 0, max: 400 } as const;

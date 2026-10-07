@@ -59,7 +59,6 @@ export interface OwnedSeat {
 export interface Passport {
   name: string;
   bookedName: string;
-  expiresDay: number;
 }
 
 export interface Order {

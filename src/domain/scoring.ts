@@ -40,8 +40,7 @@ export interface ScoreInput {
 }
 
 /** Expiring today is still valid. */
-export const isPassportValid = (passport: Passport, day: number): boolean =>
-  passport.expiresDay >= day && passport.name === passport.bookedName;
+export const isPassportValid = (passport: Passport): boolean => passport.name === passport.bookedName;
 
 const severeMistakes = (order: Order, ticket: DeliveredTicket): MistakeCode[] => [
   ...(ticket.flight.routeId !== order.routeId ? (['WRONG_ROUTE'] as const) : []),
@@ -89,7 +88,7 @@ const scoreRegularCustomer = (input: ScoreInput): ScoreResult => {
 
   if (action.type === 'LEFT') return result('LEFT', []);
 
-  const passportValid = isPassportValid(order.passport, input.day);
+  const passportValid = isPassportValid(order.passport);
   if (action.type === 'REFUSE') {
     if (!passportValid) return result('REFUSED_CORRECT', []);
     return action.canServe ? result('REFUSED_WRONG', ['REFUSED_SERVABLE']) : result('REFUSED_NO_STOCK', []);

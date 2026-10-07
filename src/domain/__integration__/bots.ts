@@ -24,7 +24,7 @@ export type Decision = 'CORRECT' | 'WRONG_CABIN' | 'WRONG_BAGGAGE' | 'REFUSE' | 
 export type Decide = (order: Order, servedIndex: number, state: Readonly<GameState>) => Decision;
 
 export const perfectDecide: Decide = (order, _i, state) => {
-  const valid = isPassportValid(order.passport, state.day);
+  const valid = isPassportValid(order.passport);
   return valid && findTicket(state, order, order.cabin) ? 'CORRECT' : 'REFUSE';
 };
 
@@ -54,7 +54,7 @@ export const makeErrorProneDecide = (rng: Rng, profile: ErrorProfile): Decide =>
   if (rest < profile.majorErrorRate) return 'WRONG_CABIN';
   if (rest < profile.majorErrorRate + profile.minorErrorRate) return 'WRONG_BAGGAGE';
   if (!profile.neverRefuse) return perfectDecide(order, i, state);
-  return isPassportValid(order.passport, state.day) && !findTicket(state, order, order.cabin) ? 'REFUSE' : 'CORRECT';
+  return isPassportValid(order.passport) && !findTicket(state, order, order.cabin) ? 'REFUSE' : 'CORRECT';
 };
 
 /** Mọi ghế của khoang đều chọn được; cần còn ít nhất một ghế tồn kho (AVAILABLE) của chuyến + khoang. */

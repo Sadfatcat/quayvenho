@@ -19,7 +19,7 @@ export const makeOrder = (patch: Partial<Order> = {}): Order => ({
   seatPref: 'ANY',
   timePref: 'ANY',
   extras: [],
-  passport: { name: 'Lê Văn An', bookedName: 'Lê Văn An', expiresDay: 10 },
+  passport: { name: 'Lê Văn An', bookedName: 'Lê Văn An' },
   complexity: 0,
   patienceMaxMs: 60000,
   ...patch,

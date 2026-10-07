@@ -10,13 +10,13 @@ import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 
 const PANEL_WIDTH = 560;
-const PANEL_HEIGHT = 450;
+const PANEL_HEIGHT = 420;
 const ROWS_TOP = 214;
-const ROW_STEP = 46;
+const ROW_STEP = 50;
 
 /** PLAN §10.7. Chạm ra ngoài hoặc nút ✕ để đóng; mở card không pause kiên nhẫn. */
 export class PassportCard extends BaseOverlay {
-  constructor(scene: Phaser.Scene, order: Order, today: number) {
+  constructor(scene: Phaser.Scene, order: Order) {
     super(scene, { closeOnBackdropTap: true });
 
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });
@@ -26,23 +26,19 @@ export class PassportCard extends BaseOverlay {
     const rows = [
       { text: `${STRINGS.passport.birthDate}: ${profile.birthDate}`, bold: false },
       { text: `${STRINGS.passport.hometown}: ${profile.hometown}`, bold: false },
-      { text: `${STRINGS.passport.expires} ${order.passport.expiresDay}`, bold: false },
       { text: `${STRINGS.passport.bookedName}: ${order.passport.bookedName}`, bold: true },
     ].map((row, index) =>
       scene.add
         .text(0, -PANEL_HEIGHT / 2 + ROWS_TOP + index * ROW_STEP, row.text, { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: row.bold ? 'bold' : 'normal', color: toCssColor(COLORS.text) })
         .setOrigin(0.5),
     );
-    const todayLabel = scene.add
-      .text(PANEL_WIDTH / 2 - 20, -PANEL_HEIGHT / 2 + 20, `${STRINGS.passport.today} ${today}`, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.text) })
-      .setOrigin(1, 0);
     const closeText = scene.add
       .text(-PANEL_WIDTH / 2 + 20, -PANEL_HEIGHT / 2 + 20, '✕', { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(0, 0)
       .setInteractive({ useHandCursor: true });
     closeText.on('pointerup', () => this.close());
 
-    panel.add([avatar, name, ...rows, todayLabel, closeText]);
+    panel.add([avatar, name, ...rows, closeText]);
     this.add(panel);
   }
 }

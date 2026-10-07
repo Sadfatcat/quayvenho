@@ -60,11 +60,9 @@ const checkInvariants = (order: Order, day: number, routes: readonly RouteId[]) 
   if (!isMechanicOpen('extras', day)) expect(order.extras).toEqual([]);
   if (!isMechanicOpen('badPassport', day)) {
     expect(order.passport.name).toBe(order.passport.bookedName);
-    expect(order.passport.expiresDay).toBeGreaterThanOrEqual(day);
   }
   if (order.extras.includes('WHEELCHAIR')) expect(order.seatPref).not.toBe('WINDOW');
   expect(new Set(order.extras).size).toBe(order.extras.length);
-  expect(order.passport.expiresDay).toBeGreaterThanOrEqual(1);
   expect(order.passport.name.length).toBeLessThanOrEqual(22);
 };
 
@@ -89,16 +87,13 @@ describe('orderGen invariants (§8.4)', () => {
     expect(generateDay(5, 7, ROUTE_SETS[1] as RouteId[]).orders).toEqual(generateDay(5, 7, ROUTE_SETS[1] as RouteId[]).orders);
   });
 
-  it('bad passports appear from day 6, split between expired and wrong name', () => {
-    let expired = 0;
+  it('bad passports (wrong name) appear from day 6', () => {
     let wrongName = 0;
     for (let seed = 1; seed <= 400; seed++) {
       for (const order of generateDay(seed, 10, ROUTE_SETS[0] as RouteId[]).orders) {
-        if (order.passport.expiresDay < 10) expired++;
         if (order.passport.name !== order.passport.bookedName) wrongName++;
       }
     }
-    expect(expired).toBeGreaterThan(100);
     expect(wrongName).toBeGreaterThan(100);
   });
 

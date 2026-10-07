@@ -743,7 +743,7 @@ const spawnArrivals = (state: GameState, runtime: DayRuntime, personal: Personal
       modifiers,
       customerIndex: index,
     });
-    const order = special ? buildSpecialOrder(generated, special, state.day) : generated;
+    const order = special ? buildSpecialOrder(generated, special) : generated;
     if (special) today.seats.push(...ensureServableForSpecial(order, today.flights, today.seats, rngFor(state.seed, state.day, `special:${special.id}`), state.day));
     today.queue.push({
       order,
