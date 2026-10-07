@@ -10,4 +10,4 @@ Cập nhật: 2026-10-07.
 - **Blocker:** không có blocker kỹ thuật; xem danh sách chi tiết ở `docs/VIEC_CHUA_LAM.md`.
 - Playwright chỉ dùng cho các bước kiểm UI cần thiết (theo yêu cầu chủ dự án, hạn chế dùng).
 
-- **Mới (2026-10-07):** vé 3 ngày + đóng cửa sớm, khách đầu game +15..30, biên hạ 12/22–27%, save v5 có sao lưu và 4 fixture save thật, Shop mở thẳng sang ngày mới (mọi mục mua được, nút Ngày tiếp theo có xác nhận), ảnh nhân viên, giao diện ô thông tin có khung. Sim 400 seed: xem  phương án K. Chưa push/deploy. Còn thư mục worktree tạm  cần xoá tay.
+- **Mới (2026-10-07):** vé 3 ngày + đóng cửa sớm, khách đầu game +15..30, biên hạ 12/22–27%, save v5 có sao lưu và 4 fixture save thật, Shop mở thẳng sang ngày mới (mọi mục mua được, nút Ngày tiếp theo có xác nhận), ảnh nhân viên, giao diện ô thông tin có khung. Sim 400 seed: xem phương án K trong `docs/CAN_BANG_KINH_TE.md`. Chưa push/deploy. Còn thư mục worktree tạm `C:\trangiaphuthai-cands` (3 worktree m12/m10/m08) cần xoá tay.
