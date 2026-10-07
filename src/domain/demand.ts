@@ -11,7 +11,7 @@ import {
   TRAVELVIET_DEFAULT,
   TRAVELVIET_FROM_DAY,
   TRAVELVIET_RAMP_DAYS,
-  TRAVELVIET_WINDOW,
+  TRAVELVIET_SCORE_WINDOW,
 } from '@data/demand';
 import { RUSH_CUSTOMER_MULT } from '@data/events';
 import { invariant } from './common/invariant';
@@ -31,9 +31,9 @@ export const baseCustomers = (seed: number, day: number): number => {
   return base;
 };
 
-/** Average of the last 30 stars, one decimal; 4.0 when empty. */
+/** Average of the last TRAVELVIET_SCORE_WINDOW stars, one decimal; 4.0 when empty. */
 export const travelVietScore = (starHistory: readonly Stars[]): number => {
-  const recent = starHistory.slice(-TRAVELVIET_WINDOW);
+  const recent = starHistory.slice(-TRAVELVIET_SCORE_WINDOW);
   return recent.length === 0 ? TRAVELVIET_DEFAULT : roundToTenth(sum(recent) / recent.length);
 };
 

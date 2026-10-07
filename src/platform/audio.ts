@@ -62,6 +62,7 @@ class AudioEngine {
   private musicGain: GainNode | null = null;
   private instruments: Instruments | null = null;
   private musicVolume = 0.7;
+  private musicMuted = false;
   private sfxVolume = 0.8;
   private track: MusicTrack | null = null;
   private nextBarTime = 0;
@@ -101,6 +102,11 @@ class AudioEngine {
     this.applyVolumes();
   }
 
+  setMusicMuted(muted: boolean): void {
+    this.musicMuted = muted;
+    this.applyVolumes();
+  }
+
   playSfx(name: SfxName): void {
     const { context, sfxGain } = this;
     if (!context || !sfxGain || this.sfxVolume <= 0) return;
@@ -121,7 +127,7 @@ class AudioEngine {
     gain.cancelScheduledValues(currentTime);
     gain.setValueAtTime(gain.value, currentTime);
     gain.linearRampToValueAtTime(0, currentTime + CROSSFADE_SECONDS / 2);
-    gain.linearRampToValueAtTime(this.musicVolume * MUSIC_GAIN, currentTime + CROSSFADE_SECONDS);
+    gain.linearRampToValueAtTime(this.effectiveMusicVolume() * MUSIC_GAIN, currentTime + CROSSFADE_SECONDS);
     this.nextBarTime = currentTime + CROSSFADE_SECONDS / 2;
     this.startScheduler();
   }
@@ -129,7 +135,11 @@ class AudioEngine {
   private applyVolumes(): void {
     if (!this.sfxGain || !this.musicGain) return;
     this.sfxGain.gain.value = this.sfxVolume * SFX_MASTER_GAIN;
-    this.musicGain.gain.value = this.musicVolume * MUSIC_GAIN;
+    this.musicGain.gain.value = this.effectiveMusicVolume() * MUSIC_GAIN;
+  }
+
+  private effectiveMusicVolume(): number {
+    return this.musicMuted ? 0 : this.musicVolume;
   }
 
   private playTone(destination: GainNode, startAt: number, tone: Tone): void {

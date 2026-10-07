@@ -3,12 +3,14 @@ import { STRINGS } from '@data/strings';
 import { formatClock } from '@domain/clock';
 import { bulkDiscountRate, purchaseCost, seatUnitCost } from '@domain/economy';
 import { maxPurchasable, pendingKey, pendingTotalCost } from '@domain/inventory';
-import type { CabinClass, Flight, GameState, TodayState } from '@domain/models';
+import type { CabinClass, Flight, GameState, SeatBias, TodayState } from '@domain/models';
 import { getRoute } from '@domain/routes';
 import { routeOfFlight } from '@domain/schedule';
+import { computeModifiers } from '@domain/upgrades';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
+import { SegmentedControl } from '@ui/SegmentedControl';
 import { buttonRow } from '@ui/layout';
 import { absentTodayLines } from '@ui/staffText';
 import { Stepper } from '@ui/Stepper';
@@ -28,12 +30,14 @@ const CABIN_PRICE_GAP = 12;
 const OWNED_RIGHT_INSET = 16;
 const ECONOMY_ROW_Y = 112;
 const BUSINESS_ROW_Y = 184;
+const SEAT_BIAS_ORDER: readonly SeatBias[] = ['BALANCED', 'WINDOW', 'AISLE'];
+const SEAT_BIAS_CONTROL = { y: 262, width: 620, height: 48 };
 const LIST_Y = 360;
 const BANNER_Y = 300;
 const LIST_HEIGHT = 1060 - LIST_Y;
 const TOTAL_Y = 1095;
 const BUTTON_ROW_Y = 1180;
-const BUTTON_HEIGHT = 88;
+const BUTTON_HEIGHT = 76;
 
 /** PLAN §10.5 (Kho). Grey box: nội dung tiếng Việt của banner/hộp thoại xem `strings.prep.*`. */
 export class PrepScene extends BaseScene {
@@ -72,10 +76,27 @@ export class PrepScene extends BaseScene {
     });
   }
 
+  /** Chỉ hiện khi đã mua Quan hệ hãng bay; lựa chọn áp dụng cho lần "Xác nhận nhập ghế" kế tiếp và đặt lại về cân bằng mỗi ngày. */
+  private addSeatBiasControl(state: Readonly<GameState>): void {
+    if (!computeModifiers(state.upgrades).seatBias) return;
+    new SegmentedControl(this, GAME_WIDTH / 2, SEAT_BIAS_CONTROL.y, {
+      width: SEAT_BIAS_CONTROL.width,
+      height: SEAT_BIAS_CONTROL.height,
+      labels: SEAT_BIAS_ORDER.map((bias) => STRINGS.prep.seatBiasLabels[bias]),
+      selectedIndex: SEAT_BIAS_ORDER.indexOf(state.today.seatBias),
+      onChange: (index) => {
+        const bias = SEAT_BIAS_ORDER[index];
+        if (bias) sessionBridge.dispatch({ type: 'PREP_SET_SEAT_BIAS', bias });
+      },
+    });
+  }
+
   private buildLayout(): void {
     const state = sessionBridge.current.state;
 
     this.chrome = addManagementChrome(this, 'TICKETS', false);
+
+    this.addSeatBiasControl(state);
 
     this.bannerText = this.add
       .text(GAME_WIDTH / 2, BANNER_Y, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })

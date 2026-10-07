@@ -40,9 +40,9 @@ export const ACCURACY_DEDUCTIONS = {
   EXTRA_NOT_REQUESTED: 5,
 } as const;
 export const BUSINESS_DEDUCTION_MULT = 2;
-export const ACCURACY_GOOD = 80;
+export const ACCURACY_GOOD = 70;
 export const ACCURACY_OK = 50;
-export const PERFECT_MIN_SPEED = 0.85;
+export const PERFECT_MIN_SPEED = 0.7;
 export const BAGGAGE_TOLERANCE_KG = 1;
 export const BAGGAGE_MARKS: readonly BaggageKg[] = [15, 20, 30];
 export const BAGGAGE_MAX_KG = 30;
@@ -52,8 +52,8 @@ export const BAGGAGE_HOLD_SPEED_KG_PER_S = 31.25;
 export const OUTCOME_STARS: Record<ScoreOutcome, Stars> = {
   PERFECT: 5,
   GOOD: 4,
-  OK: 3,
-  POOR: 2,
+  OK: 2,
+  POOR: 1,
   FAILED: 1,
   SOLD_INVALID: 1,
   REFUSED_CORRECT: 5,
@@ -94,8 +94,8 @@ export const BASE_MODIFIERS: Modifiers = {
   patienceMult: 1,
   tipMult: 1,
   printMs: 3000,
-  queueMax: 8,
-  refundRate: 0.4,
+  queuePatienceRateMult: 1,
+  refundRate: 0,
   seatBias: false,
 };
 

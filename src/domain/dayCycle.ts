@@ -41,6 +41,7 @@ import type {
   BuildStep,
   Command,
   CounterSlot,
+  DayEvent,
   DaySummary,
   Customer,
   DomainEvent,
@@ -537,6 +538,29 @@ export const shopContext = (state: GameState) => ({
   travelViet: travelVietScore(state.starHistory),
 });
 
+/** Công thức số khách của một ngày: dùng chung cho lúc mở cửa và cho bộ đếm "Dự kiến" để hai con số luôn khớp. */
+const targetCustomersFor = (state: Readonly<GameState>, day: number, event: DayEvent, averagePriceFactor: number): number => {
+  const baseTarget = customersForDay({ seed: state.seed, day, rating: travelVietScore(state.starHistory), rush: isRush(event) });
+  return clamp(Math.round(baseTarget * averagePriceFactor * marketingFactor(state.staff, day)), MIN_CUSTOMERS, MAX_CUSTOMERS);
+};
+
+/**
+ * Số khách chính xác của ngày sắp mở cửa theo trạng thái hiện tại (đổi giá, nhân viên, tuyến thì số đổi theo).
+ * PREP: ngày đang chuẩn bị. SHOP: ngày hôm sau (giá chưa chỉnh nên tính ở 0%). Phase khác: số đã chốt của hôm nay.
+ */
+export const expectedCustomers = (state: Readonly<GameState>, personal: PersonalConfig = PERSONAL): number => {
+  if (state.phase === 'PREP') {
+    const { event, priceAdjustPct } = state.today;
+    return targetCustomersFor(state, state.day, event, dayDemandProfile(state.unlockedRoutes, priceAdjustPct, event).averagePriceFactor);
+  }
+  if (state.phase === 'SHOP') {
+    const day = state.day + 1;
+    const event: DayEvent = dayHasPersonalContent(personal, day) ? { type: 'NONE' } : rollDayEvent(state.seed, day, state.unlockedRoutes);
+    return targetCustomersFor(state, day, event, dayDemandProfile(state.unlockedRoutes, {}, event).averagePriceFactor);
+  }
+  return state.today.targetCustomers;
+};
+
 const openCounter = (session: Session): DomainEvent[] => {
   const { state } = session;
   const { today, seed, day } = state;
@@ -557,13 +581,7 @@ const openCounter = (session: Session): DomainEvent[] => {
   }
 
   const demandProfile = dayDemandProfile(state.unlockedRoutes, today.priceAdjustPct, today.event);
-  const baseTarget = customersForDay({
-    seed,
-    day,
-    rating: travelVietScore(state.starHistory),
-    rush: isRush(today.event),
-  });
-  today.targetCustomers = clamp(Math.round(baseTarget * demandProfile.averagePriceFactor * marketingFactor(state.staff, day)), MIN_CUSTOMERS, MAX_CUSTOMERS);
+  today.targetCustomers = targetCustomersFor(state, day, today.event, demandProfile.averagePriceFactor);
   today.arrivals = generateArrivals(rngFor(seed, day, 'spawn'), today.targetCustomers);
   today.nextArrivalIndex = 0;
   today.clock = SHOP_OPEN_MINUTE;
@@ -700,12 +718,6 @@ const spawnArrivals = (state: GameState, runtime: DayRuntime, personal: Personal
   while (today.nextArrivalIndex < today.arrivals.length && (today.arrivals[today.nextArrivalIndex] ?? Infinity) <= today.clock) {
     const index = today.nextArrivalIndex++;
     const special = specialCustomerForArrival(personal, state.day, index, today.arrivals.length);
-    const waiting = today.queue.filter((customer) => customer.position === 'QUEUE').length;
-    if (!special && waiting >= modifiers.queueMax) {
-      today.turnedAway++;
-      events.push({ type: 'CUSTOMER_TURNED_AWAY', customerId: `d${state.day}-c${index}` });
-      continue;
-    }
     const generated = generateOrder({
       rng: runtime.ordersRng,
       namesRng: runtime.namesRng,
@@ -744,11 +756,12 @@ const promoteNextCustomer = (session: Session, events: DomainEvent[]): void => {
 
 const tickPatience = (state: GameState, delta: number, events: DomainEvent[]): void => {
   const { today } = state;
+  const queuePatienceRate = QUEUE_PATIENCE_RATE * computeModifiers(state.upgrades).queuePatienceRateMult;
   const leavers: Customer[] = [];
   today.queue.forEach((customer, index) => {
     const resolving = index === 0 && customer.position === 'COUNTER' && today.counter.state === 'RESOLVING';
     if (customer.infinitePatience || resolving) return;
-    customer.patienceLeftMs -= delta * (customer.position === 'COUNTER' ? 1 : QUEUE_PATIENCE_RATE);
+    customer.patienceLeftMs -= delta * (customer.position === 'COUNTER' ? 1 : queuePatienceRate);
     const mood = moodOf(patienceRatioOf(customer));
     if (mood !== customer.mood) {
       customer.mood = mood;

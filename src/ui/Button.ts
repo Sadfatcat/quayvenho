@@ -37,7 +37,7 @@ export interface ButtonOptions {
 }
 
 const OUTLINE_WIDTH = 2;
-const DEFAULT_LABEL_FONT_PX = 30;
+const DEFAULT_LABEL_FONT_PX = 28;
 
 /**
  * Tap-to-press pill button (PLAN §11.1, STYLE §4): face sinks onto its extruded base while held, dims when disabled or locked.
@@ -136,19 +136,21 @@ export class Button extends Phaser.GameObjects.Container {
 
   private redraw(): void {
     const enabled = !this.disabledFlag && !this.lockedFlag;
-    const radius = this.buttonHeight / 2;
+    // Tổng chiều cao nhìn thấy (mặt nút + đáy đùn) đúng bằng buttonHeight để nút không tràn khỏi khung chứa.
+    const faceHeight = this.buttonHeight - EXTRUSION.button;
+    const radius = faceHeight / 2;
     const left = -this.buttonWidth / 2;
     const top = -this.buttonHeight / 2;
     const offset = this.pressed ? EXTRUSION.pressedOffset : 0;
     const base = enabled ? VARIANT_BASE[this.variant] : COLORS.textMuted;
     this.face.clear();
     this.face.fillStyle(base, 1);
-    this.face.fillRoundedRect(left, top + EXTRUSION.button, this.buttonWidth, this.buttonHeight, radius);
+    this.face.fillRoundedRect(left, top + EXTRUSION.button, this.buttonWidth, faceHeight, radius);
     this.face.fillStyle(enabled ? VARIANT_FILL[this.variant] : COLORS.disabled, 1);
-    this.face.fillRoundedRect(left, top + offset, this.buttonWidth, this.buttonHeight, radius);
+    this.face.fillRoundedRect(left, top + offset, this.buttonWidth, faceHeight, radius);
     this.face.lineStyle(OUTLINE_WIDTH, base, 1);
-    this.face.strokeRoundedRect(left, top + offset, this.buttonWidth, this.buttonHeight, radius);
-    this.labelText.setY(offset);
+    this.face.strokeRoundedRect(left, top + offset, this.buttonWidth, faceHeight, radius);
+    this.labelText.setY(offset - EXTRUSION.button / 2);
   }
 
   private refreshInteractive(): void {

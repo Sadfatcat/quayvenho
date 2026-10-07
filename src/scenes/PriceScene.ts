@@ -75,8 +75,8 @@ export class PriceScene extends BaseScene {
       renderItem: (route) => this.renderRow(this, route),
     });
     const row = buttonRow(GAME_WIDTH, 2);
-    new Button(this, row.centers[0] ?? 0, FOOTER_Y, { width: row.width, height: 88, label: STRINGS.priceBoard.reset, variant: 'ghost', onTap: () => this.resetAll(unlocked) });
-    new Button(this, row.centers[1] ?? 0, FOOTER_Y, { width: row.width, height: 88, label: STRINGS.prep.openCounter, variant: 'success', onTap: () => requestOpenCounter(this) });
+    new Button(this, row.centers[0] ?? 0, FOOTER_Y, { width: row.width, height: 76, label: STRINGS.priceBoard.reset, variant: 'ghost', onTap: () => this.resetAll(unlocked) });
+    new Button(this, row.centers[1] ?? 0, FOOTER_Y, { width: row.width, height: 76, label: STRINGS.prep.openCounter, variant: 'success', onTap: () => requestOpenCounter(this) });
   }
 
   private resetAll(routes: readonly Route[]): void {

@@ -29,7 +29,7 @@ const STAR_GAP = 70;
 const STAR_REVEAL_DELAY_MS = 180;
 const STAR_POP_MS = 260;
 const TOTAL_REVEAL_MS = 3000;
-const BUTTON_HEIGHT = 96;
+const BUTTON_HEIGHT = 84;
 const BUTTON_Y = GAME_HEIGHT - 140;
 
 const money = formatMoney;
@@ -125,7 +125,6 @@ export class SummaryScene extends BaseScene {
     lines.push({ label: STRINGS.summary.profit, to: summary.moneyEnd - summary.moneyStart, format: money });
     lines.push({ label: STRINGS.summary.served, to: summary.served, format: count });
     lines.push({ label: STRINGS.summary.left, to: summary.left, format: count });
-    lines.push({ label: STRINGS.summary.turnedAway, to: summary.turnedAway, format: count });
     lines.push({ label: STRINGS.summary.avgStars, to: summary.avgStars, format: (v) => v.toFixed(1) });
     if (summary.travelVietAfter !== null) {
       lines.push({ label: STRINGS.summary.travelViet, to: summary.travelVietAfter, format: (v) => v.toFixed(1) });

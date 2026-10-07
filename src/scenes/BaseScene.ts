@@ -104,9 +104,9 @@ export abstract class BaseScene extends Phaser.Scene {
     panel.add([titleText, messageText]);
     if (action) {
       panel.add(
-        new Button(this, 0, height / 2 - 70, {
+        new Button(this, 0, height / 2 - 64, {
           width: PANEL_WIDTH - 80,
-          height: 88,
+          height: 76,
           label: action.label,
           variant: 'primary',
           onTap: () => {

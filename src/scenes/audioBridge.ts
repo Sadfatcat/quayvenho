@@ -1,6 +1,7 @@
 import type { DomainEvent, ScoreOutcome } from '@domain/models';
 import { audio, type SfxName } from '@platform/audio';
 import { setHapticsEnabled, vibrate } from '@platform/haptics';
+import { isMusicMuted } from '@platform/musicMute';
 import { registerVisibilityHandler } from '@platform/visibility';
 import { sessionBridge } from './sessionBridge';
 
@@ -39,6 +40,7 @@ export const sfxFor = (event: DomainEvent): SfxName | null => {
 
 /** Nối sự kiện domain → SFX + rung (PLAN §11.3). Gọi một lần lúc khởi động; âm lượng/rung đọc từ settings. */
 export const bindAudioToSession = (): void => {
+  audio.setMusicMuted(isMusicMuted());
   sessionBridge.onEvents((events) => {
     syncSettings();
     for (const event of events) {

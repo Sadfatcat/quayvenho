@@ -20,7 +20,7 @@ export interface DialogOptions {
 }
 
 const PANEL_WIDTH = 600;
-const BUTTON_HEIGHT = 88;
+const BUTTON_HEIGHT = 76;
 const HEADER_HEIGHT = 260;
 
 /** Generic 1–3 button dialog (PLAN §10.9). Caller supplies Vietnamese copy from strings.ts. */

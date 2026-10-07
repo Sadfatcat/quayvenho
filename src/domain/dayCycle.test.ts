@@ -3,8 +3,9 @@ import { MS_PER_GAME_MINUTE } from '../config';
 import { invariant } from './common/invariant';
 import { purchaseCost } from './economy';
 import { getRoute } from './routes';
-import { canGoToStep, createNewGame, snapBaggage } from './dayCycle';
+import { canGoToStep, createNewGame, expectedCustomers, snapBaggage } from './dayCycle';
 import { rollDayEvent } from './events';
+import { isWindow } from './seatMap';
 import { GameSession } from './game';
 import type { Command, DomainEvent, GameState } from './models';
 import { seedWithDay1Event, seedWithWeatherOutcome } from './__integration__/fixtures';
@@ -80,6 +81,28 @@ describe('commands outside the shift', () => {
       { type: 'PREP_SET_SEAT_BIAS', bias: 'WINDOW' },
     ];
     for (const command of wrong) expect(rejected(game.dispatch(command)), command.type).toBeTruthy();
+  });
+
+  it('PREP_SET_SEAT_BIAS needs AIRLINE_RELATIONS', () => {
+    const game = newGame();
+    expect(rejected(game.dispatch({ type: 'PREP_SET_SEAT_BIAS', bias: 'WINDOW' }))).toMatchObject({ reason: 'UPGRADE_REQUIRED' });
+  });
+
+  it('with AIRLINE_RELATIONS, the chosen bias steers which seats a purchase gets', () => {
+    const windowSeatsBought = (bias: 'WINDOW' | 'AISLE'): number => {
+      let total = 0;
+      for (let seed = 1; seed <= 30; seed++) {
+        const game = GameSession.newGame(seed);
+        game.state.upgrades.push('AIRLINE_RELATIONS');
+        expect(rejected(game.dispatch({ type: 'PREP_SET_SEAT_BIAS', bias }))).toBeFalsy();
+        const flightId = firstDadFlight(game.state);
+        game.dispatch({ type: 'PREP_SET_QTY', flightId, cabin: 'ECONOMY', qty: 6 });
+        game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+        total += game.state.today.seats.filter((owned) => owned.flightId === flightId && isWindow(owned.seat)).length;
+      }
+      return total;
+    };
+    expect(windowSeatsBought('WINDOW')).toBeGreaterThan(windowSeatsBought('AISLE'));
   });
 
   it('PREP_SET_QTY enforces limits; confirm deducts once; double confirm is rejected', () => {
@@ -245,14 +268,56 @@ describe('shift', () => {
     expect(game.state.today.queue[0]).toMatchObject({ infinitePatience: true, position: 'COUNTER' });
   });
 
-  it('turns customers away when the queue is full, without stars', () => {
-    const game = newGame('RUSH');
+  it('never limits the queue: a burst of arrivals all join and each ends with a result', () => {
+    const BURST = 20;
+    const game = newGame();
     openWithSeats(game, 0);
-    const events = tickUntil(game, () => game.state.phase === 'SUMMARY');
-    const summary = game.state.lastSummary;
-    expect(summary?.served ?? 0).toBeGreaterThanOrEqual(0);
-    expect(events.filter((e) => e.type === 'CUSTOMER_TURNED_AWAY')).toHaveLength(game.state.today.turnedAway);
-    expect(game.state.today.results.length + game.state.today.turnedAway).toBe(game.state.today.targetCustomers);
+    game.state.today.targetCustomers = BURST;
+    game.state.today.arrivals = Array<number>(BURST).fill(game.state.today.clock);
+    game.state.today.nextArrivalIndex = 0;
+    game.tick(100);
+    expect(game.state.today.queue).toHaveLength(BURST);
+    tickUntil(game, () => game.state.phase === 'SUMMARY');
+    expect(game.state.today.turnedAway).toBe(0);
+    expect(game.state.today.results).toHaveLength(BURST);
+  });
+
+  it('WAITING_LOUNGE makes queued customers lose patience 15% slower', () => {
+    const queuedLossOver = (upgrades: string[]): number => {
+      const game = newGame('RUSH');
+      game.state.upgrades.push(...upgrades);
+      openWithSeats(game, 0);
+      tickUntil(game, () => game.state.today.queue.length >= 2);
+      const waiting = game.state.today.queue[1];
+      invariant(waiting?.position === 'QUEUE', 'expected a queued customer');
+      const before = waiting.patienceLeftMs;
+      for (let i = 0; i < 20; i++) game.tick(100);
+      return before - waiting.patienceLeftMs;
+    };
+    expect(queuedLossOver(['WAITING_LOUNGE']) / queuedLossOver([])).toBeCloseTo(0.85, 2);
+  });
+
+  describe('expectedCustomers', () => {
+    it('in PREP equals the target customers set on opening, including after a price change', () => {
+      const game = newGame('RUSH');
+      game.state.today.priceAdjustPct = { 'HAN-DAD': 20 };
+      const expected = expectedCustomers(game.state);
+      game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
+      game.dispatch({ type: 'OPEN_COUNTER' });
+      expect(game.state.today.targetCustomers).toBe(expected);
+    });
+
+    it('in SHOP equals the next day target once that day is opened', () => {
+      const game = newGame();
+      openWithSeats(game, 0);
+      tickUntil(game, () => game.state.phase === 'SUMMARY');
+      game.dispatch({ type: 'GO_TO_SHOP' });
+      const expected = expectedCustomers(game.state);
+      game.dispatch({ type: 'NEXT_DAY' });
+      game.dispatch({ type: 'OPEN_COUNTER' });
+      expect(game.state.day).toBe(2);
+      expect(game.state.today.targetCustomers).toBe(expected);
+    });
   });
 
   it('closes at 19:00, serves the rest, then SUMMARY with unsold seats expired', () => {

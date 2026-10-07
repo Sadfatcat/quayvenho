@@ -1,23 +1,23 @@
 import { STRINGS } from '@data/strings';
-import { exportSaveCode, importSaveCode } from '@save/exportImport';
+import { exportSaveCode } from '@save/exportImport';
+import { devError } from '@platform/logger';
 import { writeSave } from '@save/storage';
 import type { GameState } from '@domain/models';
 
-/** Hộp thoại gốc của trình duyệt: đơn giản, chạy được trên Safari iOS và Android, không cần dựng thêm ô nhập trong canvas. */
-export const showSaveCodeToPlayer = (state: GameState): void => {
-  window.prompt(STRINGS.settings.exportPrompt, exportSaveCode(state));
+/** Chép mã vào clipboard (một chạm, hợp điện thoại). Clipboard bị chặn/không có thì rơi về hộp thoại để tự chọn và chép. */
+export const showSaveCodeToPlayer = async (state: GameState): Promise<void> => {
+  const code = exportSaveCode(state);
+  try {
+    await navigator.clipboard.writeText(code);
+    window.alert(STRINGS.settings.exportCopied);
+  } catch (error) {
+    devError('clipboard.writeText thất bại, dùng prompt', error);
+    window.prompt(STRINGS.settings.exportPrompt, code);
+  }
 };
 
-/** Hỏi mã, kiểm tra, xác nhận ghi đè rồi tải lại trang. Mã lỗi thì không đổi save hiện tại. */
-export const importSaveCodeFromPlayer = (): void => {
-  const code = window.prompt(STRINGS.settings.importPrompt);
-  if (code === null || code.trim() === '') return;
-  const result = importSaveCode(code);
-  if (!result.ok) {
-    window.alert(result.reason === 'FUTURE_VERSION' ? STRINGS.settings.importFutureVersion : STRINGS.settings.importFailed);
-    return;
-  }
-  if (!window.confirm(STRINGS.settings.importConfirm)) return;
-  writeSave(result.value);
+/** Ghi đè save hiện tại bằng state đã nhập rồi tải lại trang để game nạp save mới. */
+export const applyImportedSave = (state: GameState): void => {
+  writeSave(state);
   window.location.reload();
 };

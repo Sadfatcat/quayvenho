@@ -217,6 +217,11 @@ const STOCK_RESERVE_MARGIN = 1.1;
 
 /** Thí nghiệm kinh tế nhân viên (bot thuê khi còn đủ tiền dự trữ); tắt khi chạy chuẩn. */
 let hireStaffInSim = false;
+/** Thí nghiệm: bot không mua nâng cấp (so sánh có/không nâng cấp); tắt khi chạy chuẩn. */
+let upgradesDisabledInSim = false;
+export const disableUpgrades = (): void => {
+  upgradesDisabledInSim = true;
+};
 export const enableStaffHiring = (): void => {
   hireStaffInSim = true;
 };
@@ -262,7 +267,7 @@ export const shop = (game: GameSession, reserve: number, upgradeOrder: readonly 
       const index = upgradeOrder.indexOf(id);
       return index === -1 ? upgradeOrder.length : index;
     };
-    const upgrade = UPGRADES.filter((u) => checkUpgrade(u.id, state.upgrades, ctx).ok).sort((a, b) => rank(a.id) - rank(b.id) || a.cost - b.cost)[0];
+    const upgrade = upgradesDisabledInSim ? undefined : UPGRADES.filter((u) => checkUpgrade(u.id, state.upgrades, ctx).ok).sort((a, b) => rank(a.id) - rank(b.id) || a.cost - b.cost)[0];
     if (!upgrade) break;
     run(game, { type: 'SHOP_BUY_UPGRADE', upgradeId: upgrade.id });
   }

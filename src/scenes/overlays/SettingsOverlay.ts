@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
-import { importSaveCodeFromPlayer, showSaveCodeToPlayer } from '@platform/saveTransfer';
+import { isMusicMuted, setMusicMuted } from '@platform/musicMute';
+import { showSaveCodeToPlayer } from '@platform/saveTransfer';
 import { BaseOverlay } from '@ui/BaseOverlay';
 import { Button } from '@ui/Button';
 import { Panel } from '@ui/Panel';
@@ -10,6 +11,7 @@ import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { Toggle } from '@ui/Toggle';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { sessionBridge } from '../sessionBridge';
+import { ImportSaveOverlay } from './ImportSaveOverlay';
 
 export interface SettingsOverlayOptions {
   /** Only PrepScene needs this — CounterScene already has "Về màn hình chính" in PauseOverlay. */
@@ -17,10 +19,10 @@ export interface SettingsOverlayOptions {
 }
 
 const PANEL_WIDTH = 600;
-const PANEL_HEIGHT_BASE = 480;
+const PANEL_HEIGHT_BASE = 550;
 const EXIT_BUTTON_EXTRA_HEIGHT = 120;
 const SAVE_CODE_EXTRA_HEIGHT = 200;
-const SAVE_CODE_BUTTON_HEIGHT = 80;
+const SAVE_CODE_BUTTON_HEIGHT = 72;
 const SLIDER_WIDTH = 440;
 const LABEL_STYLE = { fontFamily: FONT_FAMILY, fontSize: '24px', color: toCssColor(COLORS.text) };
 
@@ -60,13 +62,21 @@ export class SettingsOverlay extends BaseOverlay {
       onChange: (value) => sessionBridge.dispatch({ type: 'SETTINGS_UPDATE', patch: { haptics: value } }),
     });
 
+    const musicMuteLabel = scene.add
+      .text(-PANEL_WIDTH / 2 + 80, -PANEL_HEIGHT / 2 + 450, STRINGS.settings.musicMute, LABEL_STYLE)
+      .setOrigin(0, 0.5);
+    const musicMuteToggle = new Toggle(scene, PANEL_WIDTH / 2 - 100, -PANEL_HEIGHT / 2 + 450, {
+      value: isMusicMuted(),
+      onChange: setMusicMuted,
+    });
+
     const closeText = scene.add
       .text(PANEL_WIDTH / 2 - 20, -PANEL_HEIGHT / 2 + 20, '✕', { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(1, 0)
       .setInteractive({ useHandCursor: true });
     closeText.on('pointerup', () => this.close());
 
-    panel.add([title, musicLabel, musicSlider, sfxLabel, sfxSlider, hapticsLabel, hapticsToggle, closeText]);
+    panel.add([title, musicLabel, musicSlider, sfxLabel, sfxSlider, hapticsLabel, hapticsToggle, musicMuteLabel, musicMuteToggle, closeText]);
 
     if (options.onExitToTitle) {
       const exportButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60 - SAVE_CODE_EXTRA_HEIGHT, {
@@ -74,19 +84,19 @@ export class SettingsOverlay extends BaseOverlay {
         height: SAVE_CODE_BUTTON_HEIGHT,
         label: STRINGS.settings.exportCode,
         variant: 'ghost',
-        onTap: () => showSaveCodeToPlayer(sessionBridge.current.state),
+        onTap: () => void showSaveCodeToPlayer(sessionBridge.current.state),
       });
       const importButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60 - SAVE_CODE_EXTRA_HEIGHT / 2, {
         width: PANEL_WIDTH - 80,
         height: SAVE_CODE_BUTTON_HEIGHT,
         label: STRINGS.settings.importCode,
         variant: 'ghost',
-        onTap: importSaveCodeFromPlayer,
+        onTap: () => new ImportSaveOverlay(scene),
       });
       panel.add([exportButton, importButton]);
       const exitButton = new Button(scene, 0, PANEL_HEIGHT / 2 - 60, {
         width: PANEL_WIDTH - 80,
-        height: 80,
+        height: 72,
         label: STRINGS.pause.exitToTitle,
         variant: 'ghost',
         onTap: () => options.onExitToTitle?.(),

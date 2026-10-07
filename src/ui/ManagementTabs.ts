@@ -18,6 +18,7 @@ export interface ManagementTabsOptions {
 }
 
 const SEGMENT_GAP = 4;
+const TAB_LABEL_FONT_PX = 24;
 
 /** Thanh 4 mục của màn quản lý: Mua vé / Giá vé / Đồ hỗ trợ / Nhân viên. */
 export class ManagementTabs extends Phaser.GameObjects.Container {
@@ -29,6 +30,7 @@ export class ManagementTabs extends Phaser.GameObjects.Container {
         width: segmentWidth - SEGMENT_GAP,
         height: options.height,
         label: options.labels[tab],
+        fontSize: TAB_LABEL_FONT_PX,
         variant: tab === options.active ? 'primary' : 'ghost',
         onTap: () => {
           if (tab !== options.active) options.onSelect(tab);

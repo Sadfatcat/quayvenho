@@ -3,7 +3,7 @@ import { GameSession } from '@domain/game';
 import type { DayPhase, GameState } from '@domain/models';
 import { clearSave, type LoadSaveResult } from '@save/storage';
 import { Button } from '@ui/Button';
-import { ATLAS_KEY } from '@ui/CustomerAvatar';
+import { isMusicMuted, setMusicMuted } from '@platform/musicMute';
 import { createGameSeed } from '@platform/seed';
 import { formatMoney } from '@ui/format';
 import { TEXT_STYLES } from '@ui/textStyles';
@@ -11,17 +11,18 @@ import { COLORS, FONT_FAMILY, SPACING, toCssColor } from '@ui/theme';
 import { ToastQueue } from '@ui/Toast';
 import { GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
+import { ImportSaveOverlay } from './overlays/ImportSaveOverlay';
 import { promptForPwaUpdate } from './overlays/UpdatePrompt';
 import { DialogOverlay } from './overlays/DialogOverlay';
 import { sessionBridge } from './sessionBridge';
 
-const BUTTON_WIDTH = 420;
-const BUTTON_HEIGHT = 100;
+const BUTTON_WIDTH = 380;
+const BUTTON_HEIGHT = 84;
 
-const LOGO_FRAME = 'logo_lockup';
-const LOGO_WIDTH = 340;
-const LOGO_Y = 270;
-const TITLE_TEXT_Y = 280;
+const TITLE_TEXT_Y = 400;
+const TITLE_FONT_SIZE = '80px';
+const MUSIC_BUTTON = { width: 180, height: 56, fontSize: 22, y: 100 };
+const BUTTONS_START_Y = 780;
 
 /** PLAN §10.3. `loadResult` is stashed on the registry by BootScene. */
 export class TitleScene extends BaseScene {
@@ -30,23 +31,15 @@ export class TitleScene extends BaseScene {
     this.backgroundTheme = 'title';
   }
 
-  /** Logo ảnh nếu atlas đã tải, không thì chữ tiêu đề. */
-  private addTitleLogo(): void {
-    if (!this.textures.exists(ATLAS_KEY) || !this.textures.get(ATLAS_KEY).has(LOGO_FRAME)) {
-      this.add.text(GAME_WIDTH / 2, TITLE_TEXT_Y, STRINGS.gameTitle, TEXT_STYLES.title).setOrigin(0.5);
-      return;
-    }
-    const logo = this.add.image(GAME_WIDTH / 2, LOGO_Y, ATLAS_KEY, LOGO_FRAME);
-    logo.setScale(LOGO_WIDTH / logo.width);
-  }
-
   protected onCreate(): void {
     promptForPwaUpdate(this);
     const loadResult = this.registry.get('loadResult') as LoadSaveResult | undefined;
 
-    this.addTitleLogo();
+    this.add.text(GAME_WIDTH / 2, TITLE_TEXT_Y, STRINGS.gameTitle, { ...TEXT_STYLES.title, fontSize: TITLE_FONT_SIZE }).setOrigin(0.5);
 
-    let y = 560;
+    this.addMusicButton();
+
+    let y = BUTTONS_START_Y;
     if (loadResult?.ok && loadResult.value.profile) {
       const { profile, day, money } = loadResult.value;
       this.add
@@ -74,10 +67,35 @@ export class TitleScene extends BaseScene {
       variant: loadResult?.ok ? 'ghost' : 'primary',
       onTap: () => this.requestNewGame(loadResult),
     });
+    y += BUTTON_HEIGHT + SPACING.md;
+
+    new Button(this, GAME_WIDTH / 2, y, {
+      width: BUTTON_WIDTH,
+      height: BUTTON_HEIGHT,
+      label: STRINGS.settings.importCode,
+      variant: 'ghost',
+      onTap: () => new ImportSaveOverlay(this),
+    });
 
     if (loadResult?.ok && loadResult.recoveredFromBackup) {
       new ToastQueue(this).show(STRINGS.title.recoveredFromBackup, 4000);
     }
+  }
+
+  private addMusicButton(): void {
+    const labelFor = (muted: boolean): string => (muted ? STRINGS.title.musicOff : STRINGS.title.musicOn);
+    const button = new Button(this, GAME_WIDTH - SPACING.lg - MUSIC_BUTTON.width / 2, MUSIC_BUTTON.y, {
+      width: MUSIC_BUTTON.width,
+      height: MUSIC_BUTTON.height,
+      fontSize: MUSIC_BUTTON.fontSize,
+      label: labelFor(isMusicMuted()),
+      variant: 'ghost',
+      onTap: () => {
+        const muted = !isMusicMuted();
+        setMusicMuted(muted);
+        button.setLabel(labelFor(muted));
+      },
+    });
   }
 
   private continueGame(state: GameState): void {

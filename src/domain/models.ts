@@ -210,7 +210,8 @@ export interface Modifiers {
   patienceMult: number;
   tipMult: number;
   printMs: number;
-  queueMax: number;
+  /** Nhân vào tốc độ mất kiên nhẫn của khách đang đứng chờ (< 1 = chậm hơn). */
+  queuePatienceRateMult: number;
   refundRate: number;
   seatBias: boolean;
 }
@@ -355,7 +356,6 @@ export type DomainEvent =
   | { type: 'WEATHER_RESOLVED'; routeId: RouteId; outcome: WeatherOutcome; lostSeats: number }
   | { type: 'CLOCK_TICK'; minute: number }
   | { type: 'CUSTOMER_SPAWNED'; customerId: string }
-  | { type: 'CUSTOMER_TURNED_AWAY'; customerId: string }
   | { type: 'CUSTOMER_AT_COUNTER'; customerId: string }
   | { type: 'CUSTOMER_MOOD_CHANGED'; customerId: string; mood: Mood }
   | { type: 'CUSTOMER_LEFT'; customerId: string }

@@ -7,7 +7,7 @@ declare const process: { env: Record<string, string | undefined> };
  * chậm (POOR, 30s/khách) tốn khá nhiều tick giả lập. Tăng hằng số này để chạy đầy đủ hơn.
  */
 import { GameSession } from '@domain/game';
-import { enableStaffHiring, makeErrorProneDecide, perfectDecide, playDay, type Decide, type PricingStrategy } from '@domain/__integration__/bots';
+import { disableUpgrades, enableStaffHiring, makeErrorProneDecide, perfectDecide, playDay, type Decide, type PricingStrategy } from '@domain/__integration__/bots';
 import { resolveWeather } from '@domain/events';
 import { createRng, type Rng } from '@domain/rng';
 import type { WeatherOutcome } from '@domain/models';
@@ -59,7 +59,7 @@ interface BotProfile {
   makeDecide: (rng: Rng) => Decide;
 }
 
-const PERFECT_UPGRADE_ORDER = ['COMFY_CHAIRS', 'FAN', 'BIGGER_COUNTER', 'FAST_PRINTER', 'LOYALTY_BOARD'];
+const PERFECT_UPGRADE_ORDER = ['COMFY_CHAIRS', 'FAN', 'WAITING_LOUNGE', 'FAST_PRINTER', 'LOYALTY_BOARD'];
 /** AVERAGE keeps a bigger cash cushion, so it starts buying upgrades later than PERFECT. */
 const AVERAGE_RESERVE = 9000;
 const DEFAULT_RESERVE = 3750;
@@ -82,6 +82,12 @@ const poorPricing: PricingStrategy = ({ event }) => (event.type === 'RUSH' ? POO
 /** FORCE_PCT=n: mọi bot đặt đúng n% cho mọi tuyến (thí nghiệm độ nhạy giá, không dùng khi chạy chuẩn). */
 const forcePct = process.env.FORCE_PCT === undefined ? null : Number(process.env.FORCE_PCT);
 /** HIRE=1: bot thuê nhân viên khi còn đủ tiền (thí nghiệm kinh tế nhân viên, không dùng khi chạy chuẩn). */if (process.env.HIRE === '1') enableStaffHiring();
+/** NO_UPGRADES=1: bot không mua nâng cấp (thí nghiệm có/không nâng cấp, không dùng khi chạy chuẩn). */
+if (process.env.NO_UPGRADES === '1') disableUpgrades();
+/** GRANT_UPGRADE=id: mọi seed có sẵn nâng cấp đó từ ngày 1 miễn phí (đo tác dụng thuần, kèm NO_UPGRADES=1; không dùng khi chạy chuẩn). */
+const grantedUpgradeId = process.env.GRANT_UPGRADE;
+/** BOTS=PERFECT,AVERAGE: chỉ chạy các bot được liệt kê. */
+const selectedBots = process.env.BOTS?.split(',');
 const pricingOf = (strategy: PricingStrategy): PricingStrategy => (forcePct === null ? strategy : () => forcePct);
 
 const PROFILES: BotProfile[] = [
@@ -126,6 +132,7 @@ const runBot = (profile: BotProfile): DayRecord[][] => {
     const demandRng = createRng(seed ^ 0x1234567);
     const decide = profile.makeDecide(decideRng);
     const game = GameSession.newGame(seed);
+    if (grantedUpgradeId) game.state.upgrades.push(grantedUpgradeId);
     for (let day = 1; day <= DAYS; day++) {
       const demandScale = 1 + (demandRng.next() * 2 - 1) * profile.demandJitter;
       const holiday = game.state.today.event.type === 'RUSH';
@@ -263,6 +270,11 @@ const runChecks = (name: string, byDay: DayRecord[][]): void => {
     console.log(`TravelViet ngày 20 (median): ${Number.isNaN(tv20) ? '—' : round1(tv20)}`);
   }
 
+  const tvSeries = Array.from({ length: SEEDS_PER_BOT }, (_, seedIndex) => byDay.flatMap((records) => records.filter((r) => r.seedIndex === seedIndex && r.travelViet !== null).map((r) => r.travelViet as number)));
+  const dailyChange = tvSeries.flatMap((series) => series.slice(1).map((value, index) => Math.abs(value - (series[index] ?? value))));
+  const tvDay30 = (byDay[29] ?? []).filter((r) => r.travelViet !== null).map((r) => r.travelViet as number);
+  console.log(`TVVOL ${name} ${JSON.stringify({ meanAbsDailyChange: dailyChange.length ? Math.round((dailyChange.reduce((a, b) => a + b, 0) / dailyChange.length) * 100) / 100 : null, tvDay30P10: tvDay30.length ? round1(percentile(tvDay30, 0.1)) : null, tvDay30P50: tvDay30.length ? round1(median(tvDay30)) : null, tvDay30P90: tvDay30.length ? round1(percentile(tvDay30, 0.9)) : null })}`);
+
   const safetyNetPerSeed = Array.from({ length: SEEDS_PER_BOT }, (_, seedIndex) =>
     byDay.flat().filter((r) => r.seedIndex === seedIndex).reduce((sum, r) => sum + r.safetyNet, 0),
   );
@@ -309,7 +321,7 @@ const runChecks = (name: string, byDay: DayRecord[][]): void => {
   console.log(`METRICS ${name} ${JSON.stringify({ firstUpgradeDay, bkkDay, tv20: Number.isNaN(tv20) ? null : round1(tv20), safetyNet: round1(median(safetyNetPerSeed)), negOperatingPct: totalDays ? round1((negativeOperatingDays / totalDays) * 100) : 0, unsoldSeatsPct: unsoldSeats, holidayRoiPct, normalRoiPct, turnedAwayPct: round1(avgTurnedAwayRatio * 100), rushPct, weatherPct, weatherBadPct, weatherSeverePct, weatherLostSeatsAvg, weatherLostCostAvg, weatherLostCostPerHitDay, money30: round1(median((byDay[DAYS - 1] ?? []).map((r) => r.moneyEnd))) })}`);
 };
 
-for (const profile of PROFILES) {
+for (const profile of PROFILES.filter((candidate) => !selectedBots || selectedBots.includes(candidate.name))) {
   const byDay = runBot(profile);
   if (!QUIET) printDailyTable(profile.name, byDay);
   runChecks(profile.name, byDay);

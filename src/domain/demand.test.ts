@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EARLY_DAYS_CUSTOMER_MULT, TRAVELVIET_FROM_DAY, TRAVELVIET_RAMP_DAYS, TRAVELVIET_WINDOW } from '@data/demand';
+import { EARLY_DAYS_CUSTOMER_MULT, TRAVELVIET_FROM_DAY, TRAVELVIET_RAMP_DAYS, TRAVELVIET_SCORE_WINDOW } from '@data/demand';
 import { baseCustomers, customersForDay, demandFactor, ratingBonus, travelVietBlend, travelVietScore } from './demand';
 import type { Stars } from './models';
 
@@ -17,9 +17,9 @@ describe('baseCustomers', () => {
 });
 
 describe('travelVietScore', () => {
-  it('defaults to 4.0 and averages the last TRAVELVIET_WINDOW stars', () => {
+  it('defaults to 4.0 and averages the last TRAVELVIET_SCORE_WINDOW stars', () => {
     expect(travelVietScore([])).toBe(4);
-    const history: Stars[] = [...Array<Stars>(10).fill(1), ...Array<Stars>(TRAVELVIET_WINDOW).fill(5)];
+    const history: Stars[] = [...Array<Stars>(10).fill(1), ...Array<Stars>(TRAVELVIET_SCORE_WINDOW).fill(5)];
     expect(travelVietScore(history)).toBe(5);
     expect(travelVietScore([5, 4, 4])).toBe(4.3);
   });
@@ -42,17 +42,17 @@ describe('ratingBonus', () => {
     expect(ratingBonus(1, 20, 4.4)).toBe(0);
     for (let seed = 1; seed <= 50; seed++) {
       const at45 = ratingBonus(seed, 20, 4.5);
-      expect(at45).toBeGreaterThanOrEqual(8);
-      expect(at45).toBeLessThanOrEqual(12);
+      expect(at45).toBeGreaterThanOrEqual(4);
+      expect(at45).toBeLessThanOrEqual(6);
       const at47 = ratingBonus(seed, 20, 4.7);
-      expect(at47).toBeGreaterThanOrEqual(24);
-      expect(at47).toBeLessThanOrEqual(36);
+      expect(at47).toBeGreaterThanOrEqual(12);
+      expect(at47).toBeLessThanOrEqual(18);
       const at48 = ratingBonus(seed, 20, 4.8);
-      expect(at48).toBeGreaterThanOrEqual(24 + 25);
-      expect(at48).toBeLessThanOrEqual(36 + 35);
+      expect(at48).toBeGreaterThanOrEqual(12 + 10);
+      expect(at48).toBeLessThanOrEqual(18 + 15);
       const at50 = ratingBonus(seed, 20, 5);
-      expect(at50).toBeGreaterThanOrEqual(24 + 75);
-      expect(at50).toBeLessThanOrEqual(36 + 105);
+      expect(at50).toBeGreaterThanOrEqual(12 + 30);
+      expect(at50).toBeLessThanOrEqual(18 + 45);
     }
   });
 });

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createNewGame } from '@domain/dayCycle';
+import { GameSession } from '@domain/game';
+import { playDay } from '@domain/__integration__/bots';
 import { exportSaveCode, importSaveCode } from './exportImport';
 
 const buildState = () => {
@@ -63,5 +65,18 @@ ${code.slice(90)}`;
   it('ignores surrounding whitespace when importing', () => {
     const state = buildState();
     expect(importSaveCode(`  ${exportSaveCode(state)}\n`)).toEqual({ ok: true, value: state });
+  });
+});
+
+describe('exportSaveCode / importSaveCode với tiến trình đã chơi', () => {
+  it('khôi phục đúng state sau mỗi ngày chơi 30 ngày bằng bot', () => {
+    const game = GameSession.newGame(2024);
+    const mismatchedDays: number[] = [];
+    for (let day = 1; day <= 30; day++) {
+      playDay(game);
+      const result = importSaveCode(exportSaveCode(game.state));
+      if (!result.ok || JSON.stringify(result.value) !== JSON.stringify(game.state)) mismatchedDays.push(day);
+    }
+    expect(mismatchedDays).toEqual([]);
   });
 });

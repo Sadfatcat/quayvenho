@@ -48,9 +48,9 @@ describe('scoreCustomer', () => {
     expect(score({ patienceRatio: 0.49 })).toMatchObject({ outcome: 'GOOD', stars: 4 });
   });
 
-  it('baggage off by 1 kg is fine, 2 kg is wrong (−30 → OK)', () => {
+  it('baggage off by 1 kg is fine, 2 kg is wrong (−30 → GOOD)', () => {
     expect(score({}, {}, { baggageKg: 21 }).outcome).toBe('PERFECT');
-    expect(score({}, {}, { baggageKg: 22 })).toMatchObject({ outcome: 'OK', stars: 3, mistakes: ['WRONG_BAGGAGE'] });
+    expect(score({}, {}, { baggageKg: 22 })).toMatchObject({ outcome: 'GOOD', stars: 4, mistakes: ['WRONG_BAGGAGE'] });
   });
 
   it('seat pref −20 → GOOD; extra not requested −5; missing extra −15', () => {
@@ -63,9 +63,9 @@ describe('scoreCustomer', () => {
     expect(score({}, {}, { extras: ['INSURANCE'] })).toMatchObject({ outcome: 'GOOD' });
   });
 
-  it('POOR (<50): 2★, no revenue', () => {
+  it('POOR (<50): 1★, no revenue', () => {
     expect(score({}, {}, { baggageKg: 0, seat: '5B', extras: [] })).toMatchObject({
-      outcome: 'POOR', stars: 2, revenue: 0, tip: 0, penalty: 0,
+      outcome: 'POOR', stars: 1, revenue: 0, tip: 0, penalty: 0,
     });
   });
 
