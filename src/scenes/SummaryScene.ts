@@ -63,7 +63,7 @@ export class SummaryScene extends BaseScene {
     this.add.text(GAME_WIDTH / 2, 180, `${state.profile?.brandName ?? ''} — ${STRINGS.title.dayLabel} ${summary.day}`, TEXT_STYLES.heading).setOrigin(0.5);
 
     this.showStars(summary.avgStars);
-    const lines = this.buildLines(summary);
+    const lines = this.buildLines(summary, state.today.targetCustomers - state.today.results.length);
     this.revealLines(lines);
 
     const expiringTomorrow = seatsExpiringOn(state.today.seats, summary.day + 1);
@@ -116,7 +116,7 @@ export class SummaryScene extends BaseScene {
     }
   }
 
-  private buildLines(summary: DaySummary): SummaryLine[] {
+  private buildLines(summary: DaySummary, notServed: number): SummaryLine[] {
     const lines: SummaryLine[] = [
       { label: STRINGS.summary.moneyStart, to: summary.moneyStart, format: money },
       { label: STRINGS.summary.ticketRevenue, to: summary.ticketRevenue, format: money },
@@ -142,6 +142,7 @@ export class SummaryScene extends BaseScene {
     lines.push({ label: STRINGS.summary.profit, to: summary.moneyEnd - summary.moneyStart, format: money });
     lines.push({ label: STRINGS.summary.served, to: summary.served, format: count });
     lines.push({ label: STRINGS.summary.left, to: summary.left, format: count });
+    if (notServed > 0) lines.push({ label: STRINGS.summary.notServed, to: notServed, format: count });
     lines.push({ label: STRINGS.summary.avgStars, to: summary.avgStars, format: (v) => v.toFixed(1) });
     if (summary.travelVietAfter !== null) {
       lines.push({ label: STRINGS.summary.travelViet, to: summary.travelVietAfter, format: (v) => v.toFixed(1) });

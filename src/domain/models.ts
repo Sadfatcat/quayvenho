@@ -339,6 +339,7 @@ export type Command =
   | { type: 'PRINT_TICKET' }
   | { type: 'DELIVER_TICKET' }
   | { type: 'REFUSE_CUSTOMER' }
+  | { type: 'CLOSE_EARLY' }
   | { type: 'GO_TO_SHOP' }
   | { type: 'SHOP_BUY_UPGRADE'; upgradeId: UpgradeId }
   | { type: 'SHOP_UNLOCK_ROUTE'; routeId: RouteId }
@@ -365,6 +366,7 @@ export type DomainEvent =
   | { type: 'PRINT_DONE' }
   | { type: 'TICKET_SCORED'; result: ScoreResult }
   | { type: 'DAY_CLOSING' }
+  | { type: 'SHIFT_CLOSED_EARLY'; dropped: number }
   | { type: 'DAY_ENDED'; summary: DaySummary }
   | { type: 'TRAVELVIET_UNLOCKED' }
   | { type: 'UPGRADE_BOUGHT'; upgradeId: UpgradeId }

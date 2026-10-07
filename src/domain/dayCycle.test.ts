@@ -4,8 +4,10 @@ import { MS_PER_GAME_MINUTE } from '../config';
 import { invariant } from './common/invariant';
 import { purchaseCost } from './economy';
 import { getRoute } from './routes';
-import { canGoToStep, createNewGame, expectedCustomers, snapBaggage } from './dayCycle';
+import { canGoToStep, closeEarlyBlockedReason, createNewGame, expectedCustomers, snapBaggage } from './dayCycle';
+import { PERSONAL } from '@data/personal';
 import { rollDayEvent } from './events';
+import { newMember } from './staff';
 import { isWindow } from './seatMap';
 import { GameSession } from './game';
 import type { Command, DomainEvent, GameState } from './models';
@@ -625,5 +627,73 @@ describe('staff and shop spending after the summary (phase SHOP)', () => {
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
     game.dispatch({ type: 'OPEN_COUNTER' });
     expect(() => tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000)).not.toThrow();
+  });
+
+  describe('CLOSE_EARLY (đóng cửa sớm)', () => {
+    const openMidShift = (): GameSession => {
+      const game = newGame();
+      openWithSeats(game, 5);
+      for (let i = 0; i < 40; i++) game.tick(100);
+      return game;
+    };
+
+    it('kết thúc ngày ngay, bỏ khách đang chờ và khách chưa đến mà không chấm sao hay phạt', () => {
+      const game = openMidShift();
+      const scoredBefore = game.state.today.results.length;
+
+      const events = game.dispatch({ type: 'CLOSE_EARLY' });
+
+      const closed = events.find((e) => e.type === 'SHIFT_CLOSED_EARLY');
+      expect(closed).toMatchObject({ type: 'SHIFT_CLOSED_EARLY' });
+      expect(events.at(-1)).toMatchObject({ type: 'DAY_ENDED' });
+      expect(game.state.phase).toBe('SUMMARY');
+      expect(game.state.today.results).toHaveLength(scoredBefore);
+      expect(game.state.today.queue).toEqual([]);
+      expect(game.state.lastSummary?.penalties).toBe(0);
+      const dropped = closed?.type === 'SHIFT_CLOSED_EARLY' ? closed.dropped : -1;
+      expect(dropped + scoredBefore).toBe(game.state.today.targetCustomers);
+    });
+
+    it('vẫn trả lương nhân viên', () => {
+      const game = openMidShift();
+      game.state.staff.push(newMember('JUNIOR', 0, 1));
+
+      game.dispatch({ type: 'CLOSE_EARLY' });
+
+      expect(game.state.lastSummary?.staffWages).toBeGreaterThan(0);
+    });
+
+    it('giữ ghế chưa bán cho ngày sau thay vì để hết hạn', () => {
+      const game = openMidShift();
+
+      game.dispatch({ type: 'CLOSE_EARLY' });
+
+      expect(game.state.lastSummary?.expiredSeats).toBe(0);
+      expect(game.state.today.seats.some((seat) => seat.state === 'AVAILABLE')).toBe(true);
+    });
+
+    it('bị từ chối khi chưa mở cửa', () => {
+      const game = newGame();
+      expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'WRONG_PHASE' });
+    });
+
+    it('bị từ chối ở ngày hướng dẫn đầu tiên', () => {
+      const game = newGame();
+      game.dispatch({ type: 'OPEN_COUNTER' });
+      expect(game.state.phase).toBe('OPEN');
+      expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'TUTORIAL_DAY' });
+    });
+
+    it('chờ khi khách ở quầy đang được chốt vé', () => {
+      const game = openMidShift();
+      game.state.today.counter = { ...game.state.today.counter, state: 'RESOLVING' };
+      expect(closeEarlyBlockedReason(game.state)).toBe('CUSTOMER_BEING_RESOLVED');
+    });
+
+    it('bị từ chối ở ngày đặc biệt', () => {
+      const game = openMidShift();
+      const personal = { ...PERSONAL, enabled: true, scriptedMoments: [{ id: 'm', day: game.state.day, at: 'OPEN' as const, lines: ['x'] }] };
+      expect(closeEarlyBlockedReason(game.state, personal)).toBe('SPECIAL_DAY');
+    });
   });
 });

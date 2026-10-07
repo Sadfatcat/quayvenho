@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { PERSONAL } from '@data/personal';
 import { STRINGS } from '@data/strings';
-import { counterCustomer } from '@domain/dayCycle';
+import { closeEarlyBlockedReason, counterCustomer, customersNotYetServed } from '@domain/dayCycle';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
 import { isMechanicOpen } from '@domain/dayConfig';
 import { formatClock } from '@domain/clock';
@@ -24,6 +24,7 @@ import { ToastQueue } from '@ui/Toast';
 import { TopBar } from '@ui/TopBar';
 import { BACK_PRESSED_EVENT, BaseScene } from './BaseScene';
 import { PassportCard } from './overlays/PassportCard';
+import { DialogOverlay } from './overlays/DialogOverlay';
 import { PauseOverlay } from './overlays/PauseOverlay';
 import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { showPendingTutorials, showScriptedMoments } from './overlays/TutorialOverlay';
@@ -62,6 +63,11 @@ export class CounterScene extends BaseScene {
   private staffChipsSignature = '';
 
   private pauseOverlay: PauseOverlay | null = null;
+  private closeEarlyDialogOpen = false;
+  /** Chỉ gợi ý sau khi hướng dẫn đã kịp tạm dừng game ở khung hình đầu. */
+  private canSuggestCloseEarly = false;
+  /** Đã gợi ý đóng cửa vì hết vé trong lần hết hàng này; hết ghế lại (huỷ vé trả ghế rồi bán nốt) thì gợi ý lại. */
+  private outOfStockPromptShown = false;
   private unsubscribeEvents: (() => void) | null = null;
   private unsubscribeVisibility: (() => void) | null = null;
 
@@ -89,6 +95,7 @@ export class CounterScene extends BaseScene {
     this.renderAll();
     showPendingTutorials(this, 'Counter');
     showScriptedMoments(this, 'OPEN');
+    this.canSuggestCloseEarly = true;
   }
 
   update(_time: number, delta: number): void {
@@ -108,6 +115,7 @@ export class CounterScene extends BaseScene {
       travelViet: isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null,
       icon: STRINGS.common.pauseIcon,
       onIconTap: () => this.openPause(),
+      secondaryIcon: { label: STRINGS.counter.closeEarlyIcon, onTap: () => this.askCloseEarly('MANUAL') },
     });
 
     this.brandText = this.add.text(SCREEN_MARGIN, HEADER_TEXT_Y, state.profile?.brandName ?? '', { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5);
@@ -152,6 +160,8 @@ export class CounterScene extends BaseScene {
     this.passportButton.setVisible(!!counter && isMechanicOpen('badPassport', state.day));
     this.desk.renderFrame(state);
     this.updateButtons(state);
+    this.topBar.setSecondaryEnabled(!this.closeEarlyDialogOpen && closeEarlyBlockedReason(state, PERSONAL) === null);
+    this.suggestCloseEarlyWhenOutOfStock(state);
 
     if (state.phase === 'SUMMARY') this.scene.start('Summary');
   }
@@ -225,6 +235,49 @@ export class CounterScene extends BaseScene {
     const specialLines = specialLinesOf(result.specialId);
     if (specialLines) this.toasts.show(GOOD_SPECIAL_OUTCOMES.has(result.outcome) ? specialLines.success : specialLines.fail, SPECIAL_TOAST_MS);
     else if (result.mistakes.length) this.toasts.show(result.mistakes.map((code) => STRINGS.counter.mistakes[code]).join(', '), 2000);
+  }
+
+  /** PLAN: hết vé thì gợi ý đóng cửa sớm; hộp thoại dừng đồng hồ trong lúc người chơi cân nhắc. */
+  private suggestCloseEarlyWhenOutOfStock(state: GameState): void {
+    const hasStock = state.today.seats.some((seat) => seat.state === 'AVAILABLE' || seat.state === 'HELD');
+    if (hasStock) {
+      this.outOfStockPromptShown = false;
+      return;
+    }
+    // Đang tạm dừng (menu tạm dừng, hướng dẫn...) thì đợi: tránh chồng hộp thoại, gợi ý sẽ hiện ngay khi hết tạm dừng.
+    if (!this.canSuggestCloseEarly || this.outOfStockPromptShown || this.closeEarlyDialogOpen || sessionBridge.isPaused) return;
+    if (closeEarlyBlockedReason(state, PERSONAL) !== null) return;
+    this.outOfStockPromptShown = true;
+    this.askCloseEarly('OUT_OF_STOCK');
+  }
+
+  private askCloseEarly(trigger: 'MANUAL' | 'OUT_OF_STOCK'): void {
+    if (this.closeEarlyDialogOpen) return;
+    this.closeEarlyDialogOpen = true;
+    const releasePause = sessionBridge.holdPause();
+    const text = STRINGS.counter.closeEarly;
+    const waiting = customersNotYetServed(sessionBridge.current.state.today);
+    const message = trigger === 'MANUAL' ? `${text.confirmMessage}
+(Còn ${waiting} khách chưa phục vụ.)` : text.outOfStockMessage;
+    const finish = (): void => {
+      this.closeEarlyDialogOpen = false;
+      releasePause();
+    };
+    new DialogOverlay(this, {
+      title: trigger === 'MANUAL' ? text.confirmTitle : text.outOfStockTitle,
+      message,
+      buttons: [
+        { label: text.confirmNo, variant: 'ghost', onTap: finish },
+        {
+          label: text.confirmYes,
+          variant: 'primary',
+          onTap: () => {
+            finish();
+            this.dispatch({ type: 'CLOSE_EARLY' });
+          },
+        },
+      ],
+    });
   }
 
   private openPause(): void {

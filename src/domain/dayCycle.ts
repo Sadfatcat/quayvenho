@@ -453,6 +453,11 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
       return [{ type: 'TICKET_SCORED', result }];
     }
 
+    case 'CLOSE_EARLY': {
+      const blocked = closeEarlyBlockedReason(state, session.personal);
+      return blocked ? reject(blocked) : closeEarly(session);
+    }
+
     case 'GO_TO_SHOP': {
       if (state.phase !== 'SUMMARY') return reject('WRONG_PHASE');
       state.phase = 'SHOP';
@@ -828,6 +833,38 @@ const cancelOverCapTickets = (state: GameState): void => {
     today.transactions.push(makeTx('TICKET_REFUND', -refund, state.day, minute, result.customerId));
   }
   invariant(state.money >= 0, 'money went negative after cancellations');
+};
+
+/**
+ * Lý do không được đóng cửa sớm lúc này, hoặc null nếu được. Không cho ở ngày hướng dẫn đầu và ngày đặc biệt
+ * (PLAN §16); đang chốt vé của khách ở quầy thì chờ xong (vài giây).
+ */
+export const closeEarlyBlockedReason = (state: Readonly<GameState>, personal: PersonalConfig = PERSONAL): string | null => {
+  if (state.phase !== 'OPEN') return 'WRONG_PHASE';
+  if (!state.flags[TUTORIAL_FLAG]) return 'TUTORIAL_DAY';
+  if (dayHasPersonalContent(personal, state.day)) return 'SPECIAL_DAY';
+  if (state.today.counter.state === 'RESOLVING') return 'CUSTOMER_BEING_RESOLVED';
+  return null;
+};
+
+/** Khách chưa được chấm: đang chờ/đang ở quầy cộng khách chưa đến. */
+export const customersNotYetServed = (today: Readonly<TodayState>): number => today.queue.length + today.arrivals.length - today.nextArrivalIndex;
+
+/** Đóng cửa sớm: khách đang chờ và khách chưa đến bị bỏ (không sao, không phạt), ghế còn lại giữ cho ngày sau, lương vẫn trả. */
+const closeEarly = (session: Session): DomainEvent[] => {
+  const { state } = session;
+  const { today } = state;
+  const dropped = customersNotYetServed(today);
+  today.seats = releaseHeld(today.seats);
+  today.queue = [];
+  today.counter = emptyCounter();
+  today.nextArrivalIndex = today.arrivals.length;
+  today.clock = SHOP_CLOSE_MINUTE;
+  if (session.runtime) session.runtime.assist = null;
+  state.phase = 'CLOSING';
+  const events: DomainEvent[] = [{ type: 'SHIFT_CLOSED_EARLY', dropped }];
+  endDayIfDone(session, events);
+  return events;
 };
 
 const endDayIfDone = (session: Session, events: DomainEvent[]): void => {

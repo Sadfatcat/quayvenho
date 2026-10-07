@@ -80,7 +80,9 @@ class SessionBridge {
   dispatch(command: Command): DomainEvent[] {
     const events = this.current.dispatch(command);
     this.notify(events);
-    if (!this.takenOver && CHECKPOINT_COMMANDS.has(command.type) && !events.some((event) => event.type === 'COMMAND_REJECTED')) {
+    const rejected = events.some((event) => event.type === 'COMMAND_REJECTED');
+    const endedDay = events.some((event) => event.type === 'DAY_ENDED');
+    if (!this.takenOver && !rejected && (CHECKPOINT_COMMANDS.has(command.type) || endedDay)) {
       writeSave(this.current.state);
     }
     return events;

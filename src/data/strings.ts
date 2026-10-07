@@ -271,6 +271,15 @@ export const STRINGS = {
     select: 'Chọn',
   },
   counter: {
+    closeEarlyIcon: '⏭',
+    closeEarly: {
+      confirmTitle: 'Đóng cửa sớm?',
+      confirmMessage: 'Khách chưa phục vụ sẽ bị bỏ (không bị phạt, không tính sao). Ghế chưa bán giữ cho ngày sau. Lương nhân viên vẫn trả.',
+      outOfStockTitle: 'Hết vé rồi',
+      outOfStockMessage: 'Kho đã hết ghế. Đóng cửa sớm để sang ngày mới? Khách chưa phục vụ sẽ bị bỏ (không phạt), lương nhân viên vẫn trả.',
+      confirmYes: 'Đóng cửa',
+      confirmNo: 'Chơi tiếp',
+    },
     eventBadge: { rush: '🔥 Cao điểm lễ hội', weatherBad: 'thời tiết xấu', weatherSevere: 'thời tiết rất xấu, huỷ chuyến' },
     stepLabels: ['Chuyến', 'Ghế', 'Hành lý', 'Vé'],
     next: 'Tiếp',
@@ -419,6 +428,7 @@ export const STRINGS = {
     profit: 'Lợi nhuận ròng',
     served: 'Khách phục vụ',
     left: 'Khách bỏ đi',
+    notServed: 'Khách chưa phục vụ (đóng cửa sớm)',
     avgStars: 'Sao trung bình',
     travelViet: 'TravelViet',
     seatsExpireTomorrow: 'Ngày mai là ngày cuối: {n} ghế trong kho sẽ hết hạn tối mai.',
