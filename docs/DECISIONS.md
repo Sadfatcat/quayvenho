@@ -263,3 +263,4 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Nút đóng cửa sớm luôn mở (bỏ cả khoá ngày 1; chỉ còn khoá ngày đặc biệt khi bật PersonalConfig). Chỉnh giá vé mở từ ngày 1 (`PRICING_UNLOCK_DAY` 1).
 - Bỏ khách cộng thêm ngày đầu (`EARLY_CUSTOMER_BONUS`): trung bình ngày 1–5 là 8 / 10,8 / 13,9 / 16,9 / 19,9 khách, vừa với 6tr khởi điểm và ~10tr các ngày sau.
 - Nhân viên chậm lại một nấc: rút vé 1200 ms, đóng dấu 2000, cân hành lý 1300 (+ thời gian giữ thanh cân), chọn ghế 1700, vé dịch vụ 1500, kiểm tra hộ chiếu 1200. Cân hành lý của Middle không còn sai (`BAGGAGE_ERROR_PCT` 40 → 0).
+- Sửa lại: ý chủ dự án là nhanh hơn. Mỗi việc của nhân viên còn 0,5–0,9 giây (rút vé 500 ms, đóng dấu 900, cân hành lý 600 + thời gian giữ thanh cân, chọn ghế 700, vé dịch vụ 600, kiểm tra hộ chiếu 500); cân hành lý vẫn không sai.
