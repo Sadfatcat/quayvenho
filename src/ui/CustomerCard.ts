@@ -11,9 +11,12 @@ const MOOD_TO_AVATAR: Record<Mood, AvatarMood> = { HAPPY: 'happy', NEUTRAL: 'neu
 
 const AVATAR_CENTER = { x: 84, y: 318 };
 const AVATAR_RADIUS = 52;
-const CARD = { left: 164, top: 244, width: 532, height: 184 };
+export const CARD = { left: 164, top: 244, width: 532, height: 184 };
 /** Lời khách nói nằm trên cùng khung; nút Từ chối nằm sát đáy bên phải nên chừa chỗ phía dưới. */
 const SPEECH = { paddingX: 22, paddingTop: 16, fontSize: 24, lineSpacing: 4 };
+/** Nút hộ chiếu nằm ở góc trên phải của khung (xem CounterScene); lời khách chừa chỗ cho nó. */
+export const PASSPORT_BUTTON_INSET = 14;
+export const PASSPORT_BUTTON_SIZE = 72;
 const NAME_Y = AVATAR_CENTER.y + AVATAR_RADIUS + 16;
 const PATIENCE_BAR = { x: AVATAR_CENTER.x - 56, y: NAME_Y + 16, width: 112, height: 12 };
 const TAIL_HALF_HEIGHT = 16;
@@ -114,7 +117,7 @@ export class CustomerCard extends Phaser.GameObjects.Container {
           fontStyle: 'bold',
           color: toCssColor(COLORS.text),
           lineSpacing: SPEECH.lineSpacing,
-          wordWrap: { width: CARD.width - 2 * SPEECH.paddingX },
+          wordWrap: { width: CARD.width - SPEECH.paddingX - PASSPORT_BUTTON_INSET * 2 - PASSPORT_BUTTON_SIZE },
         })
         .setOrigin(0, 0),
     );

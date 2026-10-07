@@ -12,11 +12,11 @@ import { registerVisibilityHandler } from '@platform/visibility';
 import { Button } from '@ui/Button';
 import { burstCoins } from '@ui/CoinBurst';
 import { CounterDesk } from '@ui/CounterDesk';
-import { CustomerCard } from '@ui/CustomerCard';
+import { CARD, CustomerCard, PASSPORT_BUTTON_INSET, PASSPORT_BUTTON_SIZE } from '@ui/CustomerCard';
 import { formatMoney } from '@ui/format';
 import { QueueStrip } from '@ui/QueueStrip';
 import { showFloatingText } from '@ui/FloatingText';
-import { MIN_TOUCH_SIZE, SCREEN_MARGIN } from '@ui/layout';
+import { SCREEN_MARGIN } from '@ui/layout';
 import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { isAbsentOn } from '@domain/staff';
 import { kindName } from '@ui/staffText';
@@ -40,7 +40,7 @@ const SHAKE_INTENSITY = 0.006;
 const HEADER_TEXT_Y = 146;
 /** Thông báo sự kiện nằm dưới hàng tên quầy, bên phải ảnh người chơi, để chừa chỗ cho ô TravelViet dưới ô tiền. */
 const EVENT_BADGE = { x: 110, y: 192, width: 580 };
-const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 262 };
+const PASSPORT_BUTTON = { x: CARD.left + CARD.width - PASSPORT_BUTTON_INSET - PASSPORT_BUTTON_SIZE / 2, y: CARD.top + PASSPORT_BUTTON_INSET + PASSPORT_BUTTON_SIZE / 2 };
 /** Nằm gọn trong khung yêu cầu (khung: x 164–696, y 244–428), cách viền phải và đáy 20px. */
 const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 20 - 70, y: 428 - 16 - 24, width: 140, height: 48, fontSize: 20 };
 const FEEDBACK_Y = 330;
@@ -135,7 +135,7 @@ export class CounterScene extends BaseScene {
     this.refuseButton = new Button(this, REFUSE_BUTTON.x, REFUSE_BUTTON.y, { width: REFUSE_BUTTON.width, height: REFUSE_BUTTON.height, label: STRINGS.counter.desk.refuseButton, fontSize: REFUSE_BUTTON.fontSize, variant: 'danger', onTap: () => this.dispatch({ type: 'REFUSE_CUSTOMER' }) });
     this.refuseButton.setVisible(false);
 
-    this.passportButton = new Button(this, PASSPORT_BUTTON.x, PASSPORT_BUTTON.y, { width: MIN_TOUCH_SIZE, height: MIN_TOUCH_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
+    this.passportButton = new Button(this, PASSPORT_BUTTON.x, PASSPORT_BUTTON.y, { width: PASSPORT_BUTTON_SIZE, height: PASSPORT_BUTTON_SIZE, label: STRINGS.passport.icon, variant: 'ghost', onTap: () => this.openPassportCard() });
     this.passportButton.setVisible(false);
   }
 
