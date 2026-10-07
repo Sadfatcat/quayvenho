@@ -31,7 +31,7 @@ export const STAFF_JOB_DELAY_MS: Record<StaffJob, number> = {
 export const STAFF_WEIGH_SETTLE_MS = 300;
 
 /** Cân hành lý của Middle sai theo xác suất này (%). */
-export const BAGGAGE_ERROR_PCT = 0;
+export const BAGGAGE_ERROR_PCT = 8;
 
 /** Làm đủ `afterDays` ngày ở bậc hiện tại thì tự lên bậc `to` (số ngày tính lại từ 0 ở bậc mới); Senior và Marketing không lên nữa. */
 export const STAFF_PROMOTIONS: Partial<Record<StaffKind, { afterDays: number; to: StaffKind }>> = {
