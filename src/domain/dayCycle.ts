@@ -52,6 +52,7 @@ import type {
   OwnedSeat,
   RouteId,
   ScoreResult,
+  StaffJob,
   StaffNotice,
   TicketDraft,
   TodayState,
@@ -713,23 +714,38 @@ const startWeighing = (session: Session, customer: Customer, queue: AssistQueue,
   return true;
 };
 
-/** Nhân viên đi làm lần lượt làm phần việc của mình cho khách đang lắp vé; người chơi vẫn luôn là người in và giao vé. */
+/** Việc chưa làm được vì thiếu điều kiện (chưa có vé trên bàn, chưa có chuyến để chọn ghế): nhân viên đứng chờ, chưa tính giờ. */
+const isAssistStepBlocked = (draft: TicketDraft, job: StaffJob): boolean => {
+  if (job === 'CABIN' || job === 'PASSPORT') return false;
+  return draft.cabin === null || (job === 'SEAT' && !draft.flightId);
+};
+
+/**
+ * Nhân viên đi làm phụ việc cho khách đang lắp vé, MỖI LẦN CHỈ MỘT VIỆC: việc đang đếm giờ giữ lượt, những người còn lại đứng nhìn
+ * cho tới khi xong (việc bị chặn thì bỏ qua, không giữ lượt). Người chơi vẫn luôn là người in và giao vé.
+ */
 const tickStaff = (session: Session, delta: number, events: DomainEvent[]): void => {
   const assist = session.runtime?.assist;
   if (!assist) return;
   const { today } = session.state;
   const customer = counterCustomer(today);
-  if (!customer || customer.order.customerId !== assist.customerId || today.counter.state !== 'BUILDING') return;
+  const draft = today.counter.draft;
+  if (!customer || !draft || customer.order.customerId !== assist.customerId || today.counter.state !== 'BUILDING') return;
   for (const queue of assist.queues) {
     const step = queue.steps[0];
-    if (!step) continue;
-    step.waitMs = Math.max(0, step.waitMs - delta);
-    if (step.waitMs > 0) continue;
-    if (startWeighing(session, customer, queue, step, events)) continue;
+    if (!step || isAssistStepBlocked(draft, step.job)) continue;
+    if (step.waitMs > 0) {
+      step.waitMs = Math.max(0, step.waitMs - delta);
+      if (step.waitMs > 0) return;
+    }
+    if (startWeighing(session, customer, queue, step, events)) return;
     const outcome = applyAssistStep(session, customer, step);
     if (outcome === 'WAIT') continue;
     queue.steps.shift();
-    if (outcome === 'DONE') events.push({ type: 'STAFF_ASSISTED', staffId: queue.staffId, kind: queue.kind, job: step.job });
+    if (outcome === 'DONE') {
+      events.push({ type: 'STAFF_ASSISTED', staffId: queue.staffId, kind: queue.kind, job: step.job });
+      return;
+    }
   }
 };
 

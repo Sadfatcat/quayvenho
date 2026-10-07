@@ -242,3 +242,8 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 ## 2026-10-07 — Nhân viên cân hành lý có chuyển động, Senior kiểm tra hộ chiếu
 - Cân hành lý của Middle không còn "nhảy một phát": tới lượt, nhân viên quyết định số kg nhả tay (vẫn sai 40% theo `BAGGAGE_ERROR_PCT`), phát sự kiện `STAFF_WEIGH_STARTED {kg, holdMs}` rồi giữ đúng `kg / BAGGAGE_HOLD_SPEED_KG_PER_S` giây (+ `STAFF_WEIGH_SETTLE_MS` = 300 ms), sau đó mới ghi kg vào vé. Giao diện (`BaggageSlider.autoHold`) diễn lại cú bấm giữ: số chạy từ 0 tới kg kèm tiếng tick; thanh cân vẽ lại giữa chừng vẫn chạy tiếp đúng nhịp; trong lúc đó người chơi không bấm đè được.
 - Senior có thêm việc `PASSPORT` (đứng đầu hàng việc, không cần có vé, 1000 ms): chỉ khi hộ chiếu sai tên mới báo — toast "hộ chiếu sai tên, bấm Từ chối!" và nút 🛂 chuyển đỏ tới khi khách rời quầy. Người chơi vẫn tự quyết bấm Từ chối. Phương án đã loại (chưa hỏi chủ dự án vì câu hỏi bị bỏ qua): Senior tự từ chối khách.
+
+## 2026-10-07 — Nhân viên làm từng việc một, chậm lại
+- Trước đây mỗi nhân viên có hàng việc riêng chạy song song nên nhiều việc xong cùng lúc. Nay `tickStaff` chỉ cho MỘT việc chạy mỗi lúc: việc đang đếm giờ giữ lượt, người khác đứng chờ tới khi nó xong; việc thiếu điều kiện (chưa có vé trên bàn, chưa có chuyến để chọn ghế) bị bỏ qua và chưa tính giờ cho tới khi đủ điều kiện (`isAssistStepBlocked`). Cân hành lý cũng giữ lượt suốt thời gian "bấm giữ".
+- `STAFF_JOB_DELAY_MS` chậm lại: rút vé 1500 ms, đóng dấu 2200, cân hành lý 1500 (+ thời gian giữ thanh cân), chọn ghế 1800, vé dịch vụ 1500, kiểm tra hộ chiếu 1500 (trước đó 800/1200/1200/1000/800/1000, bản gốc 2000/3000/3000/2500/2000).
+- Thẻ hộ chiếu: đẩy tên và các dòng thông tin xuống dưới ảnh khách (trước đó ảnh đè lên tên); thẻ cao 470.

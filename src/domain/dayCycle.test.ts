@@ -589,6 +589,24 @@ describe('staff', () => {
     expect(flagged('Lê Văn An')).toBe(false);
   });
 
+  it('staff work one job at a time: never two jobs finish in the same tick, and the draft still gets completed', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' });
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    tickToFirstCustomer(game);
+
+    let maxJobsInOneTick = 0;
+    for (let i = 0; i < 600 && game.state.today.counter.draft?.seat === null; i++) {
+      const jobs = game.tick(100).filter((event) => event.type === 'STAFF_ASSISTED').length;
+      maxJobsInOneTick = Math.max(maxJobsInOneTick, jobs);
+    }
+
+    expect(maxJobsInOneTick).toBe(1);
+    expect(game.state.today.counter.draft?.seat).not.toBeNull();
+  });
+
   it('staff do not overwrite a step the player already did', () => {
     const game = richGame(15);
     game.dispatch({ type: 'HIRE_STAFF', kind: 'JUNIOR' });

@@ -10,8 +10,9 @@ import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 
 const PANEL_WIDTH = 560;
-const PANEL_HEIGHT = 420;
-const ROWS_TOP = 214;
+const PANEL_HEIGHT = 470;
+const NAME_TOP = 214;
+const ROWS_TOP = 272;
 const ROW_STEP = 50;
 
 /** PLAN §10.7. Chạm ra ngoài hoặc nút ✕ để đóng; mở card không pause kiên nhẫn. */
@@ -21,7 +22,7 @@ export class PassportCard extends BaseOverlay {
 
     const panel = new Panel(scene, GAME_WIDTH / 2, GAME_HEIGHT / 2, { width: PANEL_WIDTH, height: PANEL_HEIGHT });
     const avatar = new CustomerAvatar(scene, 0, -PANEL_HEIGHT / 2 + 90, 55, order.spriteId);
-    const name = scene.add.text(0, -PANEL_HEIGHT / 2 + 160, order.passport.name, TEXT_STYLES.heading).setOrigin(0.5);
+    const name = scene.add.text(0, -PANEL_HEIGHT / 2 + NAME_TOP, order.passport.name, TEXT_STYLES.heading).setOrigin(0.5);
     const profile = passportProfileOf(order);
     const rows = [
       { text: `${STRINGS.passport.birthDate}: ${profile.birthDate}`, bold: false },
