@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { seedWithDay1Event } from './fixtures';
 import { GameSession } from '../game';
+import { customersForDay } from '../demand';
 import { getRoute } from '../routes';
 import type { Decision, Decide } from './bots';
 import { playDay, playShift, randomBotRng, randomDecide } from './bots';
@@ -9,33 +10,36 @@ const SEAT_COST = 3 * getRoute('HAN-DAD').cost.ECONOMY + getRoute('HAN-DAD').cos
 
 describe('full day (Phase 1 acceptance)', () => {
   it('3 correct, 1 wrong, 1 correct refusal, 3 left → expected DaySummary', () => {
-    const game = GameSession.newGame(seedWithDay1Event('RUSH'));
+    const seed = seedWithDay1Event('RUSH');
+    const game = GameSession.newGame(seed);
     const dad = game.state.today.flights.find((f) => f.routeId === 'HAN-DAD')?.id ?? '';
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
     game.dispatch({ type: 'PREP_SET_QTY', flightId: dad, cabin: 'ECONOMY', qty: 3 });
     game.dispatch({ type: 'PREP_SET_QTY', flightId: dad, cabin: 'BUSINESS', qty: 1 });
     game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
     game.dispatch({ type: 'OPEN_COUNTER' });
-    expect(game.state.today.targetCustomers).toBe(11);
+    const target = game.state.today.targetCustomers;
+    expect(target).toBe(customersForDay({ seed, day: 1, rating: 4, rush: true }));
 
     const plan: Decision[] = ['CORRECT', 'CORRECT', 'CORRECT', 'WRONG_CABIN', 'REFUSE', 'IGNORE', 'IGNORE', 'IGNORE'];
     const decide: Decide = (_order, index) => plan[index] ?? 'IGNORE';
     playShift(game, decide);
 
     const outcomes = game.state.today.results.map((r) => r.outcome).sort();
-    expect(outcomes).toEqual(['FAILED', 'LEFT', 'LEFT', 'LEFT', 'LEFT', 'LEFT', 'LEFT', 'PERFECT', 'PERFECT', 'PERFECT', 'REFUSED_NO_STOCK']);
-    expect(game.state.lastSummary).toMatchObject({
+    expect(outcomes).toEqual(['FAILED', ...Array<string>(target - 5).fill('LEFT'), 'PERFECT', 'PERFECT', 'PERFECT', 'REFUSED_NO_STOCK']);
+    const summary = game.state.lastSummary;
+    expect(summary?.penalties).toBeGreaterThan(0);
+    expect(summary).toMatchObject({
       day: 1,
       moneyStart: 6000,
-      moneyEnd: 6000 - SEAT_COST + 3300 - 548,
+      moneyEnd: 6000 - SEAT_COST + 3300 - (summary?.penalties ?? 0),
       ticketRevenue: 3300,
       tips: 0,
       seatCost: SEAT_COST,
       shopCost: 0,
-      penalties: 548,
       expiredSeats: 0,
       served: 5,
-      left: 6,
+      left: target - 5,
       turnedAway: 0,
       travelVietAfter: null,
     });

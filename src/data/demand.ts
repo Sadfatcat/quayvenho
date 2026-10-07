@@ -3,6 +3,8 @@ export const EARLY_GROWTH = { untilDay: 10, min: 1, max: 3 } as const;
 /** Hệ số khách cho những ngày đầu (trước khi mở TravelViet), để game đỡ vắng lúc mới chơi. */
 export const EARLY_DAYS_CUSTOMER_MULT = 1.5;
 export const LATE_GROWTH = { min: 1, max: 2 } as const;
+/** Khách cộng thêm cho những ngày đầu (phần tử i = ngày i + 1) để game đỡ vắng; giảm dần sau ngày 4 để không có vách đá. */
+export const EARLY_CUSTOMER_BONUS: readonly number[] = [15, 20, 25, 30, 20, 10, 5];
 
 export const TRAVELVIET_FROM_DAY = 11;
 /** TravelViet (hệ số, thưởng sao) và việc bỏ hệ số khách đầu game được trộn dần trong chừng này ngày để không có cú nhảy ở ngày 11. */

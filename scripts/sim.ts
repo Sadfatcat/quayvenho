@@ -248,6 +248,11 @@ const printMilestones = (name: string, byDay: DayRecord[][]): void => {
   const richDayProfitRaw = median(crossingDays);
   const richDayProfit = Number.isFinite(richDayProfitRaw) ? richDayProfitRaw : null;
   const richDay = byDay.findIndex((records) => records.length > 0 && median(records.map((r) => r.moneyEnd)) >= RICH_MONEY) + 1;
+  const mean = (values: readonly number[]): number => (values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0);
+  const customersByEarlyDay = [1, 2, 3, 4].map((day) => round1(mean((byDay[day - 1] ?? []).map((r) => r.customers))));
+  const earlyRecords = byDay.slice(0, 10).flat();
+  const earlyLeftPct = round1((earlyRecords.reduce((total, r) => total + (r.customers - r.served), 0) / Math.max(1, earlyRecords.reduce((total, r) => total + r.customers, 0))) * 100);
+  console.log(`EARLY ${name} ${JSON.stringify({ customersDay1to4: customersByEarlyDay, leftPctDays1to10: earlyLeftPct, moneyDay5: Math.round(median((byDay[4] ?? []).map((r) => r.moneyEnd))) })}`);
   console.log(`MILESTONES ${name} ${JSON.stringify({ richDay: richDay > 0 ? richDay : null, richDayProfit, moneyAt, travelVietAt })}`);
 };
 
