@@ -77,6 +77,9 @@ export class CounterDesk extends Phaser.GameObjects.Container {
   private printer: PrinterStation | null = null;
   private lastCounterState: CounterState = 'EMPTY';
   private destinationScrollY = 0;
+  private baggageSlider: BaggageSlider | null = null;
+  /** Nhân viên đang giữ thanh cân: nhớ lại để thanh cân vẽ lại giữa chừng vẫn chạy tiếp đúng nhịp. */
+  private staffWeighing: { kg: number; holdMs: number; startedAtMs: number } | null = null;
   private readonly dispatch: (command: Command) => void;
 
   constructor(scene: Phaser.Scene, options: CounterDeskOptions) {
@@ -451,17 +454,29 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     );
   }
 
+  /** Nhân viên bắt đầu cân hành lý: thanh cân tự chạy từ 0 tới `kg` như đang bị bấm giữ. */
+  startStaffWeighing(kg: number, holdMs: number): void {
+    this.staffWeighing = { kg, holdMs, startedAtMs: this.scene.time.now };
+    this.baggageSlider?.autoHold(kg, holdMs);
+  }
+
   private drawBaggage(parent: Phaser.GameObjects.Container, state: GameState): void {
+    this.baggageSlider = null;
     if (!isMechanicOpen('baggage', state.day)) return;
     const draft = state.today.counter.draft;
     const { x, y, width } = LAYOUT.baggage;
-    parent.add(
-      new BaggageSlider(this.scene, x, y, {
-        width,
-        initialKg: draft?.baggageKg ?? 0,
-        onCommit: (kg) => this.dispatch({ type: 'BUILD_SET_BAGGAGE', kg }),
-      }),
-    );
+    const slider = new BaggageSlider(this.scene, x, y, {
+      width,
+      initialKg: draft?.baggageKg ?? 0,
+      onCommit: (kg) => this.dispatch({ type: 'BUILD_SET_BAGGAGE', kg }),
+    });
+    parent.add(slider);
+    this.baggageSlider = slider;
+    const weighing = this.staffWeighing;
+    if (!weighing) return;
+    const elapsedMs = this.scene.time.now - weighing.startedAtMs;
+    if (elapsedMs < weighing.holdMs && draft?.baggageKg === 0) slider.autoHold(weighing.kg, weighing.holdMs, elapsedMs);
+    else this.staffWeighing = null;
   }
 
   private serviceIcon(x: number, y: number, extra: Extra): Phaser.GameObjects.GameObject {

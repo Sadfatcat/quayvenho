@@ -124,7 +124,7 @@ export const STRINGS = {
       INTERN: { name: 'Thực tập sinh', description: 'Chăm chỉ nhưng chưa làm được gì cả. Có khi nuôi lâu rồi sẽ khác. Làm đủ 8 ngày sẽ có bất ngờ đấy!' },
       JUNIOR: { name: 'Nhân viên Junior', description: 'Rút đúng vé thường hay thương gia theo đơn của khách. Làm đủ 10 ngày sẽ lên Middle.' },
       MIDDLE: { name: 'Nhân viên Middle', description: 'Chọn vé đúng hạng, rồi đóng dấu điểm đến + giờ bay đúng chuyến và cân hành lý (hay sai khoảng 40%). Làm đủ 12 ngày sẽ lên Senior.' },
-      SENIOR: { name: 'Nhân viên Senior', description: 'Đưa vé dịch vụ rồi chọn ghế đúng yêu cầu vị trí của khách. Phải có vé trên bàn (chờ chọn vé), chọn ghế còn cần chuyến đã đóng dấu.' },
+      SENIOR: { name: 'Nhân viên Senior', description: 'Kiểm tra hộ chiếu (báo nếu sai tên, bạn vẫn tự bấm Từ chối), đưa vé dịch vụ rồi chọn ghế đúng yêu cầu vị trí của khách. Đưa vé dịch vụ và chọn ghế phải chờ có vé trên bàn; chọn ghế còn cần chuyến đã đóng dấu.' },
       MARKETING: { name: 'Nhân viên Marketing', description: 'Kéo thêm khách mỗi ngày. Dạy việc để kéo được nhiều hơn nữa.' },
     } as Record<string, { name: string; description: string }>,
     jobs: {
@@ -133,6 +133,7 @@ export const STRINGS = {
       BAGGAGE: 'cân hành lý',
       SEAT: 'chọn ghế',
       SERVICES: 'vé dịch vụ',
+      PASSPORT: 'kiểm tra hộ chiếu',
     } as Record<string, string>,
     jobDone: {
       CABIN: 'rút vé',
@@ -140,6 +141,7 @@ export const STRINGS = {
       BAGGAGE: 'cân hành lý',
       SEAT: 'chọn ghế',
       SERVICES: 'đưa vé dịch vụ',
+      PASSPORT: 'hộ chiếu sai tên, bấm Từ chối!',
     } as Record<string, string>,
     absence: {
       SICK: 'nghỉ ốm',

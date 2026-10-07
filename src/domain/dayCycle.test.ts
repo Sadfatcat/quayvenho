@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SEAT_VALID_DAYS } from '@data/balance';
+import { BAGGAGE_HOLD_SPEED_KG_PER_S, SEAT_VALID_DAYS } from '@data/balance';
 import { MS_PER_GAME_MINUTE } from '../config';
 import { invariant } from './common/invariant';
 import { purchaseCost } from './economy';
@@ -553,6 +553,40 @@ describe('staff', () => {
     tickUntil(game, () => game.state.today.counter.draft?.extras.length === 1, 400);
     expect(game.state.today.counter.draft?.extras).toEqual(['VEG_MEAL']);
     expect(game.state.today.counter.draft?.seat).toBeNull();
+  });
+
+  it('Middle weighs baggage like a held press: announces the hold, then writes the kg only once the hold is over', () => {
+    const game = richGame(15);
+    game.dispatch({ type: 'HIRE_STAFF', kind: 'MIDDLE' });
+    stockAllFlights(game);
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const order = tickToFirstCustomer(game);
+    if (!order) throw new Error('no customer');
+    order.baggageKg = 20;
+
+    const events = tickUntil(game, () => game.state.today.counter.draft?.baggageKg !== 0, 600);
+
+    const started = events.find((event) => event.type === 'STAFF_WEIGH_STARTED');
+    expect(started).toBeDefined();
+    if (started?.type !== 'STAFF_WEIGH_STARTED') throw new Error('missing weigh event');
+    expect(started.holdMs).toBe(Math.round((started.kg / BAGGAGE_HOLD_SPEED_KG_PER_S) * 1000));
+    expect(game.state.today.counter.draft?.baggageKg).not.toBe(0);
+  });
+
+  it('Senior flags a customer whose passport name does not match, and stays quiet for a valid passport', () => {
+    const flagged = (passportName: string): boolean => {
+      const game = richGame(15);
+      game.dispatch({ type: 'HIRE_STAFF', kind: 'SENIOR' });
+      stockAllFlights(game);
+      game.dispatch({ type: 'OPEN_COUNTER' });
+      const order = tickToFirstCustomer(game);
+      if (!order) throw new Error('no customer');
+      order.passport = { name: passportName, bookedName: 'Lê Văn An' };
+      const events = tickUntil(game, () => false, 150);
+      return events.some((event) => event.type === 'STAFF_ASSISTED' && event.job === 'PASSPORT');
+    };
+    expect(flagged('Lê Văn Ân')).toBe(true);
+    expect(flagged('Lê Văn An')).toBe(false);
   });
 
   it('staff do not overwrite a step the player already did', () => {

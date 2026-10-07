@@ -1,4 +1,5 @@
 import {
+  BAGGAGE_HOLD_SPEED_KG_PER_S,
   BAGGAGE_MARKS,
   BAGGAGE_MAX_KG,
   BAGGAGE_TOLERANCE_KG,
@@ -51,7 +52,6 @@ import type {
   OwnedSeat,
   RouteId,
   ScoreResult,
-  StaffJob,
   StaffNotice,
   TicketDraft,
   TodayState,
@@ -62,7 +62,7 @@ import { type Rng, rngFor } from './rng';
 import { startingRouteIds } from './routes';
 import { needsSupport, supportGift } from './safetyNet';
 import { findFlight, generateFlights } from './schedule';
-import { scoreCustomer, type CustomerAction } from './scoring';
+import { isPassportValid, scoreCustomer, type CustomerAction } from './scoring';
 import type { ShuffleBag } from './shuffleBag';
 import { generateArrivals } from './spawner';
 import {
@@ -82,8 +82,9 @@ import {
   staffBaggageKg,
   wageRaiseIncrement,
   type AssistQueue,
+  type AssistStep,
 } from './staff';
-import { MARKETING, WAGE_RAISE_EVERY_DAYS } from '@data/staff';
+import { MARKETING, STAFF_WEIGH_SETTLE_MS, WAGE_RAISE_EVERY_DAYS } from '@data/staff';
 import { checkRouteUnlock, checkUpgrade, computeModifiers } from './upgrades';
 
 /** Per-shift RNG state; rebuilt deterministically at OPEN_COUNTER, never saved. */
@@ -645,14 +646,15 @@ const tickCounter = (state: GameState, delta: number, events: DomainEvent[]): vo
 type AssistOutcome = 'DONE' | 'SKIP' | 'WAIT';
 
 /** Làm một việc của nhân viên trên vé nháp của khách ở quầy: bỏ qua nếu người chơi đã tự làm, chờ nếu chưa đủ điều kiện (vd. chưa có chuyến để chọn ghế). */
-const applyAssistStep = (session: Session, customer: Customer, job: StaffJob): AssistOutcome => {
+const applyAssistStep = (session: Session, customer: Customer, step: AssistStep): AssistOutcome => {
+  const { job } = step;
   const { state } = session;
   const { today } = state;
   const draft = today.counter.draft;
   if (!draft) return 'SKIP';
   const { order } = customer;
   // Chưa chọn vé (hạng) thì mọi việc phía sau đều bị chặn, nhân viên đứng chờ cho tới khi có vé trên bàn.
-  if (job !== 'CABIN' && draft.cabin === null) return 'WAIT';
+  if (job !== 'CABIN' && job !== 'PASSPORT' && draft.cabin === null) return 'WAIT';
   switch (job) {
     case 'CABIN':
       if (draft.cabin !== null) return 'SKIP';
@@ -669,7 +671,7 @@ const applyAssistStep = (session: Session, customer: Customer, job: StaffJob): A
     }
     case 'BAGGAGE': {
       if (order.baggageKg === 0 || draft.baggageKg !== 0) return 'SKIP';
-      draft.baggageKg = snapBaggage(staffBaggageKg(order, rngFor(state.seed, state.day, `staffbag:${order.customerId}`)));
+      draft.baggageKg = snapBaggage(step.weighKg ?? staffBaggageKg(order, rngFor(state.seed, state.day, `staffbag:${order.customerId}`)));
       return 'DONE';
     }
     case 'SEAT': {
@@ -684,11 +686,31 @@ const applyAssistStep = (session: Session, customer: Customer, job: StaffJob): A
       draft.seat = seat;
       return 'DONE';
     }
+    case 'PASSPORT':
+      // Chỉ báo khi hộ chiếu sai tên; người chơi vẫn tự bấm Từ chối.
+      return isMechanicOpen('badPassport', state.day) && !isPassportValid(order.passport) ? 'DONE' : 'SKIP';
     case 'SERVICES':
       if (!isMechanicOpen('extras', state.day) || order.extras.length === 0 || draft.extras.length > 0) return 'SKIP';
       draft.extras = [...order.extras];
       return 'DONE';
   }
+};
+
+/**
+ * Cân hành lý có chuyển động: tới lượt, nhân viên quyết định số kg sẽ nhả tay rồi "giữ thanh cân" đúng thời gian số chạy từ 0 tới đó
+ * (như người chơi bấm giữ); hết thời gian đó (cộng một nhịp dừng) mới ghi số vào vé. Trả true nếu vừa bắt đầu giữ.
+ */
+const startWeighing = (session: Session, customer: Customer, queue: AssistQueue, step: AssistStep, events: DomainEvent[]): boolean => {
+  const draft = session.state.today.counter.draft;
+  if (step.job !== 'BAGGAGE' || step.weighKg !== undefined || !draft || draft.cabin === null) return false;
+  const { order } = customer;
+  if (order.baggageKg === 0 || draft.baggageKg !== 0) return false;
+  const kg = staffBaggageKg(order, rngFor(session.state.seed, session.state.day, `staffbag:${order.customerId}`));
+  const holdMs = Math.round((kg / BAGGAGE_HOLD_SPEED_KG_PER_S) * 1000);
+  step.weighKg = kg;
+  step.waitMs = holdMs + STAFF_WEIGH_SETTLE_MS;
+  events.push({ type: 'STAFF_WEIGH_STARTED', staffId: queue.staffId, kg, holdMs });
+  return true;
 };
 
 /** Nhân viên đi làm lần lượt làm phần việc của mình cho khách đang lắp vé; người chơi vẫn luôn là người in và giao vé. */
@@ -703,7 +725,8 @@ const tickStaff = (session: Session, delta: number, events: DomainEvent[]): void
     if (!step) continue;
     step.waitMs = Math.max(0, step.waitMs - delta);
     if (step.waitMs > 0) continue;
-    const outcome = applyAssistStep(session, customer, step.job);
+    if (startWeighing(session, customer, queue, step, events)) continue;
+    const outcome = applyAssistStep(session, customer, step);
     if (outcome === 'WAIT') continue;
     queue.steps.shift();
     if (outcome === 'DONE') events.push({ type: 'STAFF_ASSISTED', staffId: queue.staffId, kind: queue.kind, job: step.job });

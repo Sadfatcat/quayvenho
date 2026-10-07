@@ -33,6 +33,7 @@ export class BaggageSlider extends Phaser.GameObjects.Container {
   private kg: number;
   private direction: 1 | -1 = 1;
   private activePointerId: number | null = null;
+  private autoPlan: { targetKg: number; holdMs: number; elapsedMs: number } | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, options: BaggageSliderOptions) {
     super(scene, x, y);
@@ -63,7 +64,17 @@ export class BaggageSlider extends Phaser.GameObjects.Container {
     scene.input.on('pointerupoutside', this.handlePointerUp, this);
   }
 
+  /** Nhân viên "bấm giữ" thay người chơi: số chạy đều từ 0 tới `targetKg` trong `holdMs` (cùng tốc độ bấm giữ), kèm tiếng tick; `elapsedMs` để vào giữa chừng khi vẽ lại. */
+  autoHold(targetKg: number, holdMs: number, elapsedMs = 0): void {
+    this.stopHolding();
+    this.autoPlan = { targetKg, holdMs, elapsedMs };
+    this.setHoldingLook(true);
+    this.show(this.autoProgressKg());
+    this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.advanceAuto, this);
+  }
+
   override destroy(fromScene?: boolean): void {
+    this.scene?.events.off(Phaser.Scenes.Events.UPDATE, this.advanceAuto, this);
     this.stopHolding();
     this.scene?.input.off('pointerup', this.handlePointerUp, this);
     this.scene?.input.off('pointerupoutside', this.handlePointerUp, this);
@@ -71,7 +82,7 @@ export class BaggageSlider extends Phaser.GameObjects.Container {
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
-    if (this.activePointerId !== null) return;
+    if (this.activePointerId !== null || this.autoPlan !== null) return;
     this.activePointerId = pointer.id;
     this.direction = 1;
     this.show(0);
@@ -106,6 +117,26 @@ export class BaggageSlider extends Phaser.GameObjects.Container {
       vibrate('success');
     }
     this.show(next);
+  }
+
+  private autoProgressKg(): number {
+    const plan = this.autoPlan;
+    if (!plan) return this.kg;
+    return plan.holdMs <= 0 ? plan.targetKg : plan.targetKg * Math.min(1, plan.elapsedMs / plan.holdMs);
+  }
+
+  private advanceAuto(_time: number, deltaMs: number): void {
+    const plan = this.autoPlan;
+    if (!plan) return;
+    const before = this.kg;
+    plan.elapsedMs += deltaMs;
+    const next = this.autoProgressKg();
+    if (BAGGAGE_MARKS.some((mark) => (before - mark) * (next - mark) < 0)) audio.playSfx('tick');
+    this.show(next);
+    if (plan.elapsedMs < plan.holdMs) return;
+    this.autoPlan = null;
+    this.setHoldingLook(false);
+    this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.advanceAuto, this);
   }
 
   private show(kg: number): void {

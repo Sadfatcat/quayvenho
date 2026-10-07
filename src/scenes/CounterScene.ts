@@ -66,6 +66,8 @@ export class CounterScene extends BaseScene {
   private topBar!: TopBar;
   private staffChips!: Phaser.GameObjects.Container;
   private staffChipsSignature = '';
+  /** Mã khách mà Senior vừa báo hộ chiếu sai tên: nút 🛂 chuyển đỏ cho tới khi khách đó rời quầy. */
+  private passportAlertFor: string | null = null;
 
   private pauseOverlay: PauseOverlay | null = null;
   private closeEarlyDialogOpen = false;
@@ -216,6 +218,8 @@ export class CounterScene extends BaseScene {
     const canRefuse = (['BUILDING', 'PRINTING', 'READY_TO_DELIVER'] as const).includes(counterState as never) && hasCustomer;
     this.refuseButton.setVisible(hasCustomer);
     this.refuseButton.setEnabled(canRefuse);
+    const alerted = hasCustomer && this.passportAlertFor === counterCustomer(state.today)?.order.customerId;
+    this.passportButton.setVariant(alerted ? 'danger' : 'ghost');
   }
 
   // ---------- events, pause, summary ----------
@@ -230,7 +234,10 @@ export class CounterScene extends BaseScene {
         this.toasts.show(STRINGS.counter.rejectedPrefix + rejectedLabel(event.reason));
       } else if (event.type === 'TICKET_SCORED') {
         this.showScoreFeedback(event.result);
+      } else if (event.type === 'STAFF_WEIGH_STARTED') {
+        this.desk.startStaffWeighing(event.kg, event.holdMs);
       } else if (event.type === 'STAFF_ASSISTED') {
+        if (event.job === 'PASSPORT') this.passportAlertFor = counterCustomer(sessionBridge.current.state.today)?.order.customerId ?? null;
         const member = sessionBridge.current.state.staff.find((candidate) => candidate.id === event.staffId);
         this.toasts.show(`${member?.name ?? kindName(event.kind)}: ${STRINGS.staff.jobDone[event.job] ?? ''}`, STAFF_TOAST_MS);
       }

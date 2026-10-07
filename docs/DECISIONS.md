@@ -238,3 +238,7 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 
 ## 2026-10-07 — Chọn vé là việc đầu tiên, các việc sau bị chặn
 - Thay quyết định "nhân viên tự lấy vé ra bàn" ngay trên: Junior chỉ chọn loại vé (CABIN); Middle làm CABIN rồi STAMPS rồi BAGGAGE (`jobs: ['CABIN', 'STAMPS', 'BAGGAGE']`); Senior vẫn SERVICES rồi SEAT. Mọi việc ngoài CABIN (đóng dấu, cân hành lý, vé dịch vụ, chọn ghế) trả `WAIT` khi chưa có vé trên bàn (`draft.cabin === null`), nên nhân viên đứng chờ tới khi Junior/Middle hoặc người chơi chọn vé. Senior đi một mình phải đợi người chơi lấy vé; Middle + Senior thì Middle mở đường cho Senior.
+
+## 2026-10-07 — Nhân viên cân hành lý có chuyển động, Senior kiểm tra hộ chiếu
+- Cân hành lý của Middle không còn "nhảy một phát": tới lượt, nhân viên quyết định số kg nhả tay (vẫn sai 40% theo `BAGGAGE_ERROR_PCT`), phát sự kiện `STAFF_WEIGH_STARTED {kg, holdMs}` rồi giữ đúng `kg / BAGGAGE_HOLD_SPEED_KG_PER_S` giây (+ `STAFF_WEIGH_SETTLE_MS` = 300 ms), sau đó mới ghi kg vào vé. Giao diện (`BaggageSlider.autoHold`) diễn lại cú bấm giữ: số chạy từ 0 tới kg kèm tiếng tick; thanh cân vẽ lại giữa chừng vẫn chạy tiếp đúng nhịp; trong lúc đó người chơi không bấm đè được.
+- Senior có thêm việc `PASSPORT` (đứng đầu hàng việc, không cần có vé, 1000 ms): chỉ khi hộ chiếu sai tên mới báo — toast "hộ chiếu sai tên, bấm Từ chối!" và nút 🛂 chuyển đỏ tới khi khách rời quầy. Người chơi vẫn tự quyết bấm Từ chối. Phương án đã loại (chưa hỏi chủ dự án vì câu hỏi bị bỏ qua): Senior tự từ chối khách.

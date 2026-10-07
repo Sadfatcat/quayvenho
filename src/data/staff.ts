@@ -13,7 +13,7 @@ export const STAFF_KINDS: readonly StaffKindDef[] = [
   { kind: 'INTERN', hireCost: 0, baseWage: 300, jobs: [], minDay: 3, countsTowardCap: true },
   { kind: 'JUNIOR', hireCost: 30_000, baseWage: 1500, jobs: ['CABIN'], minDay: 3, countsTowardCap: true },
   { kind: 'MIDDLE', hireCost: 40_000, baseWage: 2000, jobs: ['CABIN', 'STAMPS', 'BAGGAGE'], minDay: 10, countsTowardCap: true },
-  { kind: 'SENIOR', hireCost: 50_000, baseWage: 2300, jobs: ['SERVICES', 'SEAT'], minDay: 15, countsTowardCap: true },
+  { kind: 'SENIOR', hireCost: 50_000, baseWage: 2300, jobs: ['PASSPORT', 'SERVICES', 'SEAT'], minDay: 15, countsTowardCap: true },
   { kind: 'MARKETING', hireCost: 20_000, baseWage: 1000, jobs: [], minDay: 8, countsTowardCap: false },
 ];
 
@@ -24,7 +24,11 @@ export const STAFF_JOB_DELAY_MS: Record<StaffJob, number> = {
   BAGGAGE: 1200,
   SEAT: 1000,
   SERVICES: 800,
+  PASSPORT: 1000,
 };
+
+/** Nhân viên cân hành lý bằng đúng chuyển động bấm giữ của người chơi: giữ `kg / BAGGAGE_HOLD_SPEED_KG_PER_S` rồi nhả, cộng thêm khoảng này để số dừng lại. */
+export const STAFF_WEIGH_SETTLE_MS = 300;
 
 /** Cân hành lý của Middle sai theo xác suất này (%). */
 export const BAGGAGE_ERROR_PCT = 40;

@@ -234,7 +234,7 @@ export interface CounterSlot {
 
 export type StaffKind = 'INTERN' | 'JUNIOR' | 'MIDDLE' | 'SENIOR' | 'MARKETING';
 /** Việc trên vé mà nhân viên làm thay người chơi (người chơi luôn tự in và giao vé). */
-export type StaffJob = 'CABIN' | 'STAMPS' | 'BAGGAGE' | 'SEAT' | 'SERVICES';
+export type StaffJob = 'CABIN' | 'STAMPS' | 'BAGGAGE' | 'SEAT' | 'SERVICES' | 'PASSPORT';
 export type AbsenceReason = 'SICK' | 'FAMILY' | 'MATERNITY';
 
 export interface StaffKindDef {
@@ -373,5 +373,7 @@ export type DomainEvent =
   | { type: 'STAFF_FIRED'; staffId: string }
   | { type: 'MARKETING_TAUGHT'; bonusPct: number }
   | { type: 'STAFF_ASSISTED'; staffId: string; kind: StaffKind; job: StaffJob }
+  /** Nhân viên bắt đầu giữ thanh cân: số kg chạy từ 0 tới `kg` trong `holdMs` (giao diện diễn lại đúng chuyển động bấm giữ). */
+  | { type: 'STAFF_WEIGH_STARTED'; staffId: string; kg: number; holdMs: number }
   | { type: 'SETTINGS_UPDATED' }
   | { type: 'FLAG_SET'; flag: string };

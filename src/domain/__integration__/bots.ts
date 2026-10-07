@@ -239,7 +239,7 @@ export const enableStaffHiring = (): void => {
 };
 
 /** Thời gian người chơi tự làm mỗi việc (ms): nhân viên làm thay thì tiết kiệm đúng chừng đó cho mỗi khách. */
-const PLAYER_JOB_TIME_MS: Record<StaffJob, number> = { CABIN: 1500, STAMPS: 4000, BAGGAGE: 4000, SEAT: 3000, SERVICES: 2000 };
+const PLAYER_JOB_TIME_MS: Record<StaffJob, number> = { CABIN: 1500, STAMPS: 4000, BAGGAGE: 4000, SEAT: 3000, SERVICES: 2000, PASSPORT: 1000 };
 
 const presentJobs = (state: Readonly<GameState>): StaffJob[] => presentStaff(state.staff, state.day).flatMap((member) => kindDefOf(member.kind)?.jobs ?? []);
 

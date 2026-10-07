@@ -95,6 +95,8 @@ export interface AssistStep {
   job: StaffJob;
   /** Còn bao lâu (ms) thì nhân viên làm bước này. */
   waitMs: number;
+  /** Chỉ cho việc cân hành lý: số kg nhân viên đã quyết định nhả tay (đặt lúc bắt đầu giữ thanh cân). */
+  weighKg?: number;
 }
 
 export interface AssistQueue {
