@@ -26,7 +26,7 @@ export class PassportCard extends BaseOverlay {
       .text(0, -PANEL_HEIGHT / 2 + 260, `${STRINGS.passport.bookedName}: ${order.passport.bookedName}`, { fontFamily: FONT_FAMILY, fontSize: '24px', fontStyle: 'bold', color: toCssColor(COLORS.text) })
       .setOrigin(0.5);
     const todayLabel = scene.add
-      .text(PANEL_WIDTH / 2 - 20, -PANEL_HEIGHT / 2 + 20, `${STRINGS.passport.today} ${today}`, { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.textMuted) })
+      .text(PANEL_WIDTH / 2 - 20, -PANEL_HEIGHT / 2 + 20, `${STRINGS.passport.today} ${today}`, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(1, 0);
     const closeText = scene.add
       .text(-PANEL_WIDTH / 2 + 20, -PANEL_HEIGHT / 2 + 20, '✕', { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) })

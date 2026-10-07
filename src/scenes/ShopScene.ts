@@ -7,12 +7,12 @@ import { shopContext } from '@domain/dayCycle';
 import type { Command, GameState, Route, UpgradeDef } from '@domain/models';
 import { checkRouteUnlock, checkUpgrade, type RouteUnlockError, type UpgradeError } from '@domain/upgrades';
 import { Card } from '@ui/Card';
+import { InfoBox } from '@ui/InfoBox';
 import { HOLIDAYS } from '@data/holidays';
 import { getRoute } from '@domain/routes';
 import { formatMoney } from '@ui/format';
 import { ScrollList } from '@ui/ScrollList';
 import { SegmentedControl } from '@ui/SegmentedControl';
-import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
 import { addManagementChrome, type ManagementChrome } from './managementChrome';
@@ -23,9 +23,10 @@ import { sessionBridge } from './sessionBridge';
 type ShopItem = { kind: 'upgrade'; upgrade: UpgradeDef } | { kind: 'route'; route: Route };
 type Tab = 'upgrades' | 'routes';
 
-const SEGMENT_Y = 290;
-const TEASER_Y = 340;
-const LIST_Y = 395;
+const SEGMENT_Y = 306;
+const TEASER_TOP = 350;
+const TEASER_SIDE_MARGIN = 20;
+const LIST_Y = 424;
 const LIST_BOTTOM_MARGIN = 170;
 const CARD_HEIGHT = 190;
 const CARD_GAP = 16;
@@ -38,7 +39,7 @@ export class ShopScene extends BaseScene {
   private tab: Tab = 'upgrades';
   private list!: ScrollList<ShopItem>;
   private chrome!: ManagementChrome;
-  private teaserText!: Phaser.GameObjects.Text;
+  private teaserBox!: InfoBox;
   private unsubscribeEvents: (() => void) | null = null;
 
   constructor() {
@@ -69,9 +70,7 @@ export class ShopScene extends BaseScene {
       },
     });
 
-    this.teaserText = this.add
-      .text(GAME_WIDTH / 2, TEASER_Y, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })
-      .setOrigin(0.5, 0);
+    this.teaserBox = new InfoBox(this, GAME_WIDTH / 2, TEASER_TOP, { width: GAME_WIDTH - 2 * TEASER_SIDE_MARGIN, tone: 'warning', fontSize: 20, paddingY: 6 });
 
     this.list = new ScrollList<ShopItem>(this, {
       x: 20,
@@ -94,7 +93,7 @@ export class ShopScene extends BaseScene {
   private renderAll(): void {
     const state = sessionBridge.current.state;
     this.chrome.refresh(state);
-    this.teaserText.setText(this.tomorrowHolidayTeaser(state));
+    this.teaserBox.setText(this.tomorrowHolidayTeaser(state));
     this.list.setItems(this.itemsForTab());
   }
 

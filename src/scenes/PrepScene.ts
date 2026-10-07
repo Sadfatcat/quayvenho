@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { formatClock } from '@domain/clock';
+import { expectedCustomers } from '@domain/dayCycle';
 import { bulkDiscountRate, purchaseCost, seatUnitCost } from '@domain/economy';
 import { maxPurchasable, pendingKey, pendingTotalCost, seatsExpiringOn } from '@domain/inventory';
 import type { CabinClass, Flight, GameState, SeatBias, TodayState } from '@domain/models';
@@ -8,6 +9,7 @@ import { getRoute } from '@domain/routes';
 import { routeOfFlight } from '@domain/schedule';
 import { computeModifiers } from '@domain/upgrades';
 import { Button } from '@ui/Button';
+import { InfoBox } from '@ui/InfoBox';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
 import { SegmentedControl } from '@ui/SegmentedControl';
@@ -31,10 +33,14 @@ const OWNED_RIGHT_INSET = 16;
 const ECONOMY_ROW_Y = 112;
 const BUSINESS_ROW_Y = 184;
 const SEAT_BIAS_ORDER: readonly SeatBias[] = ['BALANCED', 'WINDOW', 'AISLE'];
-const SEAT_BIAS_CONTROL = { y: 262, width: 620, height: 48 };
-const LIST_Y = 360;
-const BANNER_Y = 300;
-const LIST_HEIGHT = 1060 - LIST_Y;
+const SEAT_BIAS_CONTROL = { y: 348, width: 620, height: 48 };
+const LIST_Y_WITH_BIAS = 466;
+const LIST_Y_WITHOUT_BIAS = 406;
+const EXPECTED_BOX = { top: 258, width: 320, fontSize: 21, paddingY: 5 };
+const BANNER_TOP_WITH_BIAS = 382;
+const BANNER_TOP_WITHOUT_BIAS = 314;
+const BANNER_SIDE_MARGIN = 20;
+const LIST_BOTTOM = 1060;
 const TOTAL_Y = 1095;
 const BUTTON_ROW_Y = 1180;
 const BUTTON_HEIGHT = 76;
@@ -42,7 +48,8 @@ const BUTTON_HEIGHT = 76;
 /** PLAN §10.5 (Kho). Grey box: nội dung tiếng Việt của banner/hộp thoại xem `strings.prep.*`. */
 export class PrepScene extends BaseScene {
   private chrome!: ManagementChrome;
-  private bannerText!: Phaser.GameObjects.Text;
+  private bannerBox!: InfoBox;
+  private expectedBox!: InfoBox;
   private flightList!: ScrollList<Flight>;
   private totalText!: Phaser.GameObjects.Text;
   private confirmButton!: Button;
@@ -78,7 +85,6 @@ export class PrepScene extends BaseScene {
 
   /** Chỉ hiện khi đã mua Quan hệ hãng bay; lựa chọn áp dụng cho lần "Xác nhận nhập ghế" kế tiếp và đặt lại về cân bằng mỗi ngày. */
   private addSeatBiasControl(state: Readonly<GameState>): void {
-    if (!computeModifiers(state.upgrades).seatBias) return;
     new SegmentedControl(this, GAME_WIDTH / 2, SEAT_BIAS_CONTROL.y, {
       width: SEAT_BIAS_CONTROL.width,
       height: SEAT_BIAS_CONTROL.height,
@@ -96,17 +102,18 @@ export class PrepScene extends BaseScene {
 
     this.chrome = addManagementChrome(this, 'TICKETS', false);
 
-    this.addSeatBiasControl(state);
+    this.expectedBox = new InfoBox(this, GAME_WIDTH / 2, EXPECTED_BOX.top, { ...EXPECTED_BOX, tone: 'info' });
+    const hasSeatBias = computeModifiers(state.upgrades).seatBias;
+    if (hasSeatBias) this.addSeatBiasControl(state);
+    const listTop = hasSeatBias ? LIST_Y_WITH_BIAS : LIST_Y_WITHOUT_BIAS;
 
-    this.bannerText = this.add
-      .text(GAME_WIDTH / 2, BANNER_Y, '', { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.warning), align: 'center', wordWrap: { width: GAME_WIDTH - 80 } })
-      .setOrigin(0.5);
+    this.bannerBox = new InfoBox(this, GAME_WIDTH / 2, hasSeatBias ? BANNER_TOP_WITH_BIAS : BANNER_TOP_WITHOUT_BIAS, { width: GAME_WIDTH - 2 * BANNER_SIDE_MARGIN, tone: 'warning', fontSize: 20, paddingY: 6 });
 
     this.flightList = new ScrollList<Flight>(this, {
       x: 20,
-      y: LIST_Y,
+      y: listTop,
       width: GAME_WIDTH - 40,
-      height: LIST_HEIGHT,
+      height: LIST_BOTTOM - listTop,
       itemHeight: ROW_HEIGHT,
       items: state.today.flights,
       renderItem: (flight) => this.renderFlightRow(flight),
@@ -136,7 +143,8 @@ export class PrepScene extends BaseScene {
   private renderAll(): void {
     const state = sessionBridge.current.state;
     this.chrome.refresh(state);
-    this.bannerText.setText(this.bannerFor(state));
+    this.expectedBox.setText(`${STRINGS.management.expectedCustomersPrefix}${expectedCustomers(state)}${STRINGS.management.expectedCustomersSuffix}`);
+    this.bannerBox.setText(this.bannerFor(state));
     this.flightList.setItems([...state.today.flights]);
 
     const total = pendingTotalCost(state.today.pendingPurchase, state.today.flights, state.day, state.today.event);
@@ -175,7 +183,7 @@ export class PrepScene extends BaseScene {
       .text(28, 44, `${flight.id} · ${formatClock(flight.departAt)}`, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(0, 0);
     const ownedText = this.add
-      .text(panelWidth + 8 - OWNED_RIGHT_INSET, 12, this.ownedSummary(flight, today), { fontFamily: FONT_FAMILY, fontSize: '18px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'right' })
+      .text(panelWidth + 8 - OWNED_RIGHT_INSET, 12, this.ownedSummary(flight, today), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'right' })
       .setOrigin(1, 0);
     row.add([panel, title, meta, ownedText]);
 
@@ -204,7 +212,7 @@ ${STRINGS.counter.bizShort} : ${countOf('BUSINESS')}`;
       .text(cabinText.x + cabinText.width + CABIN_PRICE_GAP, y, formatMoney(unitCost), { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) })
       .setOrigin(0, 0.5);
     const discountText = this.add
-      .text(priceText.x + priceText.width + CABIN_PRICE_GAP, y, discount > 0 ? `−${Math.round(discount * 100)}%` : '', { fontFamily: FONT_FAMILY, fontSize: '18px', color: toCssColor(COLORS.textMuted) })
+      .text(priceText.x + priceText.width + CABIN_PRICE_GAP, y, discount > 0 ? `−${Math.round(discount * 100)}%` : '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.textMuted) })
       .setOrigin(0, 0.5);
 
     const stepper = new Stepper(this, GAME_WIDTH - 40 - 16 - STEPPER_RIGHT_INSET, y, {

@@ -2,8 +2,8 @@
 export const COLORS = {
   sky: 0xfdf6ec, cloud: 0xfffdf9, primary: 0x6c4f3d, primaryDark: 0x4a3525,
   accent: 0xc86d51, success: 0x6e8b74, danger: 0xb5503a, warning: 0x9a6a1f,
-  text: 0x4a3525, textMuted: 0x8d6e53, disabled: 0xd9c8b0, seatOther: 0xe6d2b5,
-  panel: 0xf5e8d3, kraft: 0xe6d2b5, teal: 0x5b8a8c, tealDark: 0x3b5e60, accentDark: 0x8f4631, successDark: 0x4d6654, moneyGreen: 0x2a7a3b, moneyGreenDark: 0x1d5a2a, dangerDark: 0x7e3524,
+  text: 0x4a3525, textMuted: 0x6a4d38, disabled: 0xd9c8b0, seatOther: 0xe6d2b5,
+  panel: 0xf5e8d3, kraft: 0xe6d2b5, teal: 0x5b8a8c, tealDark: 0x3b5e60, accentDark: 0x8f4631, successDark: 0x4d6654, moneyGreen: 0x2a7a3b, moneyGreenDark: 0x1d5a2a, dangerDark: 0x7e3524, warningTint: 0xfbeccb, infoTint: 0xe1eeed,
 } as const;
 
 export const toCssColor = (color: number) => `#${color.toString(16).padStart(6, '0')}`;

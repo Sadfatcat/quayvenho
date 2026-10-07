@@ -1,12 +1,10 @@
 import type Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
-import { expectedCustomers } from '@domain/dayCycle';
 import { isTravelVietOpen, travelVietScore } from '@domain/demand';
 import { isPricingOpen } from '@domain/pricing';
 import type { DomainEvent, GameState } from '@domain/models';
 import { Button } from '@ui/Button';
 import { MANAGEMENT_TAB_SCENE, ManagementTabs, type ManagementTab } from '@ui/ManagementTabs';
-import { COLORS, FONT_FAMILY, toCssColor } from '@ui/theme';
 import { TopBar } from '@ui/TopBar';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { DialogOverlay } from './overlays/DialogOverlay';
@@ -14,12 +12,10 @@ import { SettingsOverlay } from './overlays/SettingsOverlay';
 import { sessionBridge } from './sessionBridge';
 
 export const TOP_BAR_Y = 90;
-export const TABS_Y = 190;
+export const TABS_Y = 206;
 export const TABS_HEIGHT = 64;
 /** Mép trên vùng nội dung của mọi mục quản lý, ngay dưới thanh mục. */
 export const MANAGEMENT_CONTENT_TOP = TABS_Y + TABS_HEIGHT / 2 + 24;
-const EXPECTED_CUSTOMERS_Y = 142;
-const EXPECTED_CUSTOMERS_STYLE = { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted) };
 const ACTION_BUTTON = { y: GAME_HEIGHT - 80, width: 380, height: 84 };
 
 export interface ManagementChrome {
@@ -28,9 +24,6 @@ export interface ManagementChrome {
   /** Cập nhật tiền, ngày, TravelViet theo trạng thái hiện tại. */
   refresh: (state: GameState) => void;
 }
-
-const expectedCustomersLabelOf = (state: GameState): string =>
-  `${STRINGS.management.expectedCustomersPrefix}${expectedCustomers(state)}${STRINGS.management.expectedCustomersSuffix}`;
 
 const dayLabelOf = (state: GameState): string => `${STRINGS.prep.dayLabel} ${state.day}`;
 
@@ -51,9 +44,6 @@ export const addManagementChrome = (scene: Phaser.Scene, active: ManagementTab, 
     icon: STRINGS.common.settingsIcon,
     onIconTap: () => new SettingsOverlay(scene, { onExitToTitle: () => scene.scene.start('Title') }),
   });
-  const expectedCustomersText = scene.add
-    .text(GAME_WIDTH / 2, EXPECTED_CUSTOMERS_Y, expectedCustomersLabelOf(state), EXPECTED_CUSTOMERS_STYLE)
-    .setOrigin(0.5);
   new ManagementTabs(scene, GAME_WIDTH / 2, TABS_Y, {
     width: GAME_WIDTH - 40,
     height: TABS_HEIGHT,
@@ -80,7 +70,6 @@ export const addManagementChrome = (scene: Phaser.Scene, active: ManagementTab, 
     actionButton,
     refresh: (latest) => {
       topBar.setLeftLabel(dayLabelOf(latest));
-      expectedCustomersText.setText(expectedCustomersLabelOf(latest));
       topBar.setMoney(latest.money);
       topBar.setTravelViet(isTravelVietOpen(latest.day) ? travelVietScore(latest.starHistory) : null);
     },

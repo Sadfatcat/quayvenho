@@ -38,6 +38,8 @@ const specialLinesOf = (specialId: string | undefined) => PERSONAL.specialCustom
 const SHAKE_DURATION_MS = 180;
 const SHAKE_INTENSITY = 0.006;
 const HEADER_TEXT_Y = 146;
+/** Thông báo sự kiện nằm dưới hàng tên quầy, bên phải ảnh người chơi, để chừa chỗ cho ô TravelViet dưới ô tiền. */
+const EVENT_BADGE = { x: 110, y: 192, width: 580 };
 const PASSPORT_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - MIN_TOUCH_SIZE / 2, y: 262 };
 const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 84, y: 396, width: 168, height: 56, fontSize: 22 };
 const FEEDBACK_Y = 330;
@@ -121,7 +123,7 @@ export class CounterScene extends BaseScene {
     });
 
     this.brandText = this.add.text(SCREEN_MARGIN, HEADER_TEXT_Y, state.profile?.brandName ?? '', { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5);
-    this.eventBadge = this.add.text(GAME_WIDTH / 2, HEADER_TEXT_Y, '', { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(COLORS.warning) }).setOrigin(0.5);
+    this.eventBadge = this.add.text(EVENT_BADGE.x, EVENT_BADGE.y, '', { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.warning), wordWrap: { width: EVENT_BADGE.width } }).setOrigin(0, 0.5);
 
     this.waitingText = this.add.text(GAME_WIDTH / 2, 290, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
     this.staffChips = this.add.container(0, 0);
