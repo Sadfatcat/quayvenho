@@ -1,4 +1,4 @@
-import { PURCHASE_LIMIT_PER_FLIGHT, SEAT_VALID_DAYS } from '@data/balance';
+import { BALANCED_WINDOW_SHARE, PURCHASE_LIMIT_PER_FLIGHT, SEAT_VALID_DAYS } from '@data/balance';
 import { invariant } from './common/invariant';
 import { err, ok, type Result } from './common/result';
 import { sum } from './common/math';
@@ -72,12 +72,27 @@ export const pendingTotalCost = (
 const preferredOf = (bias: SeatBias): ((seat: SeatId) => boolean) | null =>
   bias === 'BALANCED' ? null : bias === 'WINDOW' ? isWindow : (seat) => !isWindow(seat);
 
-/** Không lặp ghế: cân bằng thì ngẫu nhiên trong mọi ghế trống, cửa sổ/lối đi thì chỉ bốc trong ghế đúng loại. */
+/**
+ * Không lặp ghế. Cửa sổ/lối đi: chỉ bốc ghế đúng loại. Cân bằng: 30% ghế cửa sổ và 70% ghế lối đi (làm tròn, thiếu loại nào thì bù bằng loại kia),
+ * vị trí cụ thể ngẫu nhiên.
+ */
 export const pickSeats = (free: readonly SeatId[], count: number, bias: SeatBias, rng: Rng): SeatId[] => {
   const preferred = preferredOf(bias);
-  const pool = preferred ? free.filter(preferred) : free;
-  invariant(count <= pool.length, 'not enough free seats');
-  return rng.shuffle(pool).slice(0, count);
+  if (preferred) {
+    const pool = free.filter(preferred);
+    invariant(count <= pool.length, 'not enough free seats');
+    return rng.shuffle(pool).slice(0, count);
+  }
+  invariant(count <= free.length, 'not enough free seats');
+  const windows = free.filter(isWindow);
+  const aisles = free.filter((seat) => !isWindow(seat));
+  let windowCount = Math.min(Math.round(count * BALANCED_WINDOW_SHARE), windows.length);
+  let aisleCount = count - windowCount;
+  if (aisleCount > aisles.length) {
+    aisleCount = aisles.length;
+    windowCount = count - aisleCount;
+  }
+  return rng.shuffle([...rng.shuffle(windows).slice(0, windowCount), ...rng.shuffle(aisles).slice(0, aisleCount)]);
 };
 
 export interface Purchase {

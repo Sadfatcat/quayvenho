@@ -99,10 +99,16 @@ describe('inventory: purchase', () => {
     expect(new Set(pickSeats(free, 16, 'WINDOW', createRng(3))).size).toBe(16);
   });
 
-  it('BALANCED bias mixes window and aisle seats at random', () => {
-    const picked = pickSeats(seatsOfCabin('ECONOMY'), 12, 'BALANCED', createRng(5));
-    expect(picked.some(isWindow)).toBe(true);
-    expect(picked.some((seat) => !isWindow(seat))).toBe(true);
+  it('BALANCED bias gives 30% window and 70% aisle seats, falling back to the other kind when one runs short', () => {
+    const free = seatsOfCabin('ECONOMY');
+    for (let seed = 0; seed < 50; seed++) {
+      const picked = pickSeats(free, 10, 'BALANCED', createRng(seed));
+      expect(picked.filter(isWindow)).toHaveLength(3);
+      expect(new Set(picked).size).toBe(10);
+    }
+    expect(pickSeats(free, 20, 'BALANCED', createRng(1)).filter(isWindow)).toHaveLength(6);
+    const onlyWindows = free.filter(isWindow);
+    expect(pickSeats(onlyWindows, 5, 'BALANCED', createRng(1)).every(isWindow)).toBe(true);
   });
 
   it('a biased purchase is capped by the free seats of that kind and costs 5% more for window and 5% less for aisle than balanced', () => {

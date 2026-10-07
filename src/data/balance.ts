@@ -27,6 +27,9 @@ export const BULK_DISCOUNT_TIERS: readonly { minQty: number; rate: number }[] = 
   { minQty: 10, rate: 0.1 },
   { minQty: 5, rate: 0.05 },
 ];
+/** Chế độ cân bằng: 30% số ghế nhập là ghế cửa sổ, 70% là ghế lối đi (vị trí cụ thể ngẫu nhiên). */
+export const BALANCED_WINDOW_SHARE = 0.3;
+
 /** Hệ số giá vốn theo thiên hướng ghế: chọn cửa sổ chắc chắn nhận ghế cửa sổ (đắt hơn ~10% so với lối đi), cân bằng là ngẫu nhiên giá gốc. */
 export const SEAT_BIAS_COST_MULT: Readonly<Record<SeatBias, number>> = { BALANCED: 1, WINDOW: 1.05, AISLE: 0.95 };
 
