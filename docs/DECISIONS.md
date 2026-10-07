@@ -252,3 +252,6 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 ## 2026-10-07 — Lời khách: yêu cầu in đậm, lời đưa đẩy làm mờ
 - `orderSpeechSegments` chia câu của khách thành đoạn có cờ `key`: đi đâu, hạng vé, giờ bay, chỗ ngồi, hành lý, dịch vụ là yêu cầu (in đậm, màu đậm); phần còn lại ("Cho mình một vé…", "và cho mình thêm…") thường, màu nhạt, độ mờ 0,5. `addHighlightedSpeech` vẽ mỗi từ một Text (Phaser không trộn kiểu chữ trong một khối) và tự xuống dòng. Chữ lời khách tăng lên 26px.
 - Giá thuê nhân viên là giá cố định, không bao giờ tăng theo thời gian (Junior 10tr, Middle 15tr, Senior 20tr, Marketing 10tr; chỉ lương/ngày tăng theo lợi nhuận). Chủ dự án chốt mức 10–20tr một người (đã thử 15/20/30 rồi bỏ; bản gốc 30/40/50/20); thêm test khẳng định giá thuê không đổi theo ngày. Thẻ thuê nhân viên cao hơn một dòng (226) và mô tả Senior rút gọn để chữ không đè lên dòng tiền thuê.
+
+## 2026-10-07 — Sửa lỗi: nút đóng cửa sớm không bao giờ mở trong ván thật
+- `closeEarlyBlockedReason` chặn bằng cờ `tutorialDone_1`, nhưng chỉ bot và dev đặt cờ này; ván thật không ai đặt nên nút ⏭ và gợi ý "hết vé" bị khoá mãi (`TUTORIAL_DAY`). Nay chỉ chặn ở ngày 1 cho tới khi khách đầu tiên được chấm (`today.results.length === 0`); cờ `tutorialDone_1` còn lại như một cách bỏ qua cho test/bot/dev. Từ ngày 2 luôn mở; ngày đặc biệt của `PersonalConfig` vẫn chặn.

@@ -770,6 +770,19 @@ describe('staff and shop spending after the summary (phase SHOP)', () => {
       expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'TUTORIAL_DAY' });
     });
 
+    it('ngày 1 đóng cửa sớm được ngay sau khi khách hướng dẫn đầu tiên được chấm, không cần cờ tutorialDone_1', () => {
+      const game = newGame();
+      game.dispatch({ type: 'PREP_SET_QTY', flightId: firstDadFlight(game.state), cabin: 'ECONOMY', qty: 3 });
+      game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
+      game.dispatch({ type: 'OPEN_COUNTER' });
+      tickUntil(game, () => game.state.today.counter.state === 'BUILDING');
+      expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'TUTORIAL_DAY' });
+      game.dispatch({ type: 'REFUSE_CUSTOMER' });
+      tickUntil(game, () => game.state.today.results.length > 0 && game.state.today.counter.state !== 'RESOLVING');
+      expect(game.state.flags['tutorialDone_1']).toBeUndefined();
+      expect(game.dispatch({ type: 'CLOSE_EARLY' })[0]).toMatchObject({ type: 'SHIFT_CLOSED_EARLY' });
+    });
+
     it('chờ khi khách ở quầy đang được chốt vé', () => {
       const game = openMidShift();
       game.state.today.counter = { ...game.state.today.counter, state: 'RESOLVING' };

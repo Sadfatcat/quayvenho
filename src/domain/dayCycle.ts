@@ -868,12 +868,13 @@ const cancelOverCapTickets = (state: GameState): void => {
 };
 
 /**
- * Lý do không được đóng cửa sớm lúc này, hoặc null nếu được. Không cho ở ngày hướng dẫn đầu và ngày đặc biệt
+ * Lý do không được đóng cửa sớm lúc này, hoặc null nếu được. Không cho ở ngày 1 khi khách hướng dẫn đầu tiên chưa xong và ở ngày đặc biệt
  * (PLAN §16); đang chốt vé của khách ở quầy thì chờ xong (vài giây).
  */
 export const closeEarlyBlockedReason = (state: Readonly<GameState>, personal: PersonalConfig = PERSONAL): string | null => {
   if (state.phase !== 'OPEN') return 'WRONG_PHASE';
-  if (!state.flags[TUTORIAL_FLAG]) return 'TUTORIAL_DAY';
+  // Chỉ chặn trong lúc hướng dẫn ngày 1 (cho tới khi khách đầu tiên được chấm); sau đó ngày 1 cũng đóng cửa sớm được.
+  if (state.day === 1 && state.today.results.length === 0 && !state.flags[TUTORIAL_FLAG]) return 'TUTORIAL_DAY';
   if (dayHasPersonalContent(personal, state.day)) return 'SPECIAL_DAY';
   if (state.today.counter.state === 'RESOLVING') return 'CUSTOMER_BEING_RESOLVED';
   return null;
