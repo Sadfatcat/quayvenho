@@ -183,21 +183,21 @@ describe('commands outside the shift', () => {
 });
 
 describe('shift', () => {
-  it('opens at 08:00, spawns the first customer at 08:06 and seats them at the counter', () => {
+  it('opens at 18:00, spawns the first customer at 18:06 and seats them at the counter', () => {
     const game = newGame();
     openWithSeats(game);
     expect(game.state.phase).toBe('OPEN');
     const events = tickUntil(game, () => game.state.today.counter.state === 'BUILDING');
     expect(events.some((e) => e.type === 'CUSTOMER_SPAWNED')).toBe(true);
     expect(events.some((e) => e.type === 'CUSTOMER_AT_COUNTER')).toBe(true);
-    expect(Math.floor(game.state.today.clock)).toBe(486);
+    expect(Math.floor(game.state.today.clock)).toBe(1086);
   });
 
   it('clamps huge deltas to 100 ms', () => {
     const game = newGame();
     openWithSeats(game);
     game.tick(5000);
-    expect(game.state.today.clock).toBeCloseTo(480 + 100 / MS_PER_GAME_MINUTE);
+    expect(game.state.today.clock).toBeCloseTo(1080 + 100 / MS_PER_GAME_MINUTE);
   });
 
   it('builds, prints and delivers a correct ticket', () => {
@@ -272,7 +272,7 @@ describe('shift', () => {
   it('never limits the queue: a burst of arrivals all join and each ends with a result', () => {
     const BURST = 20;
     const game = newGame();
-    openWithSeats(game, 0);
+    openWithSeats(game, 5);
     game.state.today.targetCustomers = BURST;
     game.state.today.arrivals = Array<number>(BURST).fill(game.state.today.clock);
     game.state.today.nextArrivalIndex = 0;
@@ -283,11 +283,27 @@ describe('shift', () => {
     expect(game.state.today.results).toHaveLength(BURST);
   });
 
+  it('sold out: waiting customers go home without penalty and no new customer arrives', () => {
+    const game = newGame();
+    openWithSeats(game, 1);
+    game.state.today.targetCustomers = 6;
+    game.state.today.arrivals = Array<number>(6).fill(game.state.today.clock);
+    game.state.today.nextArrivalIndex = 0;
+    const events = game.tick(100);
+    expect(game.state.today.queue).toHaveLength(6);
+    // Bán nốt ghế duy nhất: ghế chuyển sang SOLD, hết vé.
+    for (const seat of game.state.today.seats) seat.state = 'SOLD';
+    events.push(...game.tick(100));
+    expect(game.state.today.queue.filter((customer) => customer.position === 'QUEUE')).toHaveLength(0);
+    expect(game.tick(100).some((event) => event.type === 'CUSTOMER_SPAWNED')).toBe(false);
+    expect(game.state.today.results.every((result) => result.penalty === 0)).toBe(true);
+  });
+
   it('WAITING_LOUNGE makes queued customers lose patience 15% slower', () => {
     const queuedLossOver = (upgrades: string[]): number => {
       const game = newGame('RUSH');
       game.state.upgrades.push(...upgrades);
-      openWithSeats(game, 0);
+      openWithSeats(game, 3);
       tickUntil(game, () => game.state.today.queue.length >= 2);
       const waiting = game.state.today.queue[1];
       invariant(waiting?.position === 'QUEUE', 'expected a queued customer');
@@ -763,22 +779,11 @@ describe('staff and shop spending after the summary (phase SHOP)', () => {
       expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'WRONG_PHASE' });
     });
 
-    it('bị từ chối ở ngày hướng dẫn đầu tiên', () => {
-      const game = newGame();
-      game.dispatch({ type: 'OPEN_COUNTER' });
-      expect(game.state.phase).toBe('OPEN');
-      expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'TUTORIAL_DAY' });
-    });
-
-    it('ngày 1 đóng cửa sớm được ngay sau khi khách hướng dẫn đầu tiên được chấm, không cần cờ tutorialDone_1', () => {
+    it('ngày nào cũng đóng cửa sớm được, kể cả ngày 1 ngay khi vừa mở quầy và không cần cờ tutorialDone_1', () => {
       const game = newGame();
       game.dispatch({ type: 'PREP_SET_QTY', flightId: firstDadFlight(game.state), cabin: 'ECONOMY', qty: 3 });
       game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
       game.dispatch({ type: 'OPEN_COUNTER' });
-      tickUntil(game, () => game.state.today.counter.state === 'BUILDING');
-      expect(rejected(game.dispatch({ type: 'CLOSE_EARLY' }))).toMatchObject({ reason: 'TUTORIAL_DAY' });
-      game.dispatch({ type: 'REFUSE_CUSTOMER' });
-      tickUntil(game, () => game.state.today.results.length > 0 && game.state.today.counter.state !== 'RESOLVING');
       expect(game.state.flags['tutorialDone_1']).toBeUndefined();
       expect(game.dispatch({ type: 'CLOSE_EARLY' })[0]).toMatchObject({ type: 'SHIFT_CLOSED_EARLY' });
     });

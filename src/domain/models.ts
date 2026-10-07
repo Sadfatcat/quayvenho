@@ -371,6 +371,8 @@ export type DomainEvent =
   | { type: 'ROUTE_UNLOCKED'; routeId: RouteId }
   | { type: 'STAFF_HIRED'; staffId: string; kind: StaffKind }
   | { type: 'STAFF_FIRED'; staffId: string }
+  /** Hết vé: khách đang xếp hàng (chưa tới quầy) ra về, không sao và không phạt. */
+  | { type: 'CUSTOMERS_DISMISSED'; count: number }
   | { type: 'MARKETING_TAUGHT'; bonusPct: number }
   | { type: 'STAFF_ASSISTED'; staffId: string; kind: StaffKind; job: StaffJob }
   /** Nhân viên bắt đầu giữ thanh cân: số kg chạy từ 0 tới `kg` trong `holdMs` (giao diện diễn lại đúng chuyển động bấm giữ). */

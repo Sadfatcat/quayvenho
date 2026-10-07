@@ -6,40 +6,38 @@ import { getRoute } from '../routes';
 import type { Decision, Decide } from './bots';
 import { playDay, playShift, randomBotRng, randomDecide } from './bots';
 
-const SEAT_COST = 3 * getRoute('HAN-DAD').cost.ECONOMY + getRoute('HAN-DAD').cost.BUSINESS;
+const SEAT_COST = 3 * getRoute('HAN-DAD').cost.ECONOMY;
 
 describe('full day (Phase 1 acceptance)', () => {
-  it('3 correct, 1 wrong, 1 correct refusal, 3 left → expected DaySummary', () => {
+  it('3 correct sales sell the stock out, then nobody else asks → expected DaySummary', () => {
     const seed = seedWithDay1Event('RUSH');
     const game = GameSession.newGame(seed);
     const dad = game.state.today.flights.find((f) => f.routeId === 'HAN-DAD')?.id ?? '';
     game.dispatch({ type: 'FLAG_SET', flag: 'tutorialDone_1' });
     game.dispatch({ type: 'PREP_SET_QTY', flightId: dad, cabin: 'ECONOMY', qty: 3 });
-    game.dispatch({ type: 'PREP_SET_QTY', flightId: dad, cabin: 'BUSINESS', qty: 1 });
     game.dispatch({ type: 'PREP_CONFIRM_PURCHASE' });
     game.dispatch({ type: 'OPEN_COUNTER' });
     const target = game.state.today.targetCustomers;
     expect(target).toBe(customersForDay({ seed, day: 1, rating: 4, rush: true }));
 
-    const plan: Decision[] = ['CORRECT', 'CORRECT', 'CORRECT', 'WRONG_CABIN', 'REFUSE', 'IGNORE', 'IGNORE', 'IGNORE'];
+    const plan: Decision[] = ['CORRECT', 'CORRECT', 'CORRECT'];
     const decide: Decide = (_order, index) => plan[index] ?? 'IGNORE';
     playShift(game, decide);
 
     const outcomes = game.state.today.results.map((r) => r.outcome).sort();
-    expect(outcomes).toEqual(['FAILED', ...Array<string>(target - 5).fill('LEFT'), 'PERFECT', 'PERFECT', 'PERFECT', 'REFUSED_NO_STOCK']);
+    expect(outcomes).toEqual(['PERFECT', 'PERFECT', 'PERFECT']);
     const summary = game.state.lastSummary;
-    expect(summary?.penalties).toBeGreaterThan(0);
     expect(summary).toMatchObject({
       day: 1,
       moneyStart: 6000,
-      moneyEnd: 6000 - SEAT_COST + 3300 - (summary?.penalties ?? 0),
+      moneyEnd: 6000 - SEAT_COST + 3300,
       ticketRevenue: 3300,
       tips: 0,
       seatCost: SEAT_COST,
       shopCost: 0,
       expiredSeats: 0,
-      served: 5,
-      left: target - 5,
+      served: 3,
+      left: 0,
       turnedAway: 0,
       travelVietAfter: null,
     });

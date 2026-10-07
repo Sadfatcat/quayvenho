@@ -306,9 +306,12 @@ export const STRINGS = {
     baggageUnit: 'kg',
     baggageHoldHint: 'Bấm giữ để cân, thả tay khi đúng số kg',
     kmPerHour: 'giờ',
+    soldOutDismissed: 'Hết vé: {n} khách đang xếp hàng đã ra về.',
     rejectedPrefix: 'Không thể: ',
     rejectedFallback: 'Thao tác không hợp lệ lúc này.',
     desk: {
+      stockLeft: 'Còn {n} vé',
+      stockOut: 'Hết vé',
       economyTicket: 'Vé thường',
       businessTicket: 'Vé thương gia',
       ticketSpotEmpty: 'Lấy vé ở bên trái rồi đặt lên bàn',

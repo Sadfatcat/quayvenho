@@ -49,11 +49,15 @@ const generateDay = (seed: number, day: number, routes: readonly RouteId[], canc
   return { flights, seats, orders: Array.from({ length: 8 }, (_, customerIndex) => generateOrder({ ...ctx, customerIndex })) };
 };
 
-const checkInvariants = (order: Order, day: number, routes: readonly RouteId[]) => {
+const flightsOnRouteHaveNoEconomySeat = (routeId: RouteId, flights: readonly Flight[], seats: readonly OwnedSeat[]): boolean =>
+  !flights.some((flight) => flight.routeId === routeId && flight.status === 'SCHEDULED' && seats.some((seat) => seat.flightId === flight.id && seat.cabin === 'ECONOMY' && seat.state === 'AVAILABLE'));
+
+const checkInvariants = (order: Order, day: number, routes: readonly RouteId[], flights: readonly Flight[], seats: readonly OwnedSeat[]) => {
   const cfg = getDayConfig(day);
   expect(routes).toContain(order.routeId);
   expect(order.complexity).toBeLessThanOrEqual(cfg.maxComplexity);
-  if (!isMechanicOpen('business', day)) expect(order.cabin).toBe('ECONOMY');
+  // Hạng thương gia chỉ xuất hiện trước khi mở cơ chế khi tuyến đó hết ghế phổ thông (khách chỉ hỏi hạng còn vé).
+  if (!isMechanicOpen('business', day) && order.cabin === 'BUSINESS') expect(flightsOnRouteHaveNoEconomySeat(order.routeId, flights, seats)).toBe(true);
   if (!isMechanicOpen('baggage', day)) expect(order.baggageKg).toBe(0);
   if (!isMechanicOpen('seatPref', day)) expect(order.seatPref).toBe('ANY');
   if (!isMechanicOpen('timePref', day)) expect(order.timePref).toBe('ANY');
@@ -74,7 +78,7 @@ describe('orderGen invariants (§8.4)', () => {
       const { flights, seats, orders } = generateDay(seed, day, routes, seed % 7 === 0);
       const anySeat = routes.some((r) => routeHasAvailableSeat(r, flights, seats));
       for (const order of orders) {
-        checkInvariants(order, day, routes);
+        checkInvariants(order, day, routes, flights, seats);
         if (order.timePref !== 'ANY') {
           expect(flights.some((f) => f.routeId === order.routeId && f.status === 'SCHEDULED')).toBe(true);
         }
@@ -165,6 +169,6 @@ describe('spawner', () => {
   it('peak hours are denser', () => {
     const arrivals = Array.from({ length: 200 }, (_, seed) => generateArrivals(createRng(seed), 60)).flat();
     const perMinute = (from: number, to: number) => arrivals.filter((m) => m >= from && m < to).length / (to - from);
-    expect(perMinute(660, 780)).toBeGreaterThan(perMinute(800, 980) * 1.3);
+    expect(perMinute(1130, 1160)).toBeGreaterThan(perMinute(1170, 1215) * 1.3);
   });
 });

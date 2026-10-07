@@ -255,3 +255,10 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 
 ## 2026-10-07 — Sửa lỗi: nút đóng cửa sớm không bao giờ mở trong ván thật
 - `closeEarlyBlockedReason` chặn bằng cờ `tutorialDone_1`, nhưng chỉ bot và dev đặt cờ này; ván thật không ai đặt nên nút ⏭ và gợi ý "hết vé" bị khoá mãi (`TUTORIAL_DAY`). Nay chỉ chặn ở ngày 1 cho tới khi khách đầu tiên được chấm (`today.results.length === 0`); cờ `tutorialDone_1` còn lại như một cách bỏ qua cho test/bot/dev. Từ ngày 2 luôn mở; ngày đặc biệt của `PersonalConfig` vẫn chặn.
+
+## 2026-10-07 — Ca bán 18:00–21:00, khách theo kho vé, đóng cửa sớm luôn mở, chỉnh giá từ ngày 1
+- Ca bán 18:00–21:00 (`SHOP_OPEN_MINUTE` 1080, `SHOP_CLOSE_MINUTE` 1260), vẫn ≈ 4 phút thật (`MS_PER_GAME_MINUTE` 364 → 1335); giờ đến của khách và giờ cao điểm co theo. Chuyến bay đầu 21:30 nên bán xong mới tới giờ bay.
+- Khách chỉ hỏi vé còn trong kho: tuyến còn ghế (bốc theo túi, bốc lại, cuối cùng chọn đại tuyến còn ghế), hạng vé còn ghế (hết hạng muốn thì đổi sang hạng còn), khung giờ còn ghế. Hết vé hẳn thì không có khách mới tới (trừ khách đặc biệt) và khách đang xếp hàng ra về (sự kiện `CUSTOMERS_DISMISSED`, không sao, không phạt); khách đang ở quầy vẫn do người chơi xử lý. Bỏ các hằng số khách "có thể hỏi vé không có" (`FEASIBLE_ROUTE_CHANCE`...).
+- Số vé còn lại hiện ngay dưới hai chồng vé ("Còn N vé", đỏ "Hết vé").
+- Nút đóng cửa sớm luôn mở (bỏ cả khoá ngày 1; chỉ còn khoá ngày đặc biệt khi bật PersonalConfig). Chỉnh giá vé mở từ ngày 1 (`PRICING_UNLOCK_DAY` 1).
+- Bỏ khách cộng thêm ngày đầu (`EARLY_CUSTOMER_BONUS`): trung bình ngày 1–5 là 8 / 10,8 / 13,9 / 16,9 / 19,9 khách, vừa với 6tr khởi điểm và ~10tr các ngày sau.

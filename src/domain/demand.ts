@@ -3,7 +3,6 @@ import {
   BONUS_FROM_TENTHS,
   BONUS_TIERS,
   DEMAND_FACTORS,
-  EARLY_CUSTOMER_BONUS,
   EARLY_DAYS_CUSTOMER_MULT,
   EARLY_GROWTH,
   LATE_GROWTH,
@@ -72,7 +71,6 @@ export const customersForDay = (input: { seed: number; day: number; rating: numb
   const factor = lerp(1, demandFactor(input.rating), blend);
   const bonus = blend > 0 ? ratingBonus(input.seed, input.day, input.rating) * blend : 0;
   const earlyMult = lerp(EARLY_DAYS_CUSTOMER_MULT, 1, blend);
-  const earlyBonus = EARLY_CUSTOMER_BONUS[input.day - 1] ?? 0;
-  const raw = ((base * factor + bonus) * earlyMult + earlyBonus) * (input.rush ? RUSH_CUSTOMER_MULT : 1);
+  const raw = ((base * factor + bonus) * earlyMult) * (input.rush ? RUSH_CUSTOMER_MULT : 1);
   return clamp(Math.round(raw), MIN_CUSTOMERS, MAX_CUSTOMERS);
 };

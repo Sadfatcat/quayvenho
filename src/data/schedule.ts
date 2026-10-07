@@ -1,13 +1,13 @@
-/** Game minutes. Shop hours 08:00–19:00. */
-export const SHOP_OPEN_MINUTE = 480;
-export const SHOP_CLOSE_MINUTE = 1140;
+/** Game minutes. Shop hours 18:00–21:00 (bán buổi tối, trước chuyến bay đầu tiên 21:30). */
+export const SHOP_OPEN_MINUTE = 1080;
+export const SHOP_CLOSE_MINUTE = 1260;
 
-/** Customer arrivals: first at 08:06, last by 18:30. */
-export const FIRST_ARRIVAL_MINUTE = 486;
-export const LAST_ARRIVAL_MINUTE = 1110;
+/** Customer arrivals: first at 18:06, last by 20:30. */
+export const FIRST_ARRIVAL_MINUTE = 1086;
+export const LAST_ARRIVAL_MINUTE = 1230;
 export const PEAK_WINDOWS: readonly (readonly [number, number])[] = [
-  [660, 780],
-  [990, 1080],
+  [1130, 1160],
+  [1220, 1245],
 ];
 export const PEAK_WEIGHT = 1.5;
 

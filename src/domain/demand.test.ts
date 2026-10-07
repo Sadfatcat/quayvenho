@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EARLY_CUSTOMER_BONUS, EARLY_DAYS_CUSTOMER_MULT, TRAVELVIET_FROM_DAY, TRAVELVIET_RAMP_DAYS, TRAVELVIET_SCORE_WINDOW } from '@data/demand';
+import { EARLY_DAYS_CUSTOMER_MULT, TRAVELVIET_FROM_DAY, TRAVELVIET_RAMP_DAYS, TRAVELVIET_SCORE_WINDOW } from '@data/demand';
 import { baseCustomers, customersForDay, demandFactor, ratingBonus, travelVietBlend, travelVietScore } from './demand';
 import { RUSH_CUSTOMER_MULT } from '@data/events';
 import type { Stars } from './models';
@@ -60,8 +60,8 @@ describe('ratingBonus', () => {
 
 describe('customersForDay', () => {
   it('ignores TravelViet before day 11 and adds early-days customer multiplier', () => {
-    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: false })).toBe(Math.round(5 * EARLY_DAYS_CUSTOMER_MULT + (EARLY_CUSTOMER_BONUS[0] ?? 0)));
-    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: true })).toBe(Math.round((5 * EARLY_DAYS_CUSTOMER_MULT + (EARLY_CUSTOMER_BONUS[0] ?? 0)) * RUSH_CUSTOMER_MULT));
+    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: false })).toBe(Math.round(5 * EARLY_DAYS_CUSTOMER_MULT));
+    expect(customersForDay({ seed: 1, day: 1, rating: 1, rush: true })).toBe(Math.round(5 * EARLY_DAYS_CUSTOMER_MULT * RUSH_CUSTOMER_MULT));
     expect(customersForDay({ seed: 1, day: 10, rating: 5, rush: false })).toBe(Math.round(baseCustomers(1, 10) * EARLY_DAYS_CUSTOMER_MULT));
   });
 
@@ -76,22 +76,17 @@ describe('customersForDay', () => {
     expect(customersForDay({ seed: 1, day: fullDay, rating: 4.0, rush: false })).toBe(base);
   });
 
-  it('keeps the average customer count of each of the first 4 days within 15–30 and growing', () => {
+  it('keeps the first 4 days small enough for about 10tr of tickets (average at most 18 customers) and growing', () => {
     const seeds = Array.from({ length: 200 }, (_, index) => index + 1);
     const averageOf = (day: number): number => seeds.reduce((sum, seed) => sum + customersForDay({ seed, day, rating: 4, rush: false }), 0) / seeds.length;
     const averages = [1, 2, 3, 4].map(averageOf);
-    expect(averages.every((average) => average >= 15 && average <= 30)).toBe(true);
+    expect(averages.every((average) => average <= 18)).toBe(true);
     expect(averages.every((average, index) => index === 0 || average > (averages[index - 1] ?? 0))).toBe(true);
   });
 
-  it('tapers the early bonus off after day 4', () => {
-    const afterwards = EARLY_CUSTOMER_BONUS.slice(3);
-    expect(afterwards.every((bonus, index) => index === 0 || bonus < (afterwards[index - 1] ?? 0))).toBe(true);
-  });
-
-  it('never lowers the customer count once the early bonus is over, up to day 10 when there is no holiday', () => {
+  it('never lowers the customer count from one day to the next up to day 10 when there is no holiday', () => {
     for (let seed = 1; seed <= 300; seed++) {
-      for (let day = EARLY_CUSTOMER_BONUS.length + 2; day < TRAVELVIET_FROM_DAY; day++) {
+      for (let day = 2; day < TRAVELVIET_FROM_DAY; day++) {
         const today = customersForDay({ seed, day, rating: 4, rush: false });
         const yesterday = customersForDay({ seed, day: day - 1, rating: 4, rush: false });
         expect(today).toBeGreaterThanOrEqual(yesterday);

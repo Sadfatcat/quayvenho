@@ -4,8 +4,8 @@ export const PRICE_MAX_PCT = 40;
 /** Quá mốc này là "vượt trần": khách giảm một nửa và một phần vé bị huỷ. */
 export const PRICE_CAP_PCT = 20;
 export const PRICE_STEP_PCT = 5;
-/** Chỉnh giá vé chỉ mở từ ngày này (12 ngày đầu giá cố định ở giá gốc). */
-export const PRICING_UNLOCK_DAY = 13;
+/** Chỉnh giá vé mở từ ngày này (ngày 1: mở ngay từ đầu). */
+export const PRICING_UNLOCK_DAY = 1;
 
 /** Giá vé gốc tăng theo bậc (mỗi `FARE_RISE_EVERY_DAYS` ngày một bậc): giá bán nhanh hơn giá vốn ghế để lãi hằng ngày tăng dần. */
 export const FARE_RISE_EVERY_DAYS = 3;

@@ -88,11 +88,11 @@ describe('holiday event', () => {
 describe('SET_ROUTE_PRICE', () => {
   const rejected = (events: DomainEvent[]) => events.find((e) => e.type === 'COMMAND_REJECTED');
 
-  it('rejects price changes before the unlock day', () => {
+  it('allows price changes from day 1', () => {
     const game = new GameSession(createNewGame(3));
-    expect(isPricingOpen(PRICING_UNLOCK_DAY - 1)).toBe(false);
-    expect(rejected(game.dispatch({ type: 'SET_ROUTE_PRICE', routeId: 'HAN-DAD', pct: 10 }))).toMatchObject({ reason: 'PRICING_LOCKED' });
-    expect(game.state.today.priceAdjustPct).toEqual({});
+    expect(isPricingOpen(1)).toBe(true);
+    expect(rejected(game.dispatch({ type: 'SET_ROUTE_PRICE', routeId: 'HAN-DAD', pct: 10 }))).toBeUndefined();
+    expect(game.state.today.priceAdjustPct).toEqual({ 'HAN-DAD': 10 });
   });
 
   it('stores a clamped integer percent for an unlocked route during PREP', () => {

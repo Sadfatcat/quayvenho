@@ -26,9 +26,6 @@ import type {
 import type { Rng } from './rng';
 import { ShuffleBag } from './shuffleBag';
 
-const FEASIBLE_ROUTE_CHANCE = 0.85;
-const FEASIBILITY_REDRAWS = 3;
-const ALWAYS_FEASIBLE_UNTIL_DAY = 2;
 const RECENT_UNLOCK_DAYS = 2;
 const MAX_EXTRAS = 2;
 const NAME_ATTEMPTS = 50;
@@ -76,27 +73,26 @@ export interface OrderContext {
   customerIndex: number;
 }
 
+/**
+ * Khách chỉ hỏi tuyến còn vé trong kho: bốc theo túi tuyến, nếu tuyến bốc được hết vé thì bốc lại, cuối cùng chọn đại một tuyến còn vé.
+ * Kho trống hoàn toàn thì không có tuyến nào còn vé, khách hỏi tuyến bốc được (người chơi từ chối hoặc đóng cửa sớm).
+ */
 const chooseRoute = (ctx: OrderContext): RouteId => {
   const drawn = ctx.routeBag.draw();
   const hasSeat = (routeId: RouteId) => routeHasAvailableSeat(routeId, ctx.flights, ctx.seats);
   const routesWithSeats = ctx.unlockedRoutes.filter(hasSeat);
   if (!routesWithSeats.length || hasSeat(drawn)) return drawn;
-
-  if (ctx.day <= ALWAYS_FEASIBLE_UNTIL_DAY) {
-    // Two bag lengths always cover one full bag, so a route with seats is reached.
-    for (let i = 0; i < ctx.routeBag.capacity * 2; i++) {
-      const redrawn = ctx.routeBag.draw();
-      if (hasSeat(redrawn)) return redrawn;
-    }
-    invariant(false, 'route bag has no route with seats');
-  }
-  if (!ctx.rng.chance(FEASIBLE_ROUTE_CHANCE)) return drawn;
-  for (let i = 0; i < FEASIBILITY_REDRAWS; i++) {
+  // Hai lần độ dài túi luôn phủ hết một túi nên gặp được tuyến còn vé.
+  for (let i = 0; i < ctx.routeBag.capacity * 2; i++) {
     const redrawn = ctx.routeBag.draw();
     if (hasSeat(redrawn)) return redrawn;
   }
-  return drawn;
+  return ctx.rng.pick(routesWithSeats);
 };
+
+/** Còn ghế bán được ở hạng `cabin` trên một chuyến còn bay của tuyến này không. */
+const flightHasCabinSeat = (flight: Flight, cabin: Order['cabin'], seats: readonly OwnedSeat[]): boolean =>
+  flight.status === 'SCHEDULED' && seats.some((seat) => seat.flightId === flight.id && seat.cabin === cabin && seat.state === 'AVAILABLE');
 
 const openWindows = (routeId: RouteId, flights: readonly Flight[]): TimeWindow[] => [
   ...new Set(
@@ -147,8 +143,14 @@ export const generateOrder = (ctx: OrderContext): Order => {
   const canAdd = (mechanic: Parameters<typeof isMechanicOpen>[0], probability: number) =>
     isMechanicOpen(mechanic, day) && complexity < cfg.maxComplexity && rng.chance(probability);
 
-  const windows = openWindows(routeId, ctx.flights);
-  const cabin = canAdd('business', cfg.pBusiness) ? (complexity++, 'BUSINESS' as const) : 'ECONOMY';
+  // Khách chỉ hỏi hạng vé và khung giờ còn vé trong kho (nếu tuyến còn vé ở hạng kia thì đổi sang hạng đó).
+  const routeFlights = ctx.flights.filter((flight) => flight.routeId === routeId);
+  const hasCabinStock = (candidate: Order['cabin']): boolean => routeFlights.some((flight) => flightHasCabinSeat(flight, candidate, ctx.seats));
+  const wantedCabin = canAdd('business', cfg.pBusiness) ? 'BUSINESS' : 'ECONOMY';
+  const otherCabin = wantedCabin === 'BUSINESS' ? 'ECONOMY' : 'BUSINESS';
+  const cabin = !hasCabinStock(wantedCabin) && hasCabinStock(otherCabin) ? otherCabin : wantedCabin;
+  if (cabin === 'BUSINESS' && wantedCabin === 'BUSINESS') complexity++;
+  const windows = openWindows(routeId, routeFlights.filter((flight) => flightHasCabinSeat(flight, cabin, ctx.seats)));
   const baggageKg: BaggageKg = canAdd('baggage', cfg.pBaggage) ? (complexity++, rng.weighted(BAGGAGE_CHOICES)) : 0;
   const seatPref: SeatPref = canAdd('seatPref', cfg.pSeatPref)
     ? (complexity++, rng.pick(day >= FUSSY_SEAT_PREF_FROM_DAY ? seatPrefsForCabin(cabin) : BASIC_SEAT_PREFS))

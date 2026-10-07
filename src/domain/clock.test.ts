@@ -5,9 +5,9 @@ import { advanceClock, formatClock, matchesTimePref, timeWindowOf } from './cloc
 
 describe('clock', () => {
   it('shop hours are 08:00–19:00', () => {
-    expect(formatClock(SHOP_OPEN_MINUTE)).toBe('08:00');
-    expect(formatClock(SHOP_CLOSE_MINUTE)).toBe('19:00');
-    expect(SHOP_OPEN_MINUTE).toBe(480);
+    expect(formatClock(SHOP_OPEN_MINUTE)).toBe('18:00');
+    expect(formatClock(SHOP_CLOSE_MINUTE)).toBe('21:00');
+    expect(SHOP_OPEN_MINUTE).toBe(1080);
   });
 
   it('formats after midnight and fractional minutes', () => {
@@ -16,8 +16,8 @@ describe('clock', () => {
   });
 
   it('advances 1 game minute per MS_PER_GAME_MINUTE', () => {
-    expect(advanceClock(480, MS_PER_GAME_MINUTE)).toBe(481);
-    expect(advanceClock(480, 100)).toBeCloseTo(480 + 100 / MS_PER_GAME_MINUTE);
+    expect(advanceClock(1080, MS_PER_GAME_MINUTE)).toBe(1081);
+    expect(advanceClock(1080, 100)).toBeCloseTo(1080 + 100 / MS_PER_GAME_MINUTE);
   });
 
   it('NIGHT/LATE boundary at midnight', () => {

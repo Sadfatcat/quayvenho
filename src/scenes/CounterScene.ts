@@ -234,6 +234,8 @@ export class CounterScene extends BaseScene {
         this.toasts.show(STRINGS.counter.rejectedPrefix + rejectedLabel(event.reason));
       } else if (event.type === 'TICKET_SCORED') {
         this.showScoreFeedback(event.result);
+      } else if (event.type === 'CUSTOMERS_DISMISSED') {
+        this.toasts.show(STRINGS.counter.soldOutDismissed.replace('{n}', String(event.count)));
       } else if (event.type === 'STAFF_WEIGH_STARTED') {
         this.desk.startStaffWeighing(event.kg, event.holdMs);
       } else if (event.type === 'STAFF_ASSISTED') {

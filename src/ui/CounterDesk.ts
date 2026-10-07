@@ -106,7 +106,8 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     const { counter, flights, seats } = state.today;
     const draft = counter.draft;
     const unitSig = draft?.flightId && draft.cabin ? seats.filter((s) => s.flightId === draft.flightId && s.cabin === draft.cabin).map((s) => `${s.seat}${s.state}`).join(',') : '';
-    return JSON.stringify({ c: counter.state, d: draft, u: unitSig, r: state.unlockedRoutes, t: flights.length, day: state.day, who: counterCustomer(state.today)?.order.customerId ?? null });
+    const stock = (['ECONOMY', 'BUSINESS'] as const).map((cabin) => this.remainingTickets(state, cabin));
+    return JSON.stringify({ c: counter.state, d: draft, u: unitSig, s: stock, r: state.unlockedRoutes, t: flights.length, day: state.day, who: counterCustomer(state.today)?.order.customerId ?? null });
   }
 
   private rebuild(state: GameState): void {
@@ -171,6 +172,11 @@ export class CounterDesk extends Phaser.GameObjects.Container {
 
   // ---------- vé: kho vé + chỗ đặt vé ----------
 
+  /** Số ghế còn bán được của một hạng trên mọi chuyến (ghế đang giữ cho vé nháp không tính). */
+  private remainingTickets(state: GameState, cabin: CabinClass): number {
+    return state.today.seats.filter((seat) => seat.cabin === cabin && seat.state === 'AVAILABLE').length;
+  }
+
   /** Hai chồng vé (thường / thương gia) như chồng cốc: bấm vào chồng để rút một vé đặt lên bàn. */
   private drawDispenser(parent: Phaser.GameObjects.Container, state: GameState): void {
     const scene = this.scene;
@@ -202,8 +208,10 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       }
       const centerX = left + stackWidth / 2;
       const mark = stackImage ?? scene.add.text(centerX, baseTop + STACK_CARD_HEIGHT / 2, '🎫', { fontFamily: FONT_FAMILY, fontSize: '34px' }).setOrigin(0.5);
+      const remaining = this.remainingTickets(state, cabin);
+      const stockLine = remaining === 0 ? STRINGS.counter.desk.stockOut : STRINGS.counter.desk.stockLeft.replace('{n}', String(remaining));
       const caption = scene.add
-        .text(centerX, y + STACK_HEIGHT + 22, label, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: stackWidth } })
+        .text(centerX, y + STACK_HEIGHT + 30, `${label}\n${stockLine}`, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(remaining === 0 ? COLORS.danger : COLORS.text), align: 'center' })
         .setOrigin(0.5);
       const hit = scene.add.zone(centerX, y + (STACK_HEIGHT + 44) / 2, stackWidth, STACK_HEIGHT + 44).setInteractive({ useHandCursor: true });
       hit.on('pointerup', () => {
