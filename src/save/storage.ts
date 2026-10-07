@@ -1,3 +1,4 @@
+import { SAVE_VERSION } from '@data/balance';
 import type { GameState } from '@domain/models';
 import { devError } from '@platform/logger';
 import { migrateSave } from './migrate';
@@ -5,6 +6,8 @@ import { gameStateSchema } from './schema';
 
 const SAVE_KEY = 'qvn:save';
 const BACKUP_KEY = 'qvn:save:prev';
+/** Bản gốc nguyên vẹn của save cũ, chụp một lần ngay trước khi nâng lên SAVE_VERSION hiện tại (không bị ghi đè khi chơi tiếp). */
+const PRE_MIGRATION_KEY = `qvn:save:before-v${SAVE_VERSION}`;
 
 export type LoadSaveReason = 'EMPTY' | 'CORRUPTED' | 'FUTURE_VERSION';
 type RawLoadResult = { ok: true; value: GameState } | { ok: false; reason: LoadSaveReason };
@@ -39,6 +42,20 @@ export const parseSaveJson = (json: string): RawLoadResult => {
   return { ok: true, value: parsed.data as GameState };
 };
 
+/** Nếu save đang lưu là phiên bản cũ hơn thì giữ lại một bản gốc, phòng khi bản nâng cấp có lỗi. Chỉ chụp một lần. */
+const backupBeforeMigration = (): void => {
+  try {
+    const json = localStorage.getItem(SAVE_KEY);
+    if (json === null) return;
+    const version = (JSON.parse(json) as { version?: unknown } | null)?.version;
+    if (typeof version !== 'number' || version >= SAVE_VERSION) return;
+    if (localStorage.getItem(PRE_MIGRATION_KEY) !== null) return;
+    localStorage.setItem(PRE_MIGRATION_KEY, json);
+  } catch (error) {
+    devError('không chụp được bản sao trước khi nâng cấp save', error);
+  }
+};
+
 const readKey = (key: string): RawLoadResult => {
   let json: string | null;
   try {
@@ -55,6 +72,8 @@ const readKey = (key: string): RawLoadResult => {
 
 /** Đọc save chính; JSON hỏng hoặc không hợp lệ thì rơi về bản sao lưu gần nhất. */
 export const loadSave = (): LoadSaveResult => {
+  // Chụp bản gốc TRƯỚC khi đọc: nếu bản nâng cấp có lỗi làm save không đọc được thì dữ liệu cũ vẫn còn.
+  backupBeforeMigration();
   const primary = readKey(SAVE_KEY);
   if (primary.ok) return { ...primary, recoveredFromBackup: false };
   if (primary.reason === 'FUTURE_VERSION') return primary;

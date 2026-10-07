@@ -1,7 +1,9 @@
 import type { BaggageKg, CabinClass, Extra, Modifiers, ScoreOutcome, Settings, Stars } from '@domain/models';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const STARTING_MONEY = 6000;
+/** Ghế mua ngày D dùng được tới hết ngày D + (số này − 1). */
+export const SEAT_VALID_DAYS = 3;
 
 export const PROFILE_LIMITS = { playerName: 16, brandName: 20 } as const;
 export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.7, sfxVolume: 0.8, haptics: true };

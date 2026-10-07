@@ -28,6 +28,7 @@ const seat = (state: OwnedSeat['state'], unitCost: number): OwnedSeat => ({
   seat: '5A',
   cabin: 'ECONOMY',
   unitCost,
+  expiresDay: 1,
   state,
 });
 

@@ -206,6 +206,7 @@ export const STRINGS = {
     priceBoardButton: 'Bảng giá vé',
     priceBoardSummaryBase: 'giá gốc',
     priceBoardSummaryChanged: 'đã chỉnh {count} tuyến',
+    bannerSeatsExpireToday: 'Hôm nay là ngày cuối: {n} ghế trong kho sẽ hết hạn tối nay.',
     bannerWeather: 'Dự báo xấu ở một tuyến: ghế tuyến đó giảm 50%, nhưng có thể mất ghế khi mở cửa',
     emptyStockTitle: 'Kho trống',
     emptyStockMessage: 'Khách sẽ không mua được vé. Vẫn mở cửa?',
@@ -420,6 +421,7 @@ export const STRINGS = {
     left: 'Khách bỏ đi',
     avgStars: 'Sao trung bình',
     travelViet: 'TravelViet',
+    seatsExpireTomorrow: 'Ngày mai là ngày cuối: {n} ghế trong kho sẽ hết hạn tối mai.',
     continueButton: 'Tiếp tục',
     tapToSkip: 'Chạm để bỏ qua hiệu ứng',
     lossTips: [

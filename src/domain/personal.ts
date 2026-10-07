@@ -63,8 +63,8 @@ const earliestMatchingFlight = (order: Order, flights: readonly Flight[]): Fligh
  * Ghế miễn phí (unitCost 0, không ghi transaction) để khách đặc biệt luôn phục vụ được. Trả mảng rỗng khi đã
  * phục vụ được hoặc không có chuyến phù hợp. Người gọi tự thêm vào kho ghế.
  */
-export const ensureServableForSpecial = (order: Order, flights: readonly Flight[], seats: readonly OwnedSeat[], rng: Rng): OwnedSeat[] => {
+export const ensureServableForSpecial = (order: Order, flights: readonly Flight[], seats: readonly OwnedSeat[], rng: Rng, day: number): OwnedSeat[] => {
   if (canServe(order, flights, seats)) return [];
   const flight = earliestMatchingFlight(order, flights);
-  return flight ? giftSeats(flight, order.cabin, 1, seats, rng) : [];
+  return flight ? giftSeats(flight, order.cabin, 1, seats, rng, day) : [];
 };

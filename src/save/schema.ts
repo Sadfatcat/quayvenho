@@ -44,6 +44,7 @@ const ownedSeatSchema = z.object({
   seat: seatIdSchema,
   cabin: cabinClassSchema,
   unitCost: moneySchema,
+  expiresDay: z.number().int().positive(),
   state: z.enum(['AVAILABLE', 'HELD', 'SOLD', 'EXPIRED', 'LOST']),
 });
 

@@ -51,6 +51,8 @@ export interface OwnedSeat {
   seat: SeatId;
   cabin: CabinClass;
   unitCost: number;
+  /** Ngày cuối cùng ghế còn dùng được (hết ngày này mà chưa bán thì hết hạn). */
+  expiresDay: number;
   state: OwnedSeatState;
 }
 

@@ -28,6 +28,7 @@ const unit = (seat: `${number}${'A' | 'B' | 'C' | 'D'}`, patch: Partial<OwnedSea
   seat,
   cabin: 'ECONOMY',
   unitCost: 730,
+  expiresDay: 1,
   state: 'AVAILABLE',
   ...patch,
 });

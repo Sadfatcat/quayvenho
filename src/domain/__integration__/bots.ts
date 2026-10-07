@@ -123,10 +123,22 @@ export const buyForDay = (game: GameSession, budgetShare = 0.9, demandScale = 1,
 
   const pending: Record<string, number> = {};
   const budget = state.money * budgetShare;
+  // Ghế còn hạn mang từ hôm trước đã tính vào nhu cầu hôm nay: chỉ mua phần thiếu.
+  const inStock = new Map<string, number>();
+  for (const seat of today.seats) {
+    if (seat.state !== 'AVAILABLE') continue;
+    const key = pendingKey(seat.flightId, seat.cabin);
+    inStock.set(key, (inStock.get(key) ?? 0) + 1);
+  }
   for (const unit of units) {
     const flight = today.flights.find((f) => f.id === unit.flightId);
     invariant(flight, 'bot flight');
     const key = pendingKey(unit.flightId, unit.cabin);
+    const stocked = inStock.get(key) ?? 0;
+    if (stocked > 0) {
+      inStock.set(key, stocked - 1);
+      continue;
+    }
     const next = (pending[key] ?? 0) + 1;
     if (next > maxPurchasable(flight, unit.cabin, today.seats)) continue;
     if (pendingTotalCost({ ...pending, [key]: next }, today.flights, state.day, today.event) > budget) continue;

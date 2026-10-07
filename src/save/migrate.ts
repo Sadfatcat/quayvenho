@@ -5,6 +5,8 @@ type RawRecord = Record<string, unknown>;
 /** v1 tính tiền theo "xu"; v2 đổi sang "k" (nghìn đồng) với hệ số này. */
 const V1_TO_V2_MONEY_SCALE = 15;
 const DEFAULT_HOLIDAY_ID = 'NATIONAL_DAY';
+/** v5: ghế còn bán được lúc nâng cấp save được hưởng hạn dùng mới (3 ngày kể từ ngày đang chơi). */
+const V5_SEAT_VALID_DAYS = 3;
 
 const asRecord = (value: unknown): RawRecord | null => (typeof value === 'object' && value !== null ? (value as RawRecord) : null);
 const mapRecords = (value: unknown, fn: (item: RawRecord) => RawRecord): unknown =>
@@ -86,6 +88,19 @@ function migrateV3ToV4(old: RawRecord): RawRecord {
   };
 }
 
+/** v4 → v5: ghế có hạn dùng (`expiresDay`). Ghế đã bán/hết hạn/mất chỉ giữ hạn trong ngày; ghế còn bán được được 3 ngày. */
+function migrateV4ToV5(old: RawRecord): RawRecord {
+  const today = asRecord(old.today);
+  if (!today || !Array.isArray(today.seats)) return { ...old, version: 5 };
+  const day = typeof old.day === 'number' ? old.day : 1;
+  const stillUsable = (seat: RawRecord): boolean => seat.state === 'AVAILABLE' || seat.state === 'HELD';
+  return {
+    ...old,
+    version: 5,
+    today: { ...today, seats: mapRecords(today.seats, (seat) => ({ ...seat, expiresDay: stillUsable(seat) ? day + V5_SEAT_VALID_DAYS - 1 : day })) },
+  };
+}
+
 /**
  * Save v0 (giả định, minh hoạ cách thêm migration thật sau này): chưa có
  * field `flags`. Chuỗi migration chạy tuần tự cho tới `SAVE_VERSION` hiện tại.
@@ -95,6 +110,7 @@ const migrations: Record<number, (old: Record<string, unknown>) => Record<string
   1: migrateV1ToV2,
   2: migrateV2ToV3,
   3: migrateV3ToV4,
+  4: migrateV4ToV5,
 };
 
 export type MigrateResult =

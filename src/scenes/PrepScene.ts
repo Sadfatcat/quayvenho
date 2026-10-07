@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { STRINGS } from '@data/strings';
 import { formatClock } from '@domain/clock';
 import { bulkDiscountRate, purchaseCost, seatUnitCost } from '@domain/economy';
-import { maxPurchasable, pendingKey, pendingTotalCost } from '@domain/inventory';
+import { maxPurchasable, pendingKey, pendingTotalCost, seatsExpiringOn } from '@domain/inventory';
 import type { CabinClass, Flight, GameState, SeatBias, TodayState } from '@domain/models';
 import { getRoute } from '@domain/routes';
 import { routeOfFlight } from '@domain/schedule';
@@ -155,7 +155,9 @@ export class PrepScene extends BaseScene {
   private bannerFor(state: GameState): string {
     const event = state.today.event;
     const eventLine = event.type === 'RUSH' ? this.holidayBanner(event.holidayId, event.hotRoutes) : event.type === 'WEATHER' ? STRINGS.prep.bannerWeather : '';
-    return [eventLine, ...absentTodayLines(state)].filter((line) => line !== '').join('\n');
+    const expiringToday = seatsExpiringOn(state.today.seats, state.day);
+    const expiryLine = expiringToday > 0 ? STRINGS.prep.bannerSeatsExpireToday.replace('{n}', String(expiringToday)) : '';
+    return [eventLine, expiryLine, ...absentTodayLines(state)].filter((line) => line !== '').join('\n');
   }
 
   private renderFlightRow(flight: Flight): Phaser.GameObjects.Container {

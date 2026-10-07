@@ -133,7 +133,7 @@ describe('orderGen invariants (§8.4)', () => {
       const flights = generateFlights(seed, 2, routes);
       const seats = flights
         .filter((f) => f.routeId !== 'HAN-SGN')
-        .map((f) => ({ flightId: f.id, seat: '12D', cabin: 'ECONOMY', unitCost: 1, state: 'AVAILABLE' }) as OwnedSeat);
+        .map((f) => ({ flightId: f.id, seat: '12D', cabin: 'ECONOMY', unitCost: 1, expiresDay: 2, state: 'AVAILABLE' }) as OwnedSeat);
       const ctx = {
         rng: rngFor(seed, 2, 'orders'), namesRng: rngFor(seed, 2, 'names'), day: 2, cfg: getDayConfig(2),
         flights, seats, unlockedRoutes: routes, routeBag: buildRouteBag(rngFor(seed, 2, 'routes'), routes, {}, 2),

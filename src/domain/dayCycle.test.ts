@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SEAT_VALID_DAYS } from '@data/balance';
 import { MS_PER_GAME_MINUTE } from '../config';
 import { invariant } from './common/invariant';
 import { purchaseCost } from './economy';
@@ -320,15 +321,60 @@ describe('shift', () => {
     });
   });
 
-  it('closes at 19:00, serves the rest, then SUMMARY with unsold seats expired', () => {
+  it('closes at 19:00, serves the rest, then SUMMARY; unsold seats are kept for later days', () => {
     const game = newGame();
     openWithSeats(game, 5);
     const events = tickUntil(game, () => game.state.phase === 'SUMMARY');
     const closingAt = events.findIndex((e) => e.type === 'DAY_CLOSING');
     expect(closingAt).toBeGreaterThanOrEqual(0);
     expect(events.at(-1)).toMatchObject({ type: 'DAY_ENDED' });
-    expect(game.state.lastSummary?.expiredSeats).toBe(5);
-    expect(game.state.today.seats.every((s) => s.state === 'EXPIRED')).toBe(true);
+    expect(game.state.lastSummary?.expiredSeats).toBe(0);
+    const unsold = game.state.today.seats.filter((s) => s.state === 'AVAILABLE');
+    expect(unsold.length).toBeGreaterThan(0);
+    expect(unsold.every((s) => s.expiresDay === SEAT_VALID_DAYS)).toBe(true);
+  });
+
+  it('seats bought on day 1 carry to days 2 and 3, then expire at the end of day 3 with the refund', () => {
+    const game = newGame();
+    openWithSeats(game, 5);
+    const stateOf = (state: string): number => game.state.today.seats.filter((s) => s.state === state).length;
+    const finishDay = (): void => {
+      tickUntil(game, () => game.state.phase === 'SUMMARY');
+      game.dispatch({ type: 'GO_TO_SHOP' });
+    };
+
+    finishDay();
+    const leftAfterDay1 = stateOf('AVAILABLE');
+    game.dispatch({ type: 'NEXT_DAY' });
+    expect(game.state.day).toBe(2);
+    expect(stateOf('AVAILABLE')).toBe(leftAfterDay1);
+
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    finishDay();
+    const leftAfterDay2 = stateOf('AVAILABLE');
+    game.dispatch({ type: 'NEXT_DAY' });
+    expect(game.state.day).toBe(3);
+    expect(stateOf('AVAILABLE')).toBe(leftAfterDay2);
+
+    game.dispatch({ type: 'OPEN_COUNTER' });
+    const availableWhenOpened = stateOf('AVAILABLE');
+    finishDay();
+    expect(stateOf('AVAILABLE')).toBe(0);
+    expect(game.state.lastSummary?.expiredSeats).toBe(stateOf('EXPIRED'));
+    expect(stateOf('EXPIRED') + stateOf('SOLD')).toBe(availableWhenOpened);
+  });
+
+  it('seats that expire carry no leftovers into the next day', () => {
+    const game = newGame();
+    openWithSeats(game, 3);
+    for (let day = 1; day <= SEAT_VALID_DAYS; day++) {
+      tickUntil(game, () => game.state.phase === 'SUMMARY');
+      game.dispatch({ type: 'GO_TO_SHOP' });
+      game.dispatch({ type: 'NEXT_DAY' });
+      if (day < SEAT_VALID_DAYS) game.dispatch({ type: 'OPEN_COUNTER' });
+    }
+    expect(game.state.day).toBe(SEAT_VALID_DAYS + 1);
+    expect(game.state.today.seats.filter((seat) => seat.unitCost > 0)).toEqual([]);
   });
 
   it('SEVERE weather cancels every flight and loses every seat of the forecast route only', () => {

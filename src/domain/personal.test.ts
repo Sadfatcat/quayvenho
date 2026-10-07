@@ -98,7 +98,7 @@ describe('ensureServableForSpecial', () => {
 
   it('adds a free seat (unitCost 0) when the player has none, and the customer becomes servable', () => {
     const order = makeOrder({ routeId: 'HAN-DAD', cabin: 'ECONOMY', timePref: 'ANY' });
-    const added = ensureServableForSpecial(order, flights, [], createRng(1));
+    const added = ensureServableForSpecial(order, flights, [], createRng(1), 1);
     expect(added).toHaveLength(1);
     expect(added[0]).toMatchObject({ unitCost: 0, state: 'AVAILABLE', cabin: 'ECONOMY' });
     expect(canServe(order, flights, added)).toBe(true);
@@ -106,8 +106,8 @@ describe('ensureServableForSpecial', () => {
 
   it('adds nothing when a matching seat already exists', () => {
     const order = makeOrder({ routeId: 'HAN-DAD', cabin: 'ECONOMY', timePref: 'ANY' });
-    const owned: OwnedSeat[] = [{ flightId: 'F1', seat: '1A', cabin: 'ECONOMY', unitCost: 50, state: 'AVAILABLE' }];
-    expect(ensureServableForSpecial(order, flights, owned, createRng(1))).toEqual([]);
+    const owned: OwnedSeat[] = [{ flightId: 'F1', seat: '1A', cabin: 'ECONOMY', unitCost: 50, expiresDay: 1, state: 'AVAILABLE' }];
+    expect(ensureServableForSpecial(order, flights, owned, createRng(1), 1)).toEqual([]);
   });
 });
 

@@ -3,6 +3,7 @@ import { createNewGame } from '@domain/dayCycle';
 import { clearSave, loadSave, writeSave } from './storage';
 
 const SAVE_KEY = 'qvn:save';
+const PRE_MIGRATION_KEY = 'qvn:save:before-v5';
 
 const createMemoryStorage = (): Storage => {
   const store = new Map<string, string>();
@@ -93,5 +94,45 @@ describe('storage', () => {
     clearSave();
 
     expect(loadSave()).toEqual({ ok: false, reason: 'EMPTY' });
+  });
+
+  describe('nâng cấp save cũ', () => {
+    const v4Json = JSON.stringify({ ...createNewGame(7), version: 4, today: { ...createNewGame(7).today, seats: [] } });
+
+    it('chụp một bản gốc nguyên vẹn trước khi nâng cấp, và nâng lên đúng phiên bản', () => {
+      localStorage.setItem(SAVE_KEY, v4Json);
+
+      const result = loadSave();
+
+      expect(result).toMatchObject({ ok: true, value: { version: 5, seed: 7 } });
+      expect(localStorage.getItem(PRE_MIGRATION_KEY)).toBe(v4Json);
+    });
+
+    it('không ghi đè bản gốc khi chơi tiếp và ghi save mới', () => {
+      localStorage.setItem(SAVE_KEY, v4Json);
+      const loaded = loadSave();
+      if (!loaded.ok) throw new Error('save v4 phải đọc được');
+
+      writeSave({ ...loaded.value, money: 999 });
+      loadSave();
+
+      expect(localStorage.getItem(PRE_MIGRATION_KEY)).toBe(v4Json);
+    });
+
+    it('vẫn giữ bản gốc khi save cũ hỏng không nâng cấp được', () => {
+      const broken = JSON.stringify({ version: 4, seed: 1 });
+      localStorage.setItem(SAVE_KEY, broken);
+
+      expect(loadSave().ok).toBe(false);
+      expect(localStorage.getItem(PRE_MIGRATION_KEY)).toBe(broken);
+    });
+
+    it('không chụp gì khi save đã đúng phiên bản hiện tại', () => {
+      writeSave(createNewGame(7));
+
+      loadSave();
+
+      expect(localStorage.getItem(PRE_MIGRATION_KEY)).toBeNull();
+    });
   });
 });

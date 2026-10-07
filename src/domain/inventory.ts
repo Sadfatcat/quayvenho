@@ -1,4 +1,4 @@
-import { PURCHASE_LIMIT_PER_FLIGHT, SEAT_BIAS_PREFERENCE_CHANCE } from '@data/balance';
+import { PURCHASE_LIMIT_PER_FLIGHT, SEAT_BIAS_PREFERENCE_CHANCE, SEAT_VALID_DAYS } from '@data/balance';
 import { invariant } from './common/invariant';
 import { err, ok, type Result } from './common/result';
 import { sum } from './common/math';
@@ -8,6 +8,9 @@ import type { Rng } from './rng';
 import { getRoute } from './routes';
 import { findFlight } from './schedule';
 import { isWindow, seatsOfCabin } from './seatMap';
+
+/** Ngày cuối cùng ghế mua (hoặc được tặng) vào ngày `day` còn dùng được. */
+export const seatExpiryDayFor = (day: number): number => day + SEAT_VALID_DAYS - 1;
 
 export const pendingKey = (flightId: string, cabin: CabinClass): string => `${flightId}:${cabin}`;
 
@@ -118,7 +121,7 @@ export const purchasePending = (input: {
   const purchases = plan.map(({ flight, cabin, qty }) => {
     const picked = pickSeats(freeSeatsFor(flight, cabin, seats), qty, input.bias, input.rng);
     const unitCost = unitCostOf(flight, cabin, input.day ?? 1, input.event ?? NO_EVENT);
-    seats.push(...picked.map((seat) => ({ flightId: flight.id, seat, cabin, unitCost, state: 'AVAILABLE' as const })));
+    seats.push(...picked.map((seat) => ({ flightId: flight.id, seat, cabin, unitCost, expiresDay: seatExpiryDayFor(input.day ?? 1), state: 'AVAILABLE' as const })));
     return { flightId: flight.id, cabin, seats: picked, cost: purchaseCost(unitCost, qty) };
   });
   return ok({ seats, purchases, totalCost });
@@ -131,6 +134,7 @@ export const giftSeats = (
   count: number,
   seats: readonly OwnedSeat[],
   rng: Rng,
+  day: number,
 ): OwnedSeat[] => {
   const free = freeSeatsFor(flight, cabin, seats);
   return pickSeats(free, Math.min(count, free.length), 'BALANCED', rng).map((seat) => ({
@@ -138,6 +142,7 @@ export const giftSeats = (
     seat,
     cabin,
     unitCost: 0,
+    expiresDay: seatExpiryDayFor(day),
     state: 'AVAILABLE',
   }));
 };
@@ -150,7 +155,33 @@ const withState = (
 
 export const releaseHeld = (seats: readonly OwnedSeat[]) => withState(seats, 'HELD', 'AVAILABLE');
 export const sellHeld = (seats: readonly OwnedSeat[]) => withState(seats, 'HELD', 'SOLD');
-export const expireAvailable = (seats: readonly OwnedSeat[]) => withState(seats, 'AVAILABLE', 'EXPIRED');
+/** Cuối ngày `day`: chỉ ghế đã tới hạn mới hết hạn, ghế còn hạn được giữ sang ngày sau. */
+export const expireAvailable = (seats: readonly OwnedSeat[], day: number): OwnedSeat[] =>
+  seats.map((seat) => (seat.state === 'AVAILABLE' && seat.expiresDay <= day ? { ...seat, state: 'EXPIRED' as const } : seat));
+
+/** Số ghế còn bán được sẽ hết hạn đúng cuối ngày `day`. */
+export const seatsExpiringOn = (seats: readonly OwnedSeat[], day: number): number =>
+  seats.filter((seat) => seat.state === 'AVAILABLE' && seat.expiresDay === day).length;
+
+/**
+ * Ghế mang sang ngày mới: chỉ ghế còn bán được và còn hạn. Chuyến ngày mới có thể đã bị đại lý khác lấy đúng số ghế đó,
+ * nên ghế trùng được đổi sang một ghế còn trống của cùng khoang (số ghế cụ thể chỉ là nhãn, tồn kho tính theo số lượng).
+ */
+export const carryOverSeats = (seats: readonly OwnedSeat[], currentDay: number, nextFlights: readonly Flight[], rng: Rng): OwnedSeat[] => {
+  const carried = seats.filter((seat) => seat.state === 'AVAILABLE' && seat.expiresDay > currentDay);
+  const result: OwnedSeat[] = [];
+  for (const seat of carried) {
+    const flight = findFlight(nextFlights, seat.flightId);
+    const taken = flight?.takenByOthers.includes(seat.seat) ?? false;
+    if (!flight || !taken) {
+      result.push(seat);
+      continue;
+    }
+    const spare = freeSeatsFor(flight, seat.cabin, [...carried, ...result]);
+    result.push(spare.length ? { ...seat, seat: rng.pick(spare) } : seat);
+  }
+  return result;
+};
 
 /**
  * Giữ một ghế cho vé đang lập. Mọi ghế của khoang đều chọn được: ghế trống (chưa bán/chưa giữ) là hợp lệ miễn là

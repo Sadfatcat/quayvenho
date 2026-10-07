@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { SEAT_VALID_DAYS } from '@data/balance';
 import { canServe, routeHasAvailableSeat } from './canServe';
 import { purchaseCost } from './economy';
 import { getRoute } from './routes';
 import {
+  carryOverSeats,
   expireAvailable,
   freeSeatsFor,
   giftSeats,
@@ -14,6 +16,8 @@ import {
   pickSeats,
   purchasePending,
   releaseHeld,
+  seatExpiryDayFor,
+  seatsExpiringOn,
   sellHeld,
 } from './inventory';
 import { makeFlight } from './__integration__/fixtures';
@@ -30,6 +34,7 @@ const owned = (seat: OwnedSeat['seat'], state: OwnedSeat['state'] = 'AVAILABLE',
   seat,
   cabin: 'ECONOMY',
   unitCost: 50,
+  expiresDay: 3,
   state,
   ...patch,
 });
@@ -122,7 +127,7 @@ describe('inventory: seat states', () => {
     const seats = [owned('4A', 'HELD'), owned('4B')];
     expect(releaseHeld(seats).map((s) => s.state)).toEqual(['AVAILABLE', 'AVAILABLE']);
     expect(sellHeld(seats).map((s) => s.state)).toEqual(['SOLD', 'AVAILABLE']);
-    expect(expireAvailable(sellHeld(seats)).map((s) => s.state)).toEqual(['SOLD', 'EXPIRED']);
+    expect(expireAvailable(sellHeld(seats), 3).map((s) => s.state)).toEqual(['SOLD', 'EXPIRED']);
   });
 
   it('weather loss: BAD loses round(n/3), SEVERE loses all, only on given flights', () => {
@@ -137,11 +142,11 @@ describe('inventory: seat states', () => {
   });
 
   it('gift seats are free and capped by free seats', () => {
-    const gift = giftSeats(flight(), 'ECONOMY', 3, [], createRng(2));
+    const gift = giftSeats(flight(), 'ECONOMY', 3, [], createRng(2), 1);
     expect(gift).toHaveLength(3);
     expect(gift.every((s) => s.unitCost === 0 && s.state === 'AVAILABLE')).toBe(true);
     const full = flight({ takenByOthers: seatsOfCabin('ECONOMY').slice(0, 31) });
-    expect(giftSeats(full, 'ECONOMY', 3, [], createRng(2))).toHaveLength(1);
+    expect(giftSeats(full, 'ECONOMY', 3, [], createRng(2), 1)).toHaveLength(1);
   });
 });
 
@@ -164,5 +169,48 @@ describe('canServe', () => {
     expect(canServe(base, cancelled, [owned('4A')])).toBe(false);
     expect(routeHasAvailableSeat('HAN-DAD', cancelled, [owned('4A')])).toBe(false);
     expect(routeHasAvailableSeat('HAN-DAD', [flight()], [owned('4A')])).toBe(true);
+  });
+
+  describe('hạn dùng của ghế', () => {
+    it('ghế mua ngày D dùng được tới hết ngày D + SEAT_VALID_DAYS - 1', () => {
+      expect(seatExpiryDayFor(5)).toBe(5 + SEAT_VALID_DAYS - 1);
+    });
+
+    it('purchasePending gán đúng hạn dùng theo ngày mua', () => {
+      const result = purchasePending({ pending: { [pendingKey('QV201', 'ECONOMY')]: 2 }, flights: [flight()], seats: [], money: 10_000, bias: 'BALANCED', rng: createRng(1), day: 4 });
+      expect(result.ok && result.value.seats.every((seat) => seat.expiresDay === 4 + SEAT_VALID_DAYS - 1)).toBe(true);
+    });
+
+    it('cuối ngày chỉ ghế tới hạn mới hết hạn, ghế còn hạn và ghế đã bán giữ nguyên', () => {
+      const seats = [owned('4A', 'AVAILABLE', { expiresDay: 2 }), owned('4B', 'AVAILABLE', { expiresDay: 3 }), owned('4C', 'SOLD', { expiresDay: 2 })];
+      expect(expireAvailable(seats, 2).map((seat) => seat.state)).toEqual(['EXPIRED', 'AVAILABLE', 'SOLD']);
+    });
+
+    it('seatsExpiringOn chỉ đếm ghế còn bán được hết hạn đúng ngày đó', () => {
+      const seats = [owned('4A', 'AVAILABLE', { expiresDay: 3 }), owned('4B', 'AVAILABLE', { expiresDay: 3 }), owned('4C', 'AVAILABLE', { expiresDay: 4 }), owned('4D', 'SOLD', { expiresDay: 3 })];
+      expect(seatsExpiringOn(seats, 3)).toBe(2);
+    });
+
+    it('carryOverSeats chỉ mang ghế còn bán được và còn hạn sang ngày mới', () => {
+      const seats = [
+        owned('4A', 'AVAILABLE', { expiresDay: 3 }),
+        owned('4B', 'AVAILABLE', { expiresDay: 1 }),
+        owned('4C', 'SOLD', { expiresDay: 3 }),
+        owned('4D', 'EXPIRED', { expiresDay: 3 }),
+        owned('5A', 'LOST', { expiresDay: 3 }),
+      ];
+      const carried = carryOverSeats(seats, 1, [flight()], createRng(1));
+      expect(carried.map((seat) => seat.seat)).toEqual(['4A']);
+    });
+
+    it('carryOverSeats đổi ghế trùng với ghế đại lý khác đã lấy sang ghế còn trống, không mất ghế nào', () => {
+      const seats = [owned('3A', 'AVAILABLE', { expiresDay: 3 }), owned('4A', 'AVAILABLE', { expiresDay: 3 })];
+      const nextDay = flight({ takenByOthers: ['3A', '1A'] });
+      const carried = carryOverSeats(seats, 1, [nextDay], createRng(1));
+      expect(carried).toHaveLength(2);
+      expect(carried.every((seat) => !nextDay.takenByOthers.includes(seat.seat))).toBe(true);
+      expect(new Set(carried.map((seat) => seat.seat)).size).toBe(2);
+      expect(carried.every((seat) => seat.expiresDay === 3 && seat.unitCost === 50)).toBe(true);
+    });
   });
 });

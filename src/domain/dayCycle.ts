@@ -28,6 +28,7 @@ import { isRush, resolveWeather, rollDayEvent } from './events';
 import { clampPricePct, dayDemandProfile, isPricingOpen } from './pricing';
 import { buildSpecialOrder, dayHasPersonalContent, ensureServableForSpecial, specialCustomerForArrival } from './personal';
 import {
+  carryOverSeats,
   expireAvailable,
   holdSeat,
   loseSeats,
@@ -47,6 +48,7 @@ import type {
   DomainEvent,
   GameState,
   Mood,
+  OwnedSeat,
   RouteId,
   ScoreResult,
   StaffJob,
@@ -113,12 +115,13 @@ const createToday = (
   moneyStart: number,
   transactions: TodayState['transactions'],
   personal: PersonalConfig,
+  carriedSeats: readonly OwnedSeat[] = [],
 ): TodayState => ({
   moneyStart,
   event: dayHasPersonalContent(personal, day) ? { type: 'NONE' } : rollDayEvent(seed, day, unlockedRoutes),
   priceAdjustPct: {},
   flights: generateFlights(seed, day, unlockedRoutes),
-  seats: [],
+  seats: [...carriedSeats],
   pendingPurchase: {},
   seatBias: 'BALANCED',
   purchaseCount: 0,
@@ -134,8 +137,10 @@ const createToday = (
 });
 
 const applySafetyNet = (state: GameState): DomainEvent[] => {
-  if (!needsSupport(state.money, state.unlockedRoutes, state.day)) return [];
   const { today } = state;
+  // Còn ghế bán được (kể cả ghế mang từ hôm trước) thì chưa cần hỗ trợ.
+  if (today.seats.some((seat) => seat.state === 'AVAILABLE')) return [];
+  if (!needsSupport(state.money, state.unlockedRoutes, state.day)) return [];
   const gift = supportGift(state.seed, state.day, today.flights, today.seats, state.unlockedRoutes);
   if (!gift || !gift.seats.length) return [];
   today.seats.push(...gift.seats);
@@ -506,8 +511,11 @@ export const applyCommand = (session: Session, command: Command): DomainEvent[] 
     case 'NEXT_DAY': {
       if (state.phase !== 'SHOP') return reject('WRONG_PHASE');
       invariant(state.lastSummary, 'SHOP without a summary');
+      const finishedDay = state.day;
+      const finishedDaySeats = state.today.seats;
       state.day += 1;
       state.today = createToday(state.seed, state.day, state.unlockedRoutes, state.lastSummary.moneyEnd, state.nextDayTransactions, session.personal);
+      state.today.seats = carryOverSeats(finishedDaySeats, finishedDay, state.today.flights, rngFor(state.seed, state.day, 'carry'));
       state.nextDayTransactions = [];
       state.phase = 'PREP';
       session.runtime = null;
@@ -731,7 +739,7 @@ const spawnArrivals = (state: GameState, runtime: DayRuntime, personal: Personal
       customerIndex: index,
     });
     const order = special ? buildSpecialOrder(generated, special, state.day) : generated;
-    if (special) today.seats.push(...ensureServableForSpecial(order, today.flights, today.seats, rngFor(state.seed, state.day, `special:${special.id}`)));
+    if (special) today.seats.push(...ensureServableForSpecial(order, today.flights, today.seats, rngFor(state.seed, state.day, `special:${special.id}`), state.day));
     today.queue.push({
       order,
       patienceLeftMs: order.patienceMaxMs,
@@ -827,7 +835,7 @@ const endDayIfDone = (session: Session, events: DomainEvent[]): void => {
   const { today } = state;
   if (state.phase !== 'CLOSING' || today.queue.length || today.counter.state !== 'EMPTY') return;
 
-  today.seats = expireAvailable(today.seats);
+  today.seats = expireAvailable(today.seats, state.day);
   const refund = refundFor(
     today.seats.filter((seat) => seat.state === 'EXPIRED'),
     computeModifiers(state.upgrades).refundRate,

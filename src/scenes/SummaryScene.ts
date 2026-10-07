@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TRAVELVIET_FROM_DAY } from '@data/demand';
 import { STRINGS } from '@data/strings';
+import { seatsExpiringOn } from '@domain/inventory';
 import type { DaySummary } from '@domain/models';
 import { Button } from '@ui/Button';
 import { noticeText } from '@ui/staffText';
@@ -22,6 +23,8 @@ interface SummaryLine {
 }
 
 const LINES_TOP = 320;
+const EXPIRY_NOTICE_GAP = 20;
+const EXPIRY_NOTICE_HEIGHT = 70;
 const LINE_HEIGHT = 40;
 const STAR_COUNT = 5;
 const STAR_Y = 250;
@@ -63,11 +66,25 @@ export class SummaryScene extends BaseScene {
     const lines = this.buildLines(summary);
     this.revealLines(lines);
 
+    const expiringTomorrow = seatsExpiringOn(state.today.seats, summary.day + 1);
+    if (expiringTomorrow > 0) {
+      this.add
+        .text(GAME_WIDTH / 2, LINES_TOP + lines.length * LINE_HEIGHT + EXPIRY_NOTICE_GAP, STRINGS.summary.seatsExpireTomorrow.replace('{n}', String(expiringTomorrow)), {
+          fontFamily: FONT_FAMILY,
+          fontSize: '22px',
+          fontStyle: 'bold',
+          color: toCssColor(COLORS.warning),
+          align: 'center',
+          wordWrap: { width: GAME_WIDTH - 120 },
+        })
+        .setOrigin(0.5, 0);
+    }
+
     if (summary.moneyEnd - summary.moneyStart < 0) {
       const tips = STRINGS.summary.lossTips;
       const tip = tips[Math.floor(Math.random() * tips.length)] ?? tips[0];
       this.add
-        .text(GAME_WIDTH / 2, LINES_TOP + lines.length * LINE_HEIGHT + 50, tip, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted), align: 'center', wordWrap: { width: GAME_WIDTH - 120 } })
+        .text(GAME_WIDTH / 2, LINES_TOP + lines.length * LINE_HEIGHT + (expiringTomorrow > 0 ? EXPIRY_NOTICE_HEIGHT : 0) + 50, tip, { fontFamily: FONT_FAMILY, fontSize: '22px', color: toCssColor(COLORS.textMuted), align: 'center', wordWrap: { width: GAME_WIDTH - 120 } })
         .setOrigin(0.5, 0);
     }
 

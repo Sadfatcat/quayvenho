@@ -26,5 +26,5 @@ export const supportGift = (
     .filter((candidate) => candidate.routeId === route.id && candidate.status === 'SCHEDULED')
     .reduce<Flight | null>((earliest, candidate) => (!earliest || candidate.departAt < earliest.departAt ? candidate : earliest), null);
   if (!flight) return null;
-  return { flight, seats: giftSeats(flight, 'ECONOMY', SAFETY_NET_GIFT_SEATS, seats, rngFor(seed, day, 'support')) };
+  return { flight, seats: giftSeats(flight, 'ECONOMY', SAFETY_NET_GIFT_SEATS, seats, rngFor(seed, day, 'support'), day) };
 };
