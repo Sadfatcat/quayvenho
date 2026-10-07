@@ -5,6 +5,7 @@ import {
   DEMAND_FACTORS,
   EARLY_DAYS_CUSTOMER_MULT,
   EARLY_GROWTH,
+  RATING_BONUS_SCALE,
   LATE_GROWTH,
   MAX_CUSTOMERS,
   MIN_CUSTOMERS,
@@ -69,7 +70,7 @@ export const customersForDay = (input: { seed: number; day: number; rating: numb
   const base = baseCustomers(input.seed, input.day);
   const blend = travelVietBlend(input.day);
   const factor = lerp(1, demandFactor(input.rating), blend);
-  const bonus = blend > 0 ? ratingBonus(input.seed, input.day, input.rating) * blend : 0;
+  const bonus = blend > 0 ? ratingBonus(input.seed, input.day, input.rating) * blend * RATING_BONUS_SCALE : 0;
   const earlyMult = lerp(EARLY_DAYS_CUSTOMER_MULT, 1, blend);
   const raw = ((base * factor + bonus) * earlyMult) * (input.rush ? RUSH_CUSTOMER_MULT : 1);
   return clamp(Math.round(raw), MIN_CUSTOMERS, MAX_CUSTOMERS);

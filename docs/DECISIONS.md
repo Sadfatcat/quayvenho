@@ -272,3 +272,7 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - Vẫn giữ giới hạn mua mỗi chuyến (ECO 12, BIZ 4) nên không thể mua hết mọi ghế của một chuyến.
 - Chế độ Cân bằng nay có tỉ lệ cố định: 30% ghế cửa sổ, 70% ghế lối đi (`BALANCED_WINDOW_SHARE`), làm tròn theo số ghế nhập, thiếu loại nào thì bù bằng loại kia; vị trí cụ thể vẫn ngẫu nhiên. Giá cân bằng giữ ×1 (giá bảng).
 - Ca bán dài ≈ 5 phút thật (`MS_PER_GAME_MINUTE` 1335 → 1667, vẫn 180 phút game 18:00–21:00). Số khách trong ngày giữ nguyên nên khách đến thưa hơn khoảng 20% theo giây thật. Cân hành lý của nhân viên sai 8% (`BAGGAGE_ERROR_PCT` 0 → 8; việc này thuộc Middle).
+
+## 2026-10-07 — Bớt khách các ngày sau, kiên nhẫn giảm nhanh hơn 10%
+- Chủ dự án thấy ngày 30 có ~140 khách (TravelViet ~4,9 + ngày lễ). Nay thưởng khách theo điểm TravelViet chỉ lấy 40% (`RATING_BONUS_SCALE`) và hệ số ngày lễ 1,4 → 1,3. Ngày 30 (trung bình 300 ván): điểm 4,0: 53 khách; 4,7: 59; 4,9: 69; 4,9 + lễ: 90 (trước ~93 và ~140). Ngày 40: 68–84 (lễ 110); ngày 60: 98–114 (lễ 149). Chưa đổi đà tăng nền mỗi ngày.
+- Kiên nhẫn của khách giảm nhanh hơn 10%: `BASE_MODIFIERS.patienceMult` 1,1 → 1 (hết phần +10% đã cộng ở lần trước; nâng cấp Ghế chờ êm, Quạt mát vẫn nhân lên trên mức này).
