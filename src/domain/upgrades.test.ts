@@ -14,7 +14,7 @@ describe('computeModifiers', () => {
   it('multipliers stack by product, others override', () => {
     const mods = computeModifiers(['COMFY_CHAIRS', 'FAN', 'FAST_PRINTER', 'WAITING_LOUNGE', 'REFUND_POLICY', 'AIRLINE_RELATIONS', 'LOYALTY_BOARD']);
     expect(mods.patienceMult).toBeCloseTo(1.452);
-    expect(mods).toMatchObject({ tipMult: 1.15, printMs: 1000, queuePatienceRateMult: 0.85, refundRate: 0.4, seatBias: true });
+    expect(mods).toMatchObject({ tipMult: 1.15, printMs: 800, queuePatienceRateMult: 0.85, refundRate: 0.4, seatBias: true });
   });
 });
 
