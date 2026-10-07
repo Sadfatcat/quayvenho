@@ -40,7 +40,9 @@ const MARKETING_PORTRAIT_HEIGHT = 68;
 const MARKETING_PORTRAIT_WIDTH = 56;
 const MARKETING_TEACH_WIDTH = 180;
 const MARKETING_FIRE_WIDTH = 90;
-const MARKETING_BUTTON_GAP = 8;
+const MARKETING_BUTTON_GAP = 10;
+/** Khoảng cách từ nút ngoài cùng tới viền phải của dải marketing. */
+const MARKETING_STRIP_INNER_PADDING = 20;
 const FIRE_BUTTON = { width: 130, height: 48 };
 const SMALL_BUTTON_FONT_PX = 20;
 const KIND_COLORS: Record<StaffKind, number> = { INTERN: COLORS.textMuted, JUNIOR: COLORS.teal, MIDDLE: COLORS.accent, SENIOR: COLORS.primary, MARKETING: COLORS.moneyGreen };
@@ -163,7 +165,7 @@ export class StaffScene extends BaseScene {
       this.add.text(textLeft, MARKETING_STRIP.top + MARKETING_LINES_Y[1], bonusText(member), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
       this.add.text(textLeft, MARKETING_STRIP.top + MARKETING_LINES_Y[2], `${T.wagePerDay}: ${formatMoney(wageOf(member, state.wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5),
     ]);
-    const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_FIRE_WIDTH - MARKETING_BUTTON_GAP - MARKETING_TEACH_WIDTH / 2, centerY, {
+    const teachButton = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_STRIP_INNER_PADDING - MARKETING_FIRE_WIDTH - MARKETING_BUTTON_GAP - MARKETING_TEACH_WIDTH / 2, centerY, {
       width: MARKETING_TEACH_WIDTH,
       height: 56,
       fontSize: SMALL_BUTTON_FONT_PX,
@@ -172,7 +174,7 @@ export class StaffScene extends BaseScene {
       onTap: () => sessionBridge.dispatch({ type: 'TEACH_MARKETING' }),
     });
     teachButton.setEnabled(teach.ok);
-    const fire = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_FIRE_WIDTH / 2, centerY, { width: MARKETING_FIRE_WIDTH, height: 56, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
+    const fire = new Button(this, GAME_WIDTH - SIDE_MARGIN - MARKETING_STRIP_INNER_PADDING - MARKETING_FIRE_WIDTH / 2, centerY, { width: MARKETING_FIRE_WIDTH, height: 56, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
     this.dynamicLayer.add([teachButton, fire]);
   }
 
