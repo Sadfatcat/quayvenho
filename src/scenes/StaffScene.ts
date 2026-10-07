@@ -11,7 +11,7 @@ import { formatMoney } from '@ui/format';
 import { Panel } from '@ui/Panel';
 import { ScrollList } from '@ui/ScrollList';
 import { addStaffPortrait } from '@ui/StaffPortrait';
-import { kindName, memberDetail } from '@ui/staffText';
+import { kindName } from '@ui/staffText';
 import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from '@ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { BaseScene } from './BaseScene';
@@ -32,6 +32,7 @@ const LIST_BOTTOM_MARGIN = 170;
 const CARD_HEIGHT = 190;
 const CARD_GAP = 14;
 const AVATAR_RADIUS = 30;
+const WAGE_TOP = 54;
 const PORTRAIT_HEIGHT_PER_RADIUS = 2.6;
 const MARKETING_PORTRAIT_HEIGHT = 68;
 const MARKETING_PORTRAIT_WIDTH = 56;
@@ -133,12 +134,12 @@ export class StaffScene extends BaseScene {
     const textLeft = left + 16 + AVATAR_RADIUS * 2 + 12;
     const textWidth = width - (textLeft - left) - 10;
     const name = this.add.text(textLeft, top + 18, `${member.name} · ${kindName(member.kind)}`, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), wordWrap: { width: textWidth } }).setOrigin(0, 0);
-    const detail = member.kind === 'INTERN' ? T.learning : memberDetail(member);
-    const status = absent ? member.absenceReason ? T.absence[member.absenceReason] : '' : detail;
-    const detailText = this.add.text(textLeft, top + 48, status, { fontFamily: FONT_FAMILY, fontSize: '20px', color: toCssColor(absent ? COLORS.danger : COLORS.textMuted), wordWrap: { width: textWidth } }).setOrigin(0, 0);
-    const wage = this.add.text(left + 16, top + SLOT.height - 36, `${T.wagePerDay}: ${formatMoney(wageOf(member, wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0.5);
+    const wage = this.add.text(textLeft, top + WAGE_TOP, `${T.wagePerDay}: ${formatMoney(wageOf(member, wageRaise))}`, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.moneyGreen) }).setOrigin(0, 0);
+    /** Mô tả việc đã có lúc thuê nên ở đây chỉ báo lý do nghỉ (nếu có), nằm cạnh nút "Cho nghỉ". */
+    const absence = absent && member.absenceReason ? T.absence[member.absenceReason] : '';
+    const absenceText = this.add.text(left + 16, top + SLOT.height - 36, absence, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.danger), wordWrap: { width: width - FIRE_BUTTON.width - 40 } }).setOrigin(0, 0.5);
     const fire = new Button(this, left + width - FIRE_BUTTON.width / 2 - 12, top + SLOT.height - 36, { width: FIRE_BUTTON.width, height: FIRE_BUTTON.height, label: T.fire, fontSize: SMALL_BUTTON_FONT_PX, variant: 'ghost', onTap: () => this.confirmFire(member) });
-    this.dynamicLayer.add([avatar, initial, name, detailText, wage, fire]);
+    this.dynamicLayer.add([avatar, initial, name, wage, absenceText, fire]);
   }
 
   private renderMarketingStrip(): void {

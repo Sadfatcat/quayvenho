@@ -13,7 +13,7 @@ import {
   newMember,
   pickStaffFlight,
   pickStaffSeat,
-  promoteInterns,
+  promoteStaff,
   pushProfit,
   rollAbsences,
   staffBaggageKg,
@@ -63,6 +63,7 @@ describe('wages', () => {
     expect(wageOf(member('JUNIOR'), 0)).toBe(1500);
     expect(wageOf(member('MIDDLE'), 120)).toBe(2120);
     expect(wageOf(member('JUNIOR', { promoted: true }), 0)).toBe(900);
+    expect(wageOf(member('MIDDLE', { promoted: true }), 0)).toBe(1200);
     expect(wageOf(member('INTERN'), 50)).toBe(350);
   });
 
@@ -146,13 +147,26 @@ describe('staff job helpers', () => {
 });
 
 describe('end-of-day staff rules', () => {
-  it('promotes an intern after 30 days of work and keeps their id', () => {
-    const intern = member('INTERN', { daysWorked: 30 });
-    const staff = [intern, member('INTERN', { daysWorked: 29 })];
-    const notices = promoteInterns(staff);
-    expect(notices).toEqual([{ type: 'PROMOTED', staffId: intern.id, name: intern.name }]);
-    expect(staff[0]).toMatchObject({ kind: 'JUNIOR', promoted: true });
+  it('promotes an intern after 8 days of work, keeps their id and restarts the day count', () => {
+    const intern = member('INTERN', { daysWorked: 8 });
+    const staff = [intern, member('INTERN', { daysWorked: 7 })];
+    const notices = promoteStaff(staff);
+    expect(notices).toEqual([{ type: 'PROMOTED', staffId: intern.id, name: intern.name, toKind: 'JUNIOR' }]);
+    expect(staff[0]).toMatchObject({ kind: 'JUNIOR', promoted: true, daysWorked: 0 });
     expect(staff[1]?.kind).toBe('INTERN');
+  });
+
+  it('climbs Junior to Middle after 10 days and Middle to Senior after 12 days, while Senior and Marketing never move', () => {
+    const staff = [
+      member('JUNIOR', { daysWorked: 10 }),
+      member('JUNIOR', { daysWorked: 9 }),
+      member('MIDDLE', { daysWorked: 12 }),
+      member('MIDDLE', { daysWorked: 11 }),
+      member('SENIOR', { daysWorked: 99 }),
+      member('MARKETING', { daysWorked: 99 }),
+    ];
+    promoteStaff(staff);
+    expect(staff.map((person) => person.kind)).toEqual(['MIDDLE', 'JUNIOR', 'SENIOR', 'MIDDLE', 'SENIOR', 'MARKETING']);
   });
 
   it('rolls absences deterministically per seed and stores the last absent day', () => {

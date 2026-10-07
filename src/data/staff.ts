@@ -1,4 +1,4 @@
-import type { AbsenceReason, StaffJob, StaffKindDef } from '@domain/models';
+import type { AbsenceReason, StaffJob, StaffKind, StaffKindDef } from '@domain/models';
 
 /** Tối đa bao nhiêu nhân viên quầy (thực tập sinh, junior, middle, senior) cùng lúc; marketing không tính. */
 export const STAFF_CAP = 2;
@@ -27,8 +27,13 @@ export const STAFF_JOB_DELAY_MS: Record<StaffJob, number> = {
 /** Cân hành lý của Middle sai theo xác suất này (%). */
 export const BAGGAGE_ERROR_PCT = 40;
 
-/** Thực tập sinh đi làm đủ số ngày này thì tự lên Junior với lương bằng tỉ lệ này của lương Junior. */
-export const INTERN_PROMOTE_AFTER_DAYS = 30;
+/** Làm đủ `afterDays` ngày ở bậc hiện tại thì tự lên bậc `to` (số ngày tính lại từ 0 ở bậc mới); Senior và Marketing không lên nữa. */
+export const STAFF_PROMOTIONS: Partial<Record<StaffKind, { afterDays: number; to: StaffKind }>> = {
+  INTERN: { afterDays: 8, to: 'JUNIOR' },
+  JUNIOR: { afterDays: 10, to: 'MIDDLE' },
+  MIDDLE: { afterDays: 12, to: 'SENIOR' },
+};
+/** Người được thăng bậc lấy tỉ lệ này của lương gốc bậc mới (rẻ hơn thuê ngoài). */
 export const PROMOTED_WAGE_RATIO = 0.6;
 
 /** Cứ mỗi `WAGE_RAISE_EVERY_DAYS` ngày, lương mỗi người tăng thêm `WAGE_RAISE_PROFIT_SHARE` × phần lợi nhuận/ngày vừa tăng thêm. */

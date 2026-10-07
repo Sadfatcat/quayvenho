@@ -549,19 +549,19 @@ describe('staff', () => {
     expect(game.state.staff.map((member) => member.daysWorked)).toEqual([0, 1]);
   });
 
-  it('an intern who reaches 30 days becomes a Junior at 60% pay and the summary carries a notice', () => {
+  it('an intern who reaches 8 days becomes a Junior at 60% pay, restarts the day count, and the summary carries a notice', () => {
     const game = richGame(15);
     game.dispatch({ type: 'HIRE_STAFF', kind: 'INTERN' });
     const intern = game.state.staff[0];
     if (!intern) throw new Error('missing intern');
-    intern.daysWorked = 29;
+    intern.daysWorked = 7;
     stockAllFlights(game);
     game.dispatch({ type: 'OPEN_COUNTER' });
 
     tickUntil(game, () => game.state.phase === 'SUMMARY', 60_000);
 
-    expect(game.state.staff[0]).toMatchObject({ kind: 'JUNIOR', promoted: true, daysWorked: 30 });
-    expect(game.state.lastSummary?.staffNotices).toContainEqual({ type: 'PROMOTED', staffId: intern.id, name: intern.name });
+    expect(game.state.staff[0]).toMatchObject({ kind: 'JUNIOR', promoted: true, daysWorked: 0 });
+    expect(game.state.lastSummary?.staffNotices).toContainEqual({ type: 'PROMOTED', staffId: intern.id, name: intern.name, toKind: 'JUNIOR' });
   });
 
   it('wages grow every third day by 40% of the profit growth', () => {

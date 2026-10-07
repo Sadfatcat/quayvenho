@@ -76,7 +76,7 @@ import {
   pickStaffFlight,
   pickStaffSeat,
   presentStaff,
-  promoteInterns,
+  promoteStaff,
   pushProfit,
   rollAbsences,
   staffBaggageKg,
@@ -802,7 +802,7 @@ const payStaffWages = (state: GameState): void => {
  */
 const finishStaffDay = (state: GameState, summary: DaySummary): StaffNotice[] => {
   for (const member of presentStaff(state.staff, state.day)) member.daysWorked++;
-  const notices: StaffNotice[] = promoteInterns(state.staff);
+  const notices: StaffNotice[] = promoteStaff(state.staff);
   state.profitHistory = pushProfit(state.profitHistory, summary.moneyEnd - summary.moneyStart + summary.shopCost + summary.staffWages);
   if (state.day % WAGE_RAISE_EVERY_DAYS === 0) state.wageRaise += wageRaiseIncrement(state.profitHistory);
   clearFinishedAbsences(state.staff, state.day + 1);

@@ -1,7 +1,7 @@
 import {
   ABSENCES,
   BAGGAGE_ERROR_PCT,
-  INTERN_PROMOTE_AFTER_DAYS,
+  STAFF_PROMOTIONS,
   MARKETING,
   PROMOTED_WAGE_RATIO,
   STAFF_CAP,
@@ -28,9 +28,10 @@ export const presentStaff = (staff: readonly StaffMember[], day: number): StaffM
 
 const countsTowardCap = (member: StaffMember): boolean => kindDefOf(member.kind)?.countsTowardCap ?? true;
 
-/** Lương một ngày đi làm: lương gốc (thực tập sinh đã lên bậc lấy tỉ lệ lương Junior) cộng phần tăng theo lợi nhuận. */
+/** Lương một ngày đi làm: lương gốc của bậc (người được thăng bậc lấy tỉ lệ `PROMOTED_WAGE_RATIO`) cộng phần tăng theo lợi nhuận. */
 export const wageOf = (member: StaffMember, wageRaise: number): number => {
-  const base = member.promoted ? roundMoney((kindDefOf('JUNIOR')?.baseWage ?? 0) * PROMOTED_WAGE_RATIO) : (kindDefOf(member.kind)?.baseWage ?? 0);
+  const baseWage = kindDefOf(member.kind)?.baseWage ?? 0;
+  const base = member.promoted ? roundMoney(baseWage * PROMOTED_WAGE_RATIO) : baseWage;
   return base + wageRaise;
 };
 
@@ -136,14 +137,16 @@ export const staffBaggageKg = (order: Order, rng: Rng): number => {
 
 // ---------- cuối ngày: thăng bậc, nghỉ, lương ----------
 
-/** Thực tập sinh đủ ngày đi làm thì lên Junior (giữ id, nhận việc Junior, lương theo tỉ lệ). Trả thông báo. */
-export const promoteInterns = (staff: StaffMember[]): StaffNotice[] => {
+/** Ai làm đủ ngày ở bậc hiện tại thì lên bậc kế (giữ id, nhận việc của bậc mới, lương theo tỉ lệ, đếm ngày lại từ 0). Trả thông báo. */
+export const promoteStaff = (staff: StaffMember[]): StaffNotice[] => {
   const notices: StaffNotice[] = [];
   for (const member of staff) {
-    if (member.kind !== 'INTERN' || member.daysWorked < INTERN_PROMOTE_AFTER_DAYS) continue;
-    member.kind = 'JUNIOR';
+    const promotion = STAFF_PROMOTIONS[member.kind];
+    if (!promotion || member.daysWorked < promotion.afterDays) continue;
+    member.kind = promotion.to;
     member.promoted = true;
-    notices.push({ type: 'PROMOTED', staffId: member.id, name: member.name });
+    member.daysWorked = 0;
+    notices.push({ type: 'PROMOTED', staffId: member.id, name: member.name, toKind: promotion.to });
   }
   return notices;
 };

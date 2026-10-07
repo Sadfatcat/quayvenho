@@ -265,7 +265,7 @@ export interface StaffMember {
 
 export type StaffNotice =
   | { type: 'ABSENT'; staffId: string; name: string; kind: StaffKind; reason: AbsenceReason; untilDay: number }
-  | { type: 'PROMOTED'; staffId: string; name: string };
+  | { type: 'PROMOTED'; staffId: string; name: string; toKind: StaffKind };
 
 export interface TodayState {
   moneyStart: number;

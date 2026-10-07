@@ -138,7 +138,8 @@ const staffMemberSchema = z.object({
 
 const staffNoticeSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ABSENT'), staffId: z.string(), name: z.string(), kind: staffKindSchema, reason: absenceReasonSchema, untilDay: z.number().finite() }),
-  z.object({ type: z.literal('PROMOTED'), staffId: z.string(), name: z.string() }),
+  // Thông báo cũ (trước khi có thăng bậc nhiều cấp) chỉ có thể là lên Junior.
+  z.object({ type: z.literal('PROMOTED'), staffId: z.string(), name: z.string(), toKind: staffKindSchema.default('JUNIOR') }),
 ]);
 
 const transactionSchema = z.object({

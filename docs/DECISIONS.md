@@ -225,3 +225,8 @@ Còn tồn: bot hoàn hảo tích luỹ rất nhiều tiền ở cuối (~2,2 tr
 - `BASE_MODIFIERS.patienceMult` 1 → 1,1 (nhân với các nâng cấp Ghế chờ êm 1,2 và Quạt mát 1,1: tối đa 1,452). Lý do: chủ dự án chơi thử thấy thanh kiên nhẫn tụt quá nhanh, khách bỏ đi nhiều.
 - Thời gian in vé thật: máy thường 3000 → 2000 ms, máy in nhanh (FAST_PRINTER) 1500 → 1000 ms (giữ tỉ lệ một nửa). Hiểu "khoảng 2 giây đời thật" là máy thường; nếu ý là máy in nhanh thì chỉnh lại.
 - Sim 400 seed / 40 ngày: AVERAGE ngày 10 = 46,1k, ngày 40 = 462k (trước 47,6k / 451k); PERFECT ngày 40 = 5,49 triệu; POOR lưới an toàn 9 lần. Bot không phản ánh hết cảm giác người chơi thật nên chỉ số khách bỏ đi của sim (AVERAGE 3%, POOR 12% ở 10 ngày đầu) ít đổi.
+
+## 2026-10-07 — Thăng bậc nhân viên theo chuỗi
+- Thực tập sinh làm đủ 8 ngày (trước 30) lên Junior; Junior làm đủ 10 ngày lên Middle; Middle làm đủ 12 ngày lên Senior (`STAFF_PROMOTIONS` trong `data/staff.ts`). Áp dụng cho mọi nhân viên quầy, kể cả người thuê trực tiếp; Senior và Marketing không lên nữa. Mỗi lần lên bậc, số ngày làm tính lại từ 0 và lương bằng 60% lương gốc của bậc mới (`wageOf`). Lương hằng ngày tăng tương ứng theo bậc, nên quỹ lương người chơi nuôi dần cao lên thay vì mãi ở mức thực tập.
+- Save: `StaffNotice.PROMOTED` có thêm `toKind` (schema mặc định `JUNIOR` cho thông báo cũ), không đổi `SAVE_VERSION`. Save đang chơi có Junior/Middle đã làm quá số ngày sẽ được lên bậc ở cuối ngày kế tiếp.
+- Màn Nhân viên: bỏ dòng mô tả việc dưới tên (mô tả đã có ở thẻ thuê); chỉ còn lương/ngày và, nếu nghỉ, lý do nghỉ cạnh nút "Cho nghỉ".
