@@ -11,15 +11,15 @@ export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.7, sfxVolume: 0.8, ha
 // Kho
 /** Biên lợi nhuận trên giá bán gốc của mỗi vé (giá vốn = giá × (1 − biên)): nội địa 15%, quốc tế 25–30%. */
 export const SEAT_MARGIN_BY_ROUTE: Readonly<Record<string, number>> = {
-  'HAN-SGN': 0.15,
-  'HAN-DAD': 0.15,
-  'HAN-CXR': 0.15,
-  'HAN-PQC': 0.15,
-  'HAN-DLI': 0.15,
-  'HAN-BKK': 0.25,
-  'HAN-ICN': 0.27,
-  'HAN-NRT': 0.28,
-  'HAN-CDG': 0.3,
+  'HAN-SGN': 0.12,
+  'HAN-DAD': 0.12,
+  'HAN-CXR': 0.12,
+  'HAN-PQC': 0.12,
+  'HAN-DLI': 0.12,
+  'HAN-BKK': 0.22,
+  'HAN-ICN': 0.24,
+  'HAN-NRT': 0.25,
+  'HAN-CDG': 0.27,
 };
 export const PURCHASE_LIMIT_PER_FLIGHT: Record<CabinClass, number> = { ECONOMY: 12, BUSINESS: 4 };
 /** Checked in order; first match wins. */

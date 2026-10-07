@@ -189,3 +189,17 @@ Mục đích: xem người chơi "nghèo đi" sau khi thuê nhân viên như ch�
 - Thước đo "tiền mặt" của sim gồm cả vốn lưu động; dùng cột "lãi tích luỹ" khi so sánh.
 
 **Cách chạy lại.** `DAYS=60 SEEDS=500 QUIET=1 npm run sim` (khoảng 7–8 phút); thêm `HIRE=1` để bot thuê nhân viên.
+
+## Phương án K — vé 3 ngày + khách đầu game + hạ biên (400 seed, 40 ngày)
+
+Gộp ba thay đổi (xem `docs/DECISIONS.md` 2026-10-07). Ghế 3 ngày làm ghế ế gần về 0 nên thu nhập tăng mạnh; để bù, biên giảm và khách ngày 1–7 tăng.
+
+| Cấu hình | AVERAGE ngày 10 | AVERAGE ngày 40 | Bangkok (AVERAGE) | PERFECT ngày 40 | POOR lưới an toàn |
+|---|---|---|---|---|---|
+| Mốc trước (biên 15/25–30%, chưa có khách thêm) | 50,6k | 550k | ngày 17 | 6,45 triệu | 8 |
+| Biên 15% + khách thêm | 48,8k | 555k | ngày 17 | 6,47 triệu | 7 |
+| **Biên 12/22–27% + khách thêm (chọn)** | **47,6k** | **453k** | **ngày 19** | **5,91 triệu** | **9** |
+| Biên 10/20–25% | 43,1k | 394k | ngày 21 | 5,57 triệu | 10 |
+| Biên 8/18–23% | 39,4k | 345k | ngày 24 | 5,14 triệu | 11 |
+
+Đánh giá: chọn biên 12% vì AVERAGE vẫn trong ±25% mốc cũ. Tồn tại: PERFECT giàu từ ngày 18 (chưa đạt mục tiêu ≥ 23), POOR vẫn nhờ lưới an toàn 9 lần. Khách thêm ngày 1–4 không đổi thu nhập đầu game vì bị chặn bởi vốn và tốc độ phục vụ.
