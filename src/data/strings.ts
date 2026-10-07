@@ -73,6 +73,9 @@ export const STRINGS = {
   passport: {
     expires: 'Hết hạn: Ngày',
     bookedName: 'Tên đặt vé',
+    fullName: 'Họ tên',
+    birthDate: 'Ngày sinh',
+    hometown: 'Quê quán',
     today: 'Hôm nay: Ngày',
     icon: '🛂',
   },

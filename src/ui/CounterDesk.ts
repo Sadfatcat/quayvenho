@@ -19,6 +19,7 @@ import { MiniSeatMap } from './MiniSeatMap';
 import { Panel } from './Panel';
 import { Button } from './Button';
 import { PrinterStation, type PrinterMode } from './PrinterStation';
+import { shortNameOf } from './passportProfile';
 import { ScrollList } from './ScrollList';
 import { StampButton } from './StampButton';
 import { COLORS, FONT_FAMILY, HEADING_FONT_FAMILY, toCssColor } from './theme';
@@ -238,7 +239,7 @@ export class CounterDesk extends Phaser.GameObjects.Container {
       width: width - 16,
       height: height - 16,
       cabin: draft.cabin,
-      passengerName: customer.order.passport.bookedName,
+      passengerName: shortNameOf(customer.order.passport.bookedName),
       destinationStamp: draft.routeStamp ? getRoute(draft.routeStamp).name : null,
       destinationIcon: draft.routeStamp ? getRoute(draft.routeStamp).icon : null,
       timeStamp: draft.timeStamp !== null ? formatClock(draft.timeStamp) : null,

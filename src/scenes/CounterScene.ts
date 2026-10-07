@@ -12,6 +12,7 @@ import { registerVisibilityHandler } from '@platform/visibility';
 import { Button } from '@ui/Button';
 import { burstCoins } from '@ui/CoinBurst';
 import { CounterDesk } from '@ui/CounterDesk';
+import { InfoBox } from '@ui/InfoBox';
 import { CARD, CustomerCard, PASSPORT_BUTTON_INSET, PASSPORT_BUTTON_SIZE } from '@ui/CustomerCard';
 import { formatMoney } from '@ui/format';
 import { QueueStrip } from '@ui/QueueStrip';
@@ -38,8 +39,8 @@ const specialLinesOf = (specialId: string | undefined) => PERSONAL.specialCustom
 const SHAKE_DURATION_MS = 180;
 const SHAKE_INTENSITY = 0.006;
 const HEADER_TEXT_Y = 146;
-/** Thông báo sự kiện nằm dưới hàng tên quầy, bên phải ảnh người chơi, để chừa chỗ cho ô TravelViet dưới ô tiền. */
-const EVENT_BADGE = { x: 110, y: 192, width: 580 };
+/** Cảnh báo sự kiện (ngày lễ, thời tiết xấu) chỉ hiện một lần lúc mới mở quầy rồi tự tắt, đặt giữa màn hình để không che khách. */
+const OPENING_WARNING = { top: 540, width: 660, fontSize: 24, visibleMs: 4500, fadeMs: 600, depth: 40 };
 const PASSPORT_BUTTON = { x: CARD.left + CARD.width - PASSPORT_BUTTON_INSET - PASSPORT_BUTTON_SIZE / 2, y: CARD.top + PASSPORT_BUTTON_INSET + PASSPORT_BUTTON_SIZE / 2 };
 /** Nằm gọn trong khung yêu cầu (khung: x 164–696, y 244–428), cách viền phải và đáy 20px. */
 const REFUSE_BUTTON = { x: GAME_WIDTH - SCREEN_MARGIN - 20 - 70, y: 428 - 16 - 24, width: 140, height: 48, fontSize: 20 };
@@ -56,7 +57,6 @@ const rejectedLabel = (reason: string): string =>
 export class CounterScene extends BaseScene {
   private toasts!: ToastQueue;
   private brandText!: Phaser.GameObjects.Text;
-  private eventBadge!: Phaser.GameObjects.Text;
   private waitingText!: Phaser.GameObjects.Text;
   private queueStrip!: QueueStrip;
   private customerCard!: CustomerCard;
@@ -85,6 +85,7 @@ export class CounterScene extends BaseScene {
   protected onCreate(): void {
     this.toasts = new ToastQueue(this);
     this.buildLayout();
+    this.showOpeningWarning(sessionBridge.current.state);
     this.unsubscribeEvents = sessionBridge.onEvents((events) => this.handleEvents(events));
     this.unsubscribeVisibility = registerVisibilityHandler({
       onHidden: () => sessionBridge.setPaused(true),
@@ -124,7 +125,6 @@ export class CounterScene extends BaseScene {
     });
 
     this.brandText = this.add.text(SCREEN_MARGIN, HEADER_TEXT_Y, state.profile?.brandName ?? '', { fontFamily: FONT_FAMILY, fontSize: '22px', fontStyle: 'bold', color: toCssColor(COLORS.text) }).setOrigin(0, 0.5);
-    this.eventBadge = this.add.text(EVENT_BADGE.x, EVENT_BADGE.y, '', { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.warning), wordWrap: { width: EVENT_BADGE.width } }).setOrigin(0, 0.5);
 
     this.waitingText = this.add.text(GAME_WIDTH / 2, 290, STRINGS.counter.waitingForCustomer, { fontFamily: FONT_FAMILY, fontSize: '28px', color: toCssColor(COLORS.textMuted) }).setOrigin(0.5).setVisible(false);
     this.staffChips = this.add.container(0, 0);
@@ -154,7 +154,6 @@ export class CounterScene extends BaseScene {
     this.topBar.setMoney(state.money);
     this.topBar.setTravelViet(isTravelVietOpen(state.day) ? travelVietScore(state.starHistory) : null);
     this.brandText.setText(state.profile?.brandName ?? '');
-    this.eventBadge.setText(this.eventBadgeText(state));
 
     const counter = counterCustomer(state.today);
     const queuedCount = state.today.queue.filter((candidate) => candidate.position === 'QUEUE').length;
@@ -189,6 +188,14 @@ export class CounterScene extends BaseScene {
       if (portrait && absent) portrait.setAlpha(0.45);
       this.staffChips.add([disc, initial]);
     });
+  }
+
+  private showOpeningWarning(state: GameState): void {
+    const text = this.eventBadgeText(state);
+    if (!text) return;
+    const box = new InfoBox(this, GAME_WIDTH / 2, OPENING_WARNING.top, { width: OPENING_WARNING.width, tone: 'warning', fontSize: OPENING_WARNING.fontSize, text });
+    box.setDepth(OPENING_WARNING.depth);
+    this.tweens.add({ targets: box, alpha: 0, delay: OPENING_WARNING.visibleMs, duration: OPENING_WARNING.fadeMs, onComplete: () => box.destroy() });
   }
 
   private eventBadgeText(state: GameState): string {

@@ -3,6 +3,7 @@ import type { Customer, Mood } from '@domain/models';
 import { patienceRatioOf } from '@domain/dayCycle';
 import { CustomerAvatar, type AvatarMood } from './CustomerAvatar';
 import { orderSpeech } from './orderRequest';
+import { shortNameOf } from './passportProfile';
 import { Panel } from './Panel';
 import { PatienceBar } from './PatienceBar';
 import { COLORS, FONT_FAMILY, toCssColor } from './theme';
@@ -85,7 +86,7 @@ export class CustomerCard extends Phaser.GameObjects.Container {
     content.add([disc, avatar, ring]);
 
     const name = scene.add
-      .text(AVATAR_CENTER.x, NAME_Y, customer.order.passport.bookedName, { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: 150 } })
+      .text(AVATAR_CENTER.x, NAME_Y, shortNameOf(customer.order.passport.bookedName), { fontFamily: FONT_FAMILY, fontSize: '20px', fontStyle: 'bold', color: toCssColor(COLORS.text), align: 'center', wordWrap: { width: 150 } })
       .setOrigin(0.5);
     this.patienceBar = new PatienceBar(scene, PATIENCE_BAR.x, PATIENCE_BAR.y, { width: PATIENCE_BAR.width, height: PATIENCE_BAR.height });
     content.add([name, this.patienceBar]);

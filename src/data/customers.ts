@@ -21,3 +21,13 @@ export const GIVEN_NAMES: readonly string[] = [
 ];
 
 export const MAX_FULL_NAME_LENGTH = 22;
+
+/** Quê quán hiện trên hộ chiếu (chỉ để trang trí, không ảnh hưởng chấm điểm). */
+export const HOMETOWNS: readonly string[] = [
+  'Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Nam Định', 'Thái Bình', 'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh',
+  'Huế', 'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi', 'Bình Định', 'Khánh Hòa', 'Đà Lạt', 'Cần Thơ',
+  'TP. Hồ Chí Minh', 'Vũng Tàu', 'Tiền Giang', 'Cà Mau',
+];
+/** Tuổi trên hộ chiếu và năm làm mốc để tính năm sinh. */
+export const PASSPORT_AGE_RANGE = { min: 18, max: 70 } as const;
+export const PASSPORT_REFERENCE_YEAR = 2026;
