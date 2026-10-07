@@ -120,7 +120,7 @@ export class ShopScene extends BaseScene {
         title: upgradeText.name,
         description: upgradeText.description.replace('{minTravelViet}', String(item.upgrade.minTravelViet ?? '')),
         priceLabel: formatMoney(item.upgrade.cost),
-        statusLabel: owned ? STRINGS.shop.owned : result.ok ? '' : this.upgradeStatusText(result.reason, item.upgrade.minDay),
+        statusLabel: owned ? STRINGS.shop.owned : result.ok ? '' : this.upgradeStatusText(result.reason, item.upgrade.minDay, item.upgrade.minTravelViet),
         imageKey: upgradeImageKey(item.upgrade.id),
         buttonLabel: STRINGS.shop.buy,
         buttonEnabled: result.ok,
@@ -145,7 +145,7 @@ export class ShopScene extends BaseScene {
     });
   }
 
-  private upgradeStatusText(reason: UpgradeError, minDay: number | null): string {
+  private upgradeStatusText(reason: UpgradeError, minDay: number | null, minTravelViet: number | null): string {
     switch (reason) {
       case 'NOT_ENOUGH_MONEY':
         return STRINGS.shop.statusNotEnoughMoney;
@@ -154,7 +154,7 @@ export class ShopScene extends BaseScene {
       case 'TRAVELVIET_LOCKED':
         return STRINGS.shop.statusTravelVietLocked;
       case 'TRAVELVIET_TOO_LOW':
-        return STRINGS.shop.statusTravelVietTooLow;
+        return `${STRINGS.shop.statusTravelVietTooLow} ${minTravelViet ?? ''}`;
       default:
         return '';
     }
